@@ -68,24 +68,22 @@ export const DEFAULT_PAGES: DynamicPageConfig[] = [
   },
 ];
 
-// Center coordinates for Hat Yai Police Station (สภ.หาดใหญ่)
+// Center coordinates for Sathon Police Station (สภ.สะท้อน)
 export const HAT_YAI_STATION_COORDS = {
-  lat: 7.0084,
-  lng: 100.4767,
+  lat: 6.7571,
+  lng: 100.6725,
   zoom: 13,
 };
 
-// Seeded random number generator for realistic Hat Yai CCTV distribution
+// Seeded random number generator for realistic Sathon CCTV distribution
 function pseudoRandom(seed: number) {
   const x = Math.sin(seed++) * 10000;
   return x - Math.floor(x);
 }
 
 const ROADS_AND_AREAS = [
-  'ถ.ธรรมนูญวิถี', 'ถ.ศุภสารรังสรรค์', 'ถ.เพชรเกษม', 'ถ.กาญจนวณิชย์', 'ถ.นิพัทธ์อุทิศ 1',
-  'ถ.นิพัทธ์อุทิศ 2', 'ถ.นิพัทธ์อุทิศ 3', 'ถ.ศรีภูวนาถ', 'ถ.ราษฎร์ยินดี', 'ถ.โชติวิทยะกุล',
-  'สามแยกคอหงส์', 'สี่แยกวงเวียนน้ำพุ', 'สี่แยกคลองเรียน', 'ทางข้ามรถไฟคลองเตย', 'สี่แยกตลาดกิมหยง',
-  'สี่แยกบิ๊กซีคลองแห', 'หน้าลานสถานีรถไฟหาดใหญ่', 'หน้าประตู ม.สงขลานครินทร์', 'ถ.ลพบุรีราเมศวร์'
+  'ถ.สะท้อน-นาทวี', 'ถ.จนะ-นาทวี', 'สายป่าบ่อ-สะท้อน', 'หน้าวัดสะท้อน', 'หน้าโรงเรียนบ้านสะท้อน',
+  'สี่แยกสะท้อน', 'สามแยกบ้านวังใหญ่', 'จุดตรวจตู้ยามสะท้อน', 'ถ.ลพบุรีราเมศวร์'
 ];
 
 const CAMERA_TYPES: ('Fixed Camera' | 'PTZ Camera' | 'LPR/AI Camera' | 'Speed Cam')[] = [
@@ -128,7 +126,7 @@ function generateFullHatYaiCctvData(): CctvItem[] {
         no: idCount,
         agency: agency as any,
         locationName: `${road} ซอย ${subNumber} (จุดที่ ${i + 1})`,
-        address: 'ต.หาดใหญ่ อ.หาดใหญ่ จ.สงขลา',
+        address: 'ต.สะท้อน อ.นาทวี จ.สงขลา',
         notes: `กล้องเฝ้าระวังความปลอดภัยสังกัด ${agency} จุดส่องการจราจรและพื้นที่เสี่ยง`,
         lat: Number((HAT_YAI_STATION_COORDS.lat + latOffset).toFixed(6)),
         lng: Number((HAT_YAI_STATION_COORDS.lng + lngOffset).toFixed(6)),
@@ -147,26 +145,22 @@ function generateFullHatYaiCctvData(): CctvItem[] {
 export const SAMPLE_CCTV_DATA: CctvItem[] = generateFullHatYaiCctvData();
 
 export const SAMPLE_POI_DATA: PoiItem[] = [
-  { id: 'poi-1', no: 1, category: 'โรงเรียน', name: 'โรงเรียนหาดใหญ่วิทยาลัย (ญ.ว.)', address: '168 ถ.เพชรเกษม อ.หาดใหญ่ จ.สงขลา', contactPerson: 'อาจารย์ฝ่ายปกครอง', phone: '074-254100', lat: 7.0142, lng: 100.4812, riskLevel: 'เฝ้าระวังพิเศษ', policeSubstation: 'สายตรวจเขต 1' },
-  { id: 'poi-2', no: 2, category: 'โรงเรียน', name: 'โรงเรียนแสงทองวิทยา', address: '93 ถ.ธรรมนูญวิถี อ.หาดใหญ่ จ.สงขลา', contactPerson: 'อธิการโรงเรียน', phone: '074-243160', lat: 7.0055, lng: 100.4750, riskLevel: 'ปานกลาง', policeSubstation: 'สายตรวจเขต 2' },
-  { id: 'poi-3', no: 3, category: 'วัด / มัสยิด', name: 'วัดหาดใหญ่สระน้ำ (วัดมหัตตมังคลาราม)', address: 'ถ.โฉลกรัฐ อ.หาดใหญ่ จ.สงขลา', contactPerson: 'เจ้าอาวาสวัด', phone: '074-231566', lat: 7.0030, lng: 100.4580, riskLevel: 'ต่ำ', policeSubstation: 'สายตรวจเขต 3' },
-  { id: 'poi-4', no: 4, category: 'วัด / มัสยิด', name: 'มัสยิดกลางประจำจังหวัดสงขลา', address: 'ถ.ลพบุรีราเมศวร์ ต.คลองแห อ.หาดใหญ่', contactPerson: 'อิหม่ามประจำมัสยิด', phone: '074-300100', lat: 7.0620, lng: 100.4680, riskLevel: 'เฝ้าระวังพิเศษ', policeSubstation: 'สภ.คลองแห' },
-  { id: 'poi-5', no: 5, category: 'ปั๊มน้ำมัน', name: 'ปตท. สาขาหาดใหญ่ใน (ถ.เพชรเกษม)', address: 'ถ.เพชรเกษม ต.หาดใหญ่ อ.หาดใหญ่', contactPerson: 'ผู้จัดการสถานี', phone: '074-252111', lat: 7.0090, lng: 100.4480, riskLevel: 'ปานกลาง', policeSubstation: 'สายตรวจเขต 4' },
-  { id: 'poi-6', no: 6, category: 'ร้านสะดวกซื้อ', name: '7-Eleven สาขา ตลาดกิมหยง', address: 'ถ.ศุภสารรังสรรค์ อ.หาดใหญ่', contactPerson: 'ผู้จัดการสาขา', phone: '074-220099', lat: 7.0068, lng: 100.4730, riskLevel: 'สูง', policeSubstation: 'สายตรวจเขต 1' },
-  { id: 'poi-7', no: 7, category: 'โรงพยาบาล', name: 'โรงพยาบาลหาดใหญ่', address: '182 ถ.รัถการ อ.หาดใหญ่ จ.สงขลา', contactPerson: 'ศูนย์วิทยุ รพ.', phone: '074-273100', lat: 7.0135, lng: 100.4660, riskLevel: 'ต่ำ', policeSubstation: 'ตู้ยาม รพ.หาดใหญ่' },
-  { id: 'poi-8', no: 8, category: 'โรงพยาบาล', name: 'โรงพยาบาลกรุงเทพหาดใหญ่', address: '75 ซ.15 ถ.เพชรเกษม อ.หาดใหญ่', contactPerson: 'ฉุกเฉิน 1719', phone: '074-272800', lat: 7.0098, lng: 100.4890, riskLevel: 'ต่ำ', policeSubstation: 'สายตรวจเขต 2' },
-  { id: 'poi-9', no: 9, category: 'ธนาคาร', name: 'ธนาคารกสิกรไทย สาขาถนนเพชรเกษม', address: 'ถ.เพชรเกษม อ.หาดใหญ่', contactPerson: 'ฝ่ายความปลอดภัย', phone: '074-230111', lat: 7.0115, lng: 100.4755, riskLevel: 'สูง', policeSubstation: 'สายตรวจธนาคาร' },
-  { id: 'poi-10', no: 10, category: 'สถานที่ท่องเที่ยว', name: 'ตลาดกิมหยง หาดใหญ่', address: 'ถ.ศุภสารรังสรรค์ อ.หาดใหญ่', contactPerson: 'ประธานชุมชน', phone: '074-233400', lat: 7.0066, lng: 100.4728, riskLevel: 'เฝ้าระวังพิเศษ', policeSubstation: 'สายตรวจท่องเที่ยว' }
+  { id: 'poi-1', no: 1, category: 'โรงเรียน', name: 'โรงเรียนบ้านสะท้อน', address: 'ต.สะท้อน อ.นาทวี จ.สงขลา', contactPerson: 'คุณครูฝ่ายปกครอง', phone: '074-371100', lat: 6.7580, lng: 100.6730, riskLevel: 'เฝ้าระวังพิเศษ', policeSubstation: 'สายตรวจเขต 1' },
+  { id: 'poi-2', no: 2, category: 'วัด / มัสยิด', name: 'วัดสะท้อน', address: 'หมู่ 1 ต.สะท้อน อ.นาทวี จ.สงขลา', contactPerson: 'เจ้าอาวาสวัด', phone: '074-371200', lat: 6.7565, lng: 100.6715, riskLevel: 'ต่ำ', policeSubstation: 'สายตรวจเขต 2' },
+  { id: 'poi-3', no: 3, category: 'วัด / มัสยิด', name: 'มัสยิดบ้านสะท้อน', address: 'หมู่ 2 ต.สะท้อน อ.นาทวี จ.สงขลา', contactPerson: 'อิหม่ามประจำมัสยิด', phone: '074-371300', lat: 6.7550, lng: 100.6700, riskLevel: 'ต่ำ', policeSubstation: 'สายตรวจเขต 3' },
+  { id: 'poi-4', no: 4, category: 'ปั๊มน้ำมัน', name: 'ปตท. สาขาสะท้อน-นาทวี', address: 'ถ.จะนะ-นาทวี ต.สะท้อน อ.นาทวี', contactPerson: 'ผู้จัดการสถานี', phone: '074-371400', lat: 6.7590, lng: 100.6740, riskLevel: 'ปานกลาง', policeSubstation: 'สายตรวจเขต 4' },
+  { id: 'poi-5', no: 5, category: 'ร้านสะดวกซื้อ', name: '7-Eleven สาขา ตลาดสะท้อน', address: 'ตลาดสะท้อน ต.สะท้อน อ.นาทวี', contactPerson: 'ผู้จัดการสาขา', phone: '074-371500', lat: 6.7575, lng: 100.6728, riskLevel: 'สูง', policeSubstation: 'สายตรวจเขต 1' },
+  { id: 'poi-6', no: 6, category: 'โรงพยาบาล', name: 'โรงพยาบาลส่งเสริมสุขภาพตำบลสะท้อน (รพ.สต.สะท้อน)', address: 'ต.สะท้อน อ.นาทวี จ.สงขลา', contactPerson: 'ผู้อำนวยการ รพ.สต.', phone: '074-371600', lat: 6.7585, lng: 100.6735, riskLevel: 'ต่ำ', policeSubstation: 'ตู้ยาม รพ.สต.สะท้อน' },
 ];
 
 export const SAMPLE_CASES_DATA: CaseItem[] = [
-  { caseNo: '998/2567', receiptDate: '11-มิ.ย.-67', suspect: '1) นาย สมานชัย และตี', charge: '1) ตัวการช่วยซ่อนเร้น ช่วยจำหน่าย ช่วยพาเอาไปเสีย ซื้อรับจำนำ หรือรับไว้โดยประการใดซึ่งของอันตนรู้ว่าเป็นของที่ยังมิได้เสียค่าภาษี หรือของต้องจำกัด', station: 'สภ.หาดใหญ่ ภ.จว.สงขลา ภ.9', investigator: 'ร.ต.อ. ธีรเดช ตติยวัฒนชัย', duration: '9 เดือน 12 วัน', formattedDate: '11/6/2024' },
-  { caseNo: '994/2566', receiptDate: '15-มี.ค.-66', suspect: '1) นาย นตพล ฉิมแก้ว 2) นาย สิทธิวัฒน์ รักษาคง 3) นาย ธนวัฒน์ รักษาคง', charge: '1) ร่วมกันหน่วงเหนี่ยวหรือกักขังผู้อื่น 2) ร่วมกันหน่วงเหนี่ยวหรือกักขังผู้อื่น', station: 'สภ.หาดใหญ่ ภ.จว.สงขลา ภ.9', investigator: 'ร.ต.อ. จิรศักดิ์ วงศ์สุริยะ', duration: '2 ปี 8 วัน', formattedDate: '15/3/2023' },
-  { caseNo: '980/2566', receiptDate: '14-มี.ค.-66', suspect: '1) นาย ปกรณ์ เศวตจินดา', charge: '1) ตัวการช่วยซ่อนเร้น ช่วยจำหน่าย ช่วยพาเอาไปเสีย ซื้อรับจำนำ', station: 'สภ.หาดใหญ่ ภ.จว.สงขลา ภ.9', investigator: 'ร.ต.อ. พนมกร เภรีฤกษ์', duration: '2 ปี 9 วัน', formattedDate: '14/3/2023' },
-  { caseNo: '974/2567', receiptDate: '7-มิ.ย.-67', suspect: '1) นาย จีรศักดิ์ สลีฟิน', charge: '1) ตัวการออกเช็คเพื่อชำระหนี้ที่มีอยู่จริงและบังคับได้ตามกฎหมาย โดยในขณะที่ออกเช็คนั้นไม่มีเงินอยู่ในบัญชี', station: 'สภ.หาดใหญ่ ภ.จว.สงขลา ภ.9', investigator: 'พ.ต.ท. นิมมาน นิกูโน', duration: '9 เดือน 16 วัน', formattedDate: '7/6/2024' },
-  { caseNo: '968/2567', receiptDate: '6-มิ.ย.-67', suspect: '1) นาย สุเทพ ปัญญา', charge: '1) ตัวการฉ้อโกง, ตัวการนำเข้าสู่ระบบคอมพิวเตอร์ซึ่งข้อมูลคอมพิวเตอร์ปลอม', station: 'สภ.หาดใหญ่ ภ.จว.สงขลา ภ.9', investigator: 'ร.ต.อ. พนมกร เภรีฤกษ์', duration: '9 เดือน 17 วัน', formattedDate: '6/6/2024' },
-  { caseNo: '814/2567', receiptDate: '12-พ.ค.-67', suspect: '1) นาย ทินกร อ่อนคำ', charge: '1) ตัวการทำร้ายร่างกายผู้อื่น จนถึงแก่ความตาย', station: 'สภ.หาดใหญ่ ภ.จว.สงขลา ภ.9', investigator: 'ร.ต.ท. อารอฟัต บินยูโซ๊ะ', duration: '10 เดือน 11 วัน', formattedDate: '12/5/2024' },
-  { caseNo: '779/2567', receiptDate: '6-พ.ค.-67', suspect: '1) นาย อัจฉริยะ ไกรสุวรรณ 2) นาย สมชาย แก้วทอง', charge: '1) ร่วมกันลักทรัพย์, ร่วมกันมี ใช้ อาวุธปืน หรือเครื่องกระสุนปืน โดยมิได้อนุญาต', station: 'สภ.หาดใหญ่ ภ.จว.สงขลา ภ.9', investigator: 'ร.ต.อ. วรเมธ สุวรรณรัตน์', duration: '10 เดือน 17 วัน', formattedDate: '6/5/2024' },
-  { caseNo: '738/2567', receiptDate: '25-เม.ย.-67', suspect: '1) นาย เจะฮาฟีฟุดดีน มามะ', charge: '1) ตัวการมี ใช้ อาวุธปืน หรือเครื่องกระสุนปืน โดยมิได้อนุญาต', station: 'สภ.หาดใหญ่ ภ.จว.สงขลา ภ.9', investigator: 'ร.ต.อ. วรเมธ สุวรรณรัตน์', duration: '10 เดือน 28 วัน', formattedDate: '25/4/2024' },
-  { caseNo: '698/2567', receiptDate: '18-เม.ย.-67', suspect: '1) นาย ณัฐวุฒิ น้อยประเทศ 2) นาย พอเพียง บาโจนี', charge: '1) พยายามฆ่าผู้อื่น', station: 'สภ.หาดใหญ่ ภ.จว.สงขลา ภ.9', investigator: 'ร.ต.อ. จิรศักดิ์ วงศ์สุริยะ', duration: '11 เดือน 5 วัน', formattedDate: '18/4/2024' }
+  { caseNo: '998/2567', receiptDate: '11-มิ.ย.-67', suspect: '1) นาย สมานชัย และตี', charge: '1) ตัวการช่วยซ่อนเร้น ช่วยจำหน่าย ช่วยพาเอาไปเสีย ซื้อรับจำนำ หรือรับไว้โดยประการใดซึ่งของอันตนรู้ว่าเป็นของที่ยังมิได้เสียค่าภาษี หรือของต้องจำกัด', station: 'สภ.สะท้อน ภ.จว.สงขลา ภ.9', investigator: 'ร.ต.อ. ธีรเดช ตติยวัฒนชัย', duration: '9 เดือน 12 วัน', formattedDate: '11/6/2024' },
+  { caseNo: '994/2566', receiptDate: '15-มี.ค.-66', suspect: '1) นาย นตพล ฉิมแก้ว 2) นาย สิทธิวัฒน์ รักษาคง 3) นาย ธนวัฒน์ รักษาคง', charge: '1) ร่วมกันหน่วงเหนี่ยวหรือกักขังผู้อื่น 2) ร่วมกันหน่วงเหนี่ยวหรือกักขังผู้อื่น', station: 'สภ.สะท้อน ภ.จว.สงขลา ภ.9', investigator: 'ร.ต.อ. จิรศักดิ์ วงศ์สุริยะ', duration: '2 ปี 8 วัน', formattedDate: '15/3/2023' },
+  { caseNo: '980/2566', receiptDate: '14-มี.ค.-66', suspect: '1) นาย ปกรณ์ เศวตจินดา', charge: '1) ตัวการช่วยซ่อนเร้น ช่วยจำหน่าย ช่วยพาเอาไปเสีย ซื้อรับจำนำ', station: 'สภ.สะท้อน ภ.จว.สงขลา ภ.9', investigator: 'ร.ต.อ. พนมกร เภรีฤกษ์', duration: '2 ปี 9 วัน', formattedDate: '14/3/2023' },
+  { caseNo: '974/2567', receiptDate: '7-มิ.ย.-67', suspect: '1) นาย จีรศักดิ์ สลีฟิน', charge: '1) ตัวการออกเช็คเพื่อชำระหนี้ที่มีอยู่จริงและบังคับได้ตามกฎหมาย โดยในขณะที่ออกเช็คนั้นไม่มีเงินอยู่ในบัญชี', station: 'สภ.สะท้อน ภ.จว.สงขลา ภ.9', investigator: 'พ.ต.ท. นิมมาน นิกูโน', duration: '9 เดือน 16 วัน', formattedDate: '7/6/2024' },
+  { caseNo: '968/2567', receiptDate: '6-มิ.ย.-67', suspect: '1) นาย สุเทพ ปัญญา', charge: '1) ตัวการฉ้อโกง, ตัวการนำเข้าสู่ระบบคอมพิวเตอร์ซึ่งข้อมูลคอมพิวเตอร์ปลอม', station: 'สภ.สะท้อน ภ.จว.สงขลา ภ.9', investigator: 'ร.ต.อ. พนมกร เภรีฤกษ์', duration: '9 เดือน 17 วัน', formattedDate: '6/6/2024' },
+  { caseNo: '814/2567', receiptDate: '12-พ.ค.-67', suspect: '1) นาย ทินกร อ่อนคำ', charge: '1) ตัวการทำร้ายร่างกายผู้อื่น จนถึงแก่ความตาย', station: 'สภ.สะท้อน ภ.จว.สงขลา ภ.9', investigator: 'ร.ต.ท. อารอฟัต บินยูโซ๊ะ', duration: '10 เดือน 11 วัน', formattedDate: '12/5/2024' },
+  { caseNo: '779/2567', receiptDate: '6-พ.ค.-67', suspect: '1) นาย อัจฉริยะ ไกรสุวรรณ 2) นาย สมชาย แก้วทอง', charge: '1) ร่วมกันลักทรัพย์, ร่วมกันมี ใช้ อาวุธปืน หรือเครื่องกระสุนปืน โดยมิได้อนุญาต', station: 'สภ.สะท้อน ภ.จว.สงขลา ภ.9', investigator: 'ร.ต.อ. วรเมธ สุวรรณรัตน์', duration: '10 เดือน 17 วัน', formattedDate: '6/5/2024' },
+  { caseNo: '738/2567', receiptDate: '25-เม.ย.-67', suspect: '1) นาย เจะฮาฟีฟุดดีน มามะ', charge: '1) ตัวการมี ใช้ อาวุธปืน หรือเครื่องกระสุนปืน โดยมิได้อนุญาต', station: 'สภ.สะท้อน ภ.จว.สงขลา ภ.9', investigator: 'ร.ต.อ. วรเมธ สุวรรณรัตน์', duration: '10 เดือน 28 วัน', formattedDate: '25/4/2024' },
+  { caseNo: '698/2567', receiptDate: '18-เม.ย.-67', suspect: '1) นาย ณัฐวุฒิ น้อยประเทศ 2) นาย พอเพียง บาโจนี', charge: '1) พยายามฆ่าผู้อื่น', station: 'สภ.สะท้อน ภ.จว.สงขลา ภ.9', investigator: 'ร.ต.อ. จิรศักดิ์ วงศ์สุริยะ', duration: '11 เดือน 5 วัน', formattedDate: '18/4/2024' }
 ];

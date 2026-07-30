@@ -89,7 +89,7 @@ export const LocalPoiDashboard: React.FC<LocalPoiDashboardProps> = ({ searchQuer
             no: idx + 1,
             category: cat,
             name: String(row[nameCol] || `สถานที่ #${idx + 1}`),
-            address: String(row[notesCol] || 'ต.หาดใหญ่ อ.หาดใหญ่ จ.สงขลา'),
+            address: String(row[notesCol] || 'ต.สะท้อน อ.นาทวี จ.สงขลา'),
             contactPerson: String(row[zoneCol] ? `เขตพื้นที่ ${row[zoneCol]}` : 'เจ้าหน้าที่ดูแล'),
             phone: '074-200000',
             lat: lat || 7.0084,
@@ -254,7 +254,7 @@ export const LocalPoiDashboard: React.FC<LocalPoiDashboardProps> = ({ searchQuer
               <Shield className="w-4 h-4 text-blue-400" /> ภูมิสารสนเทศป้องกันปราบปราม & จุดเสี่ยงเฝ้าระวัง (GIS Police Patrol)
             </div>
             <h2 className="text-xl lg:text-3xl font-extrabold text-white tracking-tight">
-              ฐานข้อมูลสถานที่สำคัญ ท้องที่ สภ.หาดใหญ่ ({poiData.length.toLocaleString('th-TH')} รายการ)
+              ฐานข้อมูลสถานที่สำคัญ ท้องที่ สภ.สะท้อน ({poiData.length.toLocaleString('th-TH')} รายการ)
             </h2>
             <p className="text-xs text-slate-300 mt-1 flex items-center gap-1.5">
               <span>🔗 ซิงค์ข้อมูลเรียลไทม์จาก Google Sheet (ชีท ข้อมูลท้องถิ่น):</span>
@@ -430,7 +430,7 @@ export const LocalPoiDashboard: React.FC<LocalPoiDashboardProps> = ({ searchQuer
 
               <div className="p-3 bg-slate-800/60 rounded-xl border border-slate-700/50 space-y-1">
                 <span className="text-slate-400 font-semibold">🚔 สายตรวจผู้รับผิดชอบ:</span>
-                <p className="text-indigo-300 font-bold">{inspectPoi.policeSubstation || 'สายตรวจเขต สภ.หาดใหญ่'}</p>
+                <p className="text-indigo-300 font-bold">{inspectPoi.policeSubstation || 'สายตรวจเขต สภ.สะท้อน'}</p>
               </div>
 
               <div className="p-3 bg-slate-800/60 rounded-xl border border-slate-700/50 space-y-1 font-mono">

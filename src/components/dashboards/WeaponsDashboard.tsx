@@ -213,7 +213,7 @@ export const WeaponsDashboard: React.FC<WeaponsDashboardProps> = ({ searchQuery 
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
           <div>
             <div className="flex items-center gap-2 text-xs font-bold text-red-300 uppercase tracking-widest mb-1">
-              <Crosshair className="w-4 h-4 text-red-400 animate-pulse" /> ศูนย์คลังทะเบียนยุทธภัณฑ์ & อาวุธปืนสิ่งของหลวง สภ.หาดใหญ่
+              <Crosshair className="w-4 h-4 text-red-400 animate-pulse" /> ศูนย์คลังทะเบียนยุทธภัณฑ์ & อาวุธปืนสิ่งของหลวง สภ.สะท้อน
             </div>
             <h2 className="text-xl lg:text-3xl font-extrabold text-white tracking-tight">
               สารสนเทศคลังอาวุธปืน เครื่องกระสุน และสิ่งของหลวง

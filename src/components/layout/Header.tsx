@@ -10,7 +10,7 @@ interface HeaderProps {
 }
 
 export const Header: React.FC<HeaderProps> = ({
-  stationName = 'สถานีตำรวจภูธรหาดใหญ่',
+  stationName = 'สถานีตำรวจภูธรสะท้อน',
   searchQuery,
   onSearchChange,
   onRefreshData,

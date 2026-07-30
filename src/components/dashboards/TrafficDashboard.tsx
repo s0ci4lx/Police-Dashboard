@@ -117,7 +117,7 @@ export const TrafficDashboard: React.FC<TrafficDashboardProps> = ({ searchQuery 
               <Radio className="w-4 h-4 text-emerald-400 animate-pulse" /> ศูนย์สั่งการจราจรและจุดเสี่ยงอุบัติเหตุ (Traffic Command)
             </div>
             <h2 className="text-xl lg:text-3xl font-extrabold text-white tracking-tight">
-              ติดตามงานจราจร สภ.หาดใหญ่
+              ติดตามงานจราจร สภ.สะท้อน
             </h2>
             <p className="text-xs text-slate-300 mt-1">
               เฝ้าระวังสภาพการจราจรทางแยกหลัก สัญญาณไฟจราจร และสถิติจุดเสี่ยงอุบัติเหตุในพื้นที่

@@ -28,7 +28,7 @@ export const CaseTrackerDashboard: React.FC<CaseTrackerDashboardProps> = ({ sear
           receiptDate: row['วันที่รับคำร้องทุกข์'] || '-',
           suspect: row['ผู้ต้องหา'] || '-',
           charge: row['ข้อหา.'] || row['ข้อหา'] || '-',
-          station: row['สถานี'] || 'สภ.หาดใหญ่',
+          station: row['สถานี'] || 'สภ.สะท้อน',
           investigator: row['พงส.'] || 'ไม่ระบุ',
           duration: row['ระยะเวลา'] || '-',
           formattedDate: row['วันที่'] || '-',
@@ -181,7 +181,7 @@ export const CaseTrackerDashboard: React.FC<CaseTrackerDashboardProps> = ({ sear
               <FileText className="w-4 h-4 text-indigo-400" /> ศูนย์ติดตามและบริหารงานสอบสวนคดีอาญา (Case Control)
             </div>
             <h2 className="text-xl lg:text-3xl font-extrabold text-white tracking-tight">
-              สารสนเทศสำนวนคดีระหว่างสอบสวน สภ.หาดใหญ่
+              สารสนเทศสำนวนคดีระหว่างสอบสวน สภ.สะท้อน
             </h2>
             <p className="text-xs text-slate-300 mt-1 flex items-center gap-1.5">
               <span>🔗 ซิงค์ข้อมูลเรียลไทม์จาก Google Sheets:</span>

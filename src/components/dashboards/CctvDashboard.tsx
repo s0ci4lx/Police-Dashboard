@@ -77,7 +77,7 @@ export const CctvDashboard: React.FC<CctvDashboardProps> = ({ searchQuery }) => 
             no: idx + 1,
             agency: String(row[agencyCol] || 'หน่วยงาน').trim(),
             locationName: String(row[locationCol] || `จุดกล้องที่ ${idx + 1}`),
-            address: String(row[addressCol] || 'อ.หาดใหญ่ จ.สงขลา'),
+            address: String(row[addressCol] || 'ต.สะท้อน อ.นาทวี จ.สงขลา'),
             notes: String(row[notesCol] || ''),
             lat: isNaN(latVal) ? 7.0084 : latVal,
             lng: isNaN(lngVal) ? 100.4767 : lngVal,
@@ -266,7 +266,7 @@ export const CctvDashboard: React.FC<CctvDashboardProps> = ({ searchQuery }) => 
               <Radio className="w-4 h-4 text-emerald-400" /> ศูนย์ปฏิบัติการและเฝ้าระวังความมั่นคง GIS CCTV
             </div>
             <h2 className="text-xl lg:text-3xl font-extrabold text-white tracking-tight">
-              ระบบศูนย์ควบคุมกล้องวงจรปิด สภ.หาดใหญ่
+              ระบบศูนย์ควบคุมกล้องวงจรปิด สภ.สะท้อน
             </h2>
             <p className="text-xs text-slate-300 mt-1">
               บูรณาการกล้องภาครัฐ-เอกชน <b>{agencyCounts.total.toLocaleString('th-TH')} จุด</b> | สภาพพร้อมใช้งาน <b>{agencyCounts.onlineRate}%</b>

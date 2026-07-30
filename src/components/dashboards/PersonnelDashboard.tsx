@@ -13,7 +13,7 @@ interface PersonnelDashboardProps {
 }
 
 const POSITION_DUTIES: Record<string, string> = {
-  'ผกก.': 'ผู้บังคับการสถานีตำรวจภูธรหาดใหญ่ รับผิดชอบบริหารราชการ สั่งการ ควบคุม กำกับดูแลทุกสายงานในสังกัด',
+  'ผกก.': 'ผู้บังคับการสถานีตำรวจภูธรสะท้อน รับผิดชอบบริหารราชการ สั่งการ ควบคุม กำกับดูแลทุกสายงานในสังกัด',
   'รอง ผกก.ป.': 'ผู้ช่วยผู้บังคับการสายงานป้องกันปราบปราม บริหารตู้ยาม สายตรวจรถยนต์/รถจักรยานยนต์ แผนระงับเหตุฉุกเฉิน',
   'รอง ผกก.(สอบสวน)': 'ควบคุม กำกับดูแล คดีอาญา คดีจราจร ตรวจสอบความถูกต้องของสำนวนสอบสวนเสนออัยการ',
   'รอง ผกก.สส.': 'บริหารงานสืบสวน การข่าวกรอง ติดตามจับกุมผู้ต้องหาตามหมายจับ และคดีอาชญากรรมร้ายแรง',
@@ -233,7 +233,7 @@ export const PersonnelDashboard: React.FC<PersonnelDashboardProps> = ({ searchQu
               <Users className="w-4 h-4 text-cyan-400" /> สารสนเทศบริหารจัดการกำลังพล (HR & Police Personnel Dashboard)
             </div>
             <h2 className="text-xl lg:text-3xl font-extrabold text-white tracking-tight">
-              อัตรากำลังพล สภ.หาดใหญ่ ({totals.totalAuth} อัตราอนุญาต)
+              อัตรากำลังพล สภ.สะท้อน ({totals.totalAuth} อัตราอนุญาต)
             </h2>
             <p className="text-xs text-slate-300 mt-1 flex items-center gap-1.5">
               <span>🔗 ซิงค์ข้อมูลเรียลไทม์จาก Google Sheet (ชีท กำลังพล):</span>
@@ -392,7 +392,7 @@ export const PersonnelDashboard: React.FC<PersonnelDashboardProps> = ({ searchQu
               <span className="text-slate-400 font-semibold">📋 ภารกิจและหน้าที่ความรับผิดชอบหลัก:</span>
               <p className="text-slate-200 leading-relaxed">
                 {POSITION_DUTIES[selectedPersonnel.position] ||
-                  `ปฏิบัติหน้าที่ทางตำรวจตามสายงาน ${selectedPersonnel.position} สภ.หาดใหญ่ รักษาความสงบเรียบร้อยและบริการประชาชน`}
+                  `ปฏิบัติหน้าที่ทางตำรวจตามสายงาน ${selectedPersonnel.position} สภ.สะท้อน รักษาความสงบเรียบร้อยและบริการประชาชน`}
               </p>
             </div>
 

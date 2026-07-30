@@ -69,7 +69,7 @@ export function App() {
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans selection:bg-blue-500 selection:text-white">
       {/* Top Main Command Center Header */}
       <Header
-        stationName="สถานีตำรวจภูธรหาดใหญ่ (สภ.หาดใหญ่)"
+        stationName="สถานีตำรวจภูธรสะท้อน (สภ.สะท้อน)"
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
         onRefreshData={handleRefreshData}
@@ -125,7 +125,7 @@ export function App() {
             </div>
             <div>
               <p className="font-bold text-slate-200">
-                ระบบศูนย์แดชบอร์ดสารสนเทศ สถานีตำรวจภูธรหาดใหญ่
+                ระบบศูนย์แดชบอร์ดสารสนเทศ สถานีตำรวจภูธรสะท้อน
               </p>
               <p className="text-[11px] text-slate-400">
                 ROYAL THAI POLICE COMMAND & CONTROL GIS SYSTEM &copy; 2026 All rights reserved.
