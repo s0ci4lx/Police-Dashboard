@@ -296,6 +296,7 @@ export const WeaponsDashboard: React.FC<WeaponsDashboardProps> = ({ searchQuery 
           searchPlaceholder="ค้นหาชื่ออาวุธ / ยุทธภัณฑ์..."
           pageSize={30}
           onRowClick={(row) => setSelected(row)}
+          showActionColumn={false}
         />
       ) : (
         <div className="glass-panel bg-slate-900/90 border border-slate-800 rounded-2xl p-5">
@@ -374,7 +375,7 @@ export const WeaponsDashboard: React.FC<WeaponsDashboardProps> = ({ searchQuery 
       {/* Detail modal */}
       {selected && (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-fade-in" onClick={() => setSelected(null)}>
-          <div className="w-full max-w-lg glass-panel bg-slate-900 border border-slate-700 rounded-2xl p-6 shadow-2xl space-y-4" onClick={(e) => e.stopPropagation()}>
+          <div className="w-full max-w-lg glass-panel bg-slate-900 border border-slate-700 rounded-2xl p-5 shadow-2xl space-y-3 max-h-[88vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-start justify-between border-b border-slate-800 pb-3 gap-3">
               <div className="flex items-center gap-2.5 min-w-0">
                 <div className="p-2 rounded-xl shrink-0" style={{ backgroundColor: `${WEAPON_CAT_COLOR[selected.category]}22`, color: WEAPON_CAT_COLOR[selected.category] }}>

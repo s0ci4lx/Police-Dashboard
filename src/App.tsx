@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import type { DynamicPageConfig } from './types/dashboard';
 import { DEFAULT_PAGES } from './data/mockInitialData';
 import { getSavedDynamicPages, saveDynamicPage, removeDynamicPage } from './services/storageService';
-import { getStation } from './config/dataSources';
+import { getStation, isPageVisible } from './config/dataSources';
 import { canViewPage } from './config/access';
 import { useAuth } from './auth/useAuth';
 
@@ -45,8 +45,11 @@ export function App() {
 
   const allPages = useMemo(() => [...DEFAULT_PAGES, ...customPages], [customPages]);
 
-  // Pages the signed-in user is allowed to see
-  const visiblePages = useMemo(() => allPages.filter((p) => canViewPage(access, p.id)), [allPages, access]);
+  // Pages the signed-in user is allowed to see (permission + not hidden; dev host sees hidden too)
+  const visiblePages = useMemo(
+    () => allPages.filter((p) => canViewPage(access, p.id) && isPageVisible(p.id)),
+    [allPages, access],
+  );
 
   // Keep the active page within the allowed set
   useEffect(() => {

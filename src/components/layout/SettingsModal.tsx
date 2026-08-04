@@ -10,6 +10,9 @@ import {
   exportConfig,
   importConfig,
   resetAllConfig,
+  getHiddenPages,
+  setHiddenPages,
+  isDevHost,
   type DataSourceKey,
 } from '../../config/dataSources';
 import { getUsersAsync, upsertUserAsync, removeUserAsync, isCentralStore, type UserAccess, type Role } from '../../config/access';
@@ -70,6 +73,15 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, p
 
   // Station
   const [station, setStationState] = useState(() => getStation());
+
+  // Page visibility (hidden pages)
+  const [hiddenPages, setHiddenState] = useState<string[]>(() => getHiddenPages());
+  const togglePageHidden = (id: string) => {
+    const next = hiddenPages.includes(id) ? hiddenPages.filter((x) => x !== id) : [...hiddenPages, id];
+    setHiddenState(next);
+    setHiddenPages(next);
+    setSavedMsg('อัปเดตการแสดง/ซ่อนหน้าแล้ว — โหลดหน้าใหม่เพื่อใช้ค่าใหม่');
+  };
 
   // Backup
   const [importText, setImportText] = useState('');
@@ -365,6 +377,27 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, p
               <button onClick={saveStation} className="flex items-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-bold">
                 <Save className="w-3.5 h-3.5" /> บันทึกข้อมูลสถานี
               </button>
+
+              {/* Page visibility */}
+              <div className="pt-4 mt-2 border-t border-slate-800">
+                <h4 className="text-[12px] font-bold text-slate-200 mb-1">การแสดง / ซ่อนหน้า</h4>
+                <p className="text-[10px] text-slate-500 mb-2">
+                  หน้าที่ซ่อนจะไม่แสดงกับผู้ใช้ทั่วไป แต่ยังเห็นได้บน localhost ตอนปรับปรุง
+                  {isDevHost() && <span className="text-amber-400"> — ตอนนี้คุณอยู่บน localhost จึงเห็นครบทุกหน้า</span>}
+                </p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-1">
+                  {pages.map((p) => {
+                    const hidden = hiddenPages.includes(p.id);
+                    return (
+                      <label key={p.id} className="flex items-center gap-2 text-[11px] p-1.5 rounded-lg hover:bg-slate-800/60 cursor-pointer">
+                        <input type="checkbox" checked={!hidden} onChange={() => togglePageHidden(p.id)} className="accent-blue-500" />
+                        <span className={hidden ? 'text-slate-500 line-through' : 'text-slate-300'}>{p.title}</span>
+                        {hidden && <span className="text-[9px] text-amber-400 font-bold">ซ่อน</span>}
+                      </label>
+                    );
+                  })}
+                </div>
+              </div>
             </div>
           )}
 

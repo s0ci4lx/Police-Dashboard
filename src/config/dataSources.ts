@@ -68,7 +68,11 @@ const STORAGE_KEY = 'police_dashboard_config_v1';
 interface OverrideBlob {
   sources?: Partial<Record<DataSourceKey, string>>;
   station?: Partial<StationConfig>;
+  hiddenPages?: string[];
 }
+
+/** หน้าที่ซ่อนไว้เป็นค่าเริ่มต้น (ยังปรับปรุงอยู่) — ในโหมด dev/localhost ยังเห็นได้ */
+export const DEFAULT_HIDDEN_PAGES: string[] = ['cases', 'traffic'];
 
 function readBlob(): OverrideBlob {
   try {
@@ -146,6 +150,34 @@ export function isStationOverridden(): boolean {
   return readBlob().station !== undefined;
 }
 
+/** รายชื่อหน้าที่ถูกซ่อน (override ถ้ามี ไม่งั้นใช้ค่าเริ่มต้น) */
+export function getHiddenPages(): string[] {
+  const h = readBlob().hiddenPages;
+  return h !== undefined ? h : DEFAULT_HIDDEN_PAGES;
+}
+
+export function setHiddenPages(ids: string[]): void {
+  const blob = readBlob();
+  blob.hiddenPages = ids;
+  writeBlob(blob);
+}
+
+/** true เมื่อรันบน localhost/dev (ให้เห็นหน้าที่ซ่อนไว้ตอนปรับปรุง) */
+export function isDevHost(): boolean {
+  try {
+    const h = window.location.hostname;
+    return h === 'localhost' || h === '127.0.0.1' || h === '::1' || h.endsWith('.local');
+  } catch {
+    return false;
+  }
+}
+
+/** ผู้ใช้ทั่วไปควรเห็นหน้านี้ไหม (ซ่อนในโปรดักชัน แต่ dev เห็นได้) */
+export function isPageVisible(pageId: string): boolean {
+  if (isDevHost()) return true;
+  return !getHiddenPages().includes(pageId);
+}
+
 /** ล้างการตั้งค่าทั้งหมด กลับไปใช้ค่าเริ่มต้น */
 export function resetAllConfig(): void {
   try {
@@ -185,6 +217,9 @@ export function importConfig(json: string): boolean {
           zoom: Number(c.zoom) || DEFAULT_STATION.center.zoom,
         };
       }
+    }
+    if (Array.isArray(parsed.hiddenPages)) {
+      clean.hiddenPages = parsed.hiddenPages.filter((x) => typeof x === 'string');
     }
     writeBlob(clean);
     return true;

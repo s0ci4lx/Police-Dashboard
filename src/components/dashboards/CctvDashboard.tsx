@@ -625,7 +625,7 @@ export const CctvDashboard: React.FC<CctvDashboardProps> = ({ searchQuery }) => 
       {/* Slide-Over CCTV Camera Inspector Modal (Used only if triggered explicitly) */}
       {inspectCam && (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-fade-in">
-          <div className="w-full max-w-lg glass-panel bg-slate-900 border border-slate-700 rounded-2xl p-6 shadow-2xl space-y-4">
+          <div className="w-full max-w-lg glass-panel bg-slate-900 border border-slate-700 rounded-2xl p-5 shadow-2xl space-y-3 max-h-[88vh] overflow-y-auto">
             <div className="flex items-center justify-between border-b border-slate-800 pb-3">
               <div className="flex items-center gap-2.5">
                 <div className="p-2 bg-blue-500/20 text-blue-400 rounded-xl">

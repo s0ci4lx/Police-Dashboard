@@ -454,6 +454,7 @@ export const PersonnelDashboard: React.FC<PersonnelDashboardProps> = ({ searchQu
           searchPlaceholder="ค้นหาตำแหน่ง / สายงาน..."
           pageSize={25}
           onRowClick={(row) => setSelectedPersonnel(row)}
+          showActionColumn={false}
         />
       ) : (
         <div className="glass-panel bg-slate-900/90 border border-slate-800 rounded-2xl p-5">
@@ -575,7 +576,7 @@ export const PersonnelDashboard: React.FC<PersonnelDashboardProps> = ({ searchQu
       {/* Detail Modal */}
       {selectedPersonnel && (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-fade-in" onClick={() => setSelectedPersonnel(null)}>
-          <div className="w-full max-w-lg glass-panel bg-slate-900 border border-slate-700 rounded-2xl p-6 shadow-2xl space-y-4" onClick={(e) => e.stopPropagation()}>
+          <div className="w-full max-w-lg glass-panel bg-slate-900 border border-slate-700 rounded-2xl p-5 shadow-2xl space-y-3 max-h-[88vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between border-b border-slate-800 pb-3">
               <div className="flex items-center gap-2.5">
                 <div className="p-2 bg-cyan-500/20 text-cyan-400 rounded-xl">

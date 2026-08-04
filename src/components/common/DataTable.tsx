@@ -170,7 +170,7 @@ export function DataTable<T extends Record<string, any>>({
       </div>
 
       {/* Main Scrollable Table */}
-      <div className="overflow-x-auto overflow-y-auto flex-1 max-h-[450px] scrollbar-thin">
+      <div className="overflow-x-auto overflow-y-auto flex-1 max-h-[560px] scrollbar-thin">
         <table className="w-full text-left text-xs text-slate-300 border-collapse">
           <thead className="sticky top-0 z-20 bg-slate-800/95 text-slate-200 font-semibold border-b border-slate-700">
             <tr>
@@ -294,14 +294,16 @@ export function DataTable<T extends Record<string, any>>({
               </button>
             </div>
 
-            {/* Modal Scrollable Body */}
-            <div className="space-y-3 py-4 overflow-y-auto flex-1 scrollbar-thin pr-1">
-              {Object.entries(selectedRow).map(([k, v]) => (
-                <div key={k} className="p-3 bg-slate-800/60 rounded-xl border border-slate-700/50">
-                  <span className="block text-[11px] font-bold text-blue-400 uppercase tracking-wider mb-1">{k}</span>
-                  <span className="text-xs text-slate-100 font-medium whitespace-pre-wrap break-words">{String(v ?? '-')}</span>
-                </div>
-              ))}
+            {/* Modal Scrollable Body — compact 2-column grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 py-4 overflow-y-auto flex-1 scrollbar-thin pr-1">
+              {Object.entries(selectedRow)
+                .filter(([k]) => !['id', 'no'].includes(k.toLowerCase()))
+                .map(([k, v]) => (
+                  <div key={k} className="p-2.5 bg-slate-800/60 rounded-xl border border-slate-700/50">
+                    <span className="block text-[10px] font-bold text-blue-400 uppercase tracking-wider mb-0.5">{k}</span>
+                    <span className="text-xs text-slate-100 font-medium whitespace-pre-wrap break-words">{String(v ?? '-')}</span>
+                  </div>
+                ))}
             </div>
 
             {/* Modal Footer */}
