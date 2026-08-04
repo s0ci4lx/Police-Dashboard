@@ -90,31 +90,19 @@ export function App() {
     );
   }
 
-  // ---- No access gate ----
-  if (!access.known || visiblePages.length === 0) {
-    const noPages = access.known && visiblePages.length === 0;
+  // ---- Sign-in screen (not authenticated yet) ----
+  if (!email) {
     return (
       <div className="min-h-screen bg-slate-950 flex items-center justify-center p-4">
-        <div className="w-full max-w-md glass-panel bg-slate-900 border border-slate-700 rounded-2xl p-6 text-center shadow-2xl">
-          <div className="mx-auto w-14 h-14 rounded-2xl bg-rose-500/15 border border-rose-500/30 flex items-center justify-center text-rose-400 mb-4">
-            <ShieldAlert className="w-7 h-7" />
+        <div className="w-full max-w-md glass-panel bg-slate-900 border border-slate-700 rounded-2xl p-7 text-center shadow-2xl">
+          <div className="mx-auto w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-600 via-indigo-700 to-slate-900 border border-blue-400/30 flex items-center justify-center shadow-lg shadow-blue-500/20 mb-4">
+            <Shield className="w-8 h-8 text-amber-400 drop-shadow" />
           </div>
-          <h1 className="text-lg font-bold text-white mb-1">
-            {noPages ? 'ยังไม่ได้รับสิทธิ์เข้าดูหน้าใด ๆ' : 'ไม่มีสิทธิ์เข้าใช้งาน'}
-          </h1>
-          <p className="text-xs text-slate-400 mb-4">
-            {email ? (
-              <>
-                บัญชี <b className="text-slate-200">{email}</b> {noPages ? 'ยังไม่ได้รับมอบหมายหน้าที่ดูได้' : 'ยังไม่อยู่ในรายชื่อผู้มีสิทธิ์'}
-                <br />
-                กรุณาติดต่อผู้ดูแลระบบเพื่อขอสิทธิ์
-              </>
-            ) : (
-              'กรุณาเข้าสู่ระบบด้วยบัญชี Google ที่ได้รับอนุญาต'
-            )}
-          </p>
+          <h1 className="text-lg font-bold text-white mb-1">ระบบศูนย์แดชบอร์ดสารสนเทศ</h1>
+          <p className="text-sm font-semibold text-blue-300 mb-1">{station.name}</p>
+          <p className="text-xs text-slate-400 mb-5">กรุณาเข้าสู่ระบบเพื่อใช้งาน</p>
 
-          {firebaseEnabled && !email && (
+          {firebaseEnabled && (
             <button
               onClick={signInWithGoogle}
               className="w-full inline-flex items-center justify-center gap-2.5 px-4 py-2.5 bg-white text-slate-800 rounded-xl text-sm font-bold shadow hover:bg-slate-100 transition-all"
@@ -131,7 +119,7 @@ export function App() {
 
           {needsManualLogin && (
             <div className="mt-4 pt-4 border-t border-slate-800 text-left space-y-2">
-              <p className="text-[10px] font-bold text-amber-400 uppercase">ล็อกอินชั่วคราว (ยังไม่ได้ตั้ง Cloudflare)</p>
+              <p className="text-[10px] font-bold text-amber-400 uppercase">ล็อกอินชั่วคราว (ยังไม่ได้ตั้งระบบยืนยันตัวตน)</p>
               <div className="flex gap-2">
                 <input
                   value={emailInput}
@@ -147,8 +135,32 @@ export function App() {
             </div>
           )}
 
-          <button onClick={logout} className="mt-5 inline-flex items-center gap-1.5 px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl text-xs font-bold">
-            <LogOut className="w-3.5 h-3.5" /> ออกจากระบบ / เข้าใหม่
+          <p className="mt-5 text-[10px] text-slate-500">เฉพาะบัญชี Google ที่ได้รับอนุญาตเท่านั้น</p>
+        </div>
+      </div>
+    );
+  }
+
+  // ---- Access-denied screen (signed in but not authorized / no pages assigned) ----
+  if (!access.known || visiblePages.length === 0) {
+    const noPages = access.known && visiblePages.length === 0;
+    return (
+      <div className="min-h-screen bg-slate-950 flex items-center justify-center p-4">
+        <div className="w-full max-w-md glass-panel bg-slate-900 border border-slate-700 rounded-2xl p-6 text-center shadow-2xl">
+          <div className="mx-auto w-14 h-14 rounded-2xl bg-rose-500/15 border border-rose-500/30 flex items-center justify-center text-rose-400 mb-4">
+            <ShieldAlert className="w-7 h-7" />
+          </div>
+          <h1 className="text-lg font-bold text-white mb-1">
+            {noPages ? 'ยังไม่ได้รับสิทธิ์เข้าดูหน้าใด ๆ' : 'บัญชีนี้ยังไม่มีสิทธิ์เข้าใช้งาน'}
+          </h1>
+          <p className="text-xs text-slate-400 mb-4">
+            เข้าสู่ระบบด้วย <b className="text-slate-200">{email}</b>
+            <br />
+            {noPages ? 'แต่ยังไม่ได้รับมอบหมายหน้าที่ดูได้ — กรุณาติดต่อผู้ดูแลระบบ' : 'แต่ยังไม่อยู่ในรายชื่อผู้มีสิทธิ์ — กรุณาติดต่อผู้ดูแลระบบ'}
+          </p>
+
+          <button onClick={logout} className="mt-1 inline-flex items-center gap-1.5 px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl text-xs font-bold">
+            <LogOut className="w-3.5 h-3.5" /> ออกจากระบบ / เข้าด้วยบัญชีอื่น
           </button>
         </div>
       </div>

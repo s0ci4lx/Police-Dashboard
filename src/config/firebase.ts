@@ -16,7 +16,14 @@
  * ชั่วคราวแบบพิมพ์อีเมลแทน — ดู docs/DEPLOYMENT.md
  * ========================================================================== */
 import { initializeApp, type FirebaseApp } from 'firebase/app';
-import { getAuth, GoogleAuthProvider, type Auth } from 'firebase/auth';
+import {
+  initializeAuth,
+  getAuth,
+  browserLocalPersistence,
+  browserPopupRedirectResolver,
+  GoogleAuthProvider,
+  type Auth,
+} from 'firebase/auth';
 
 const cfg = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -34,7 +41,17 @@ let auth: Auth | null = null;
 
 if (isFirebaseConfigured) {
   app = initializeApp(cfg);
-  auth = getAuth(app);
+  // Use localStorage persistence (avoids the "Database is closing" IndexedDB error
+  // seen in some browsers) and the popup/redirect resolver for Google sign-in.
+  try {
+    auth = initializeAuth(app, {
+      persistence: browserLocalPersistence,
+      popupRedirectResolver: browserPopupRedirectResolver,
+    });
+  } catch {
+    // Already initialized (e.g. HMR) — fall back to the existing instance
+    auth = getAuth(app);
+  }
 }
 
 export const googleProvider = new GoogleAuthProvider();

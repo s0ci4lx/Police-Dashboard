@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
-import { onAuthStateChanged, signInWithPopup, signOut } from 'firebase/auth';
+import { onAuthStateChanged, signInWithRedirect, getRedirectResult, signOut } from 'firebase/auth';
 import { resolveAccess, type ResolvedAccess } from '../config/access';
 import { auth, googleProvider, isFirebaseConfigured } from '../config/firebase';
 
@@ -77,8 +77,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return;
       }
 
-      // 2. Firebase (real Google sign-in)
+      // 2. Firebase (real Google sign-in via redirect)
       if (isFirebaseConfigured && auth) {
+        try {
+          await getRedirectResult(auth); // completes a returning sign-in redirect
+        } catch (e) {
+          console.warn('Google redirect result error:', e);
+        }
+        if (cancelled) return;
         unsub = onAuthStateChanged(auth, (user) => {
           if (cancelled) return;
           if (user && user.email) apply(user.email, 'firebase');
@@ -110,8 +116,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const signInWithGoogle = useCallback(async () => {
     if (!auth) return;
     try {
-      await signInWithPopup(auth, googleProvider);
-      // onAuthStateChanged updates state
+      await signInWithRedirect(auth, googleProvider);
+      // Page redirects to Google; onAuthStateChanged fires after returning.
     } catch (e) {
       console.warn('Google sign-in failed:', e);
     }
