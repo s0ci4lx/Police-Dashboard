@@ -47,6 +47,26 @@ export function createCustomIcon(color: string = '#3b82f6') {
   });
 }
 
+// Larger, ringed & pulsing pin for the currently-selected marker
+export function createHighlightedIcon(color: string = '#3b82f6') {
+  const svgHtml = `
+    <div class="cctv-selected-pin">
+      <span class="cctv-selected-ring" style="border-color:${color}"></span>
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="${color}" width="44" height="44" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="filter: drop-shadow(0px 4px 8px rgba(0,0,0,0.6));">
+        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+        <circle cx="12" cy="10" r="3.2" fill="#ffffff"></circle>
+      </svg>
+    </div>
+  `;
+  return L.divIcon({
+    html: svgHtml,
+    className: 'custom-selected-marker',
+    iconSize: [44, 44],
+    iconAnchor: [22, 44],
+    popupAnchor: [0, -44],
+  });
+}
+
 // Controller component to smoothly adjust Map View when center changes without abrupt zoom jitter
 function MapController({ center }: { center: { lat: number; lng: number; zoom?: number } }) {
   const map = useMap();
@@ -115,6 +135,7 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
   height = '450px',
   enableClustering = true,
   onSelectMarker,
+  selectedMarkerId,
 }) => {
   const [mapStyle, setMapStyle] = React.useState<'streets' | 'satellite' | 'dark'>('streets');
 
@@ -196,11 +217,15 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
               spiderfyOnMaxZoom={true}
               showCoverageOnHover={false}
             >
-              {markers.map((marker) => (
+              {markers.map((marker) => {
+                const isSelected = marker.id === selectedMarkerId;
+                const pinColor = marker.color || CATEGORY_COLORS[marker.category] || '#3b82f6';
+                return (
                 <Marker
                   key={marker.id}
                   position={[marker.lat, marker.lng]}
-                  icon={createCustomIcon(marker.color || CATEGORY_COLORS[marker.category] || '#3b82f6')}
+                  icon={isSelected ? createHighlightedIcon(pinColor) : createCustomIcon(pinColor)}
+                  zIndexOffset={isSelected ? 1000 : 0}
                   eventHandlers={{
                     click: () => {
                       if (onSelectMarker) {
@@ -249,14 +274,19 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
                     </div>
                   </Popup>
                 </Marker>
-              ))}
+                );
+              })}
             </MarkerClusterGroup>
           ) : (
-            markers.map((marker) => (
+            markers.map((marker) => {
+              const isSelected = marker.id === selectedMarkerId;
+              const pinColor = marker.color || CATEGORY_COLORS[marker.category] || '#3b82f6';
+              return (
               <Marker
                 key={marker.id}
                 position={[marker.lat, marker.lng]}
-                icon={createCustomIcon(marker.color || CATEGORY_COLORS[marker.category] || '#3b82f6')}
+                icon={isSelected ? createHighlightedIcon(pinColor) : createCustomIcon(pinColor)}
+                zIndexOffset={isSelected ? 1000 : 0}
                 eventHandlers={{
                   click: () => {
                     if (onSelectMarker) {
@@ -305,7 +335,8 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
                   </div>
                 </Popup>
               </Marker>
-            ))
+              );
+            })
           )}
         </MapContainer>
       </div>

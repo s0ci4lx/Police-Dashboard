@@ -44,6 +44,7 @@ export const LocalPoiDashboard: React.FC<LocalPoiDashboardProps> = ({ searchQuer
   const [selectedCategory, setSelectedCategory] = useState<string>('ทั้งหมด');
   const [selectedZone, setSelectedZone] = useState<string>('ทั้งหมด');
   const [mapCenter, setMapCenter] = useState(HAT_YAI_STATION_COORDS);
+  const [selectedMarkerId, setSelectedMarkerId] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [syncStatusMsg, setSyncStatusMsg] = useState<string>('');
   const [inspectPoi, setInspectPoi] = useState<PoiItem | null>(null);
@@ -239,6 +240,7 @@ export const LocalPoiDashboard: React.FC<LocalPoiDashboardProps> = ({ searchQuer
         <button
           onClick={(e) => {
             e.stopPropagation();
+            setSelectedMarkerId(row.id);
             setMapCenter({ lat: row.lat, lng: row.lng, zoom: 16 });
           }}
           className="px-2.5 py-1 bg-blue-600/20 hover:bg-blue-600/30 text-blue-300 border border-blue-500/30 rounded-lg text-xs font-semibold"
@@ -378,6 +380,7 @@ export const LocalPoiDashboard: React.FC<LocalPoiDashboardProps> = ({ searchQuer
         title={`แผนที่ตำแหน่งสถานที่สำคัญในพื้นที่ (${mapMarkers.length.toLocaleString('th-TH')} หมุดปัก)`}
         height="500px"
         enableClustering={true}
+        selectedMarkerId={selectedMarkerId || undefined}
       />
 
       {/* Table & Chart Split View */}
@@ -390,6 +393,7 @@ export const LocalPoiDashboard: React.FC<LocalPoiDashboardProps> = ({ searchQuer
             searchPlaceholder="ค้นหาชื่อสถานที่, ที่อยู่, สายตรวจ..."
             pageSize={8}
             onRowClick={(row) => {
+              setSelectedMarkerId(row.id);
               setMapCenter({ lat: row.lat, lng: row.lng, zoom: 16 });
             }}
           />
