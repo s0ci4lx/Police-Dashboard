@@ -241,7 +241,7 @@ export const LocalPoiDashboard: React.FC<LocalPoiDashboardProps> = ({ searchQuer
           onClick={(e) => {
             e.stopPropagation();
             setSelectedMarkerId(row.id);
-            setMapCenter({ lat: row.lat, lng: row.lng, zoom: 16 });
+            setMapCenter({ lat: row.lat, lng: row.lng, zoom: 17 });
           }}
           className="px-2.5 py-1 bg-blue-600/20 hover:bg-blue-600/30 text-blue-300 border border-blue-500/30 rounded-lg text-xs font-semibold"
         >
@@ -394,7 +394,7 @@ export const LocalPoiDashboard: React.FC<LocalPoiDashboardProps> = ({ searchQuer
             pageSize={8}
             onRowClick={(row) => {
               setSelectedMarkerId(row.id);
-              setMapCenter({ lat: row.lat, lng: row.lng, zoom: 16 });
+              setMapCenter({ lat: row.lat, lng: row.lng, zoom: 17 });
             }}
           />
         </div>

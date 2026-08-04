@@ -216,6 +216,7 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
               maxClusterRadius={45}
               spiderfyOnMaxZoom={true}
               showCoverageOnHover={false}
+              disableClusteringAtZoom={16}
             >
               {markers.map((marker) => {
                 const isSelected = marker.id === selectedMarkerId;

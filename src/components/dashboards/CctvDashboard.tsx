@@ -260,7 +260,7 @@ export const CctvDashboard: React.FC<CctvDashboardProps> = ({ searchQuery }) => 
           <button
             onClick={(e) => {
               e.stopPropagation();
-              setMapCenter({ lat: row.lat, lng: row.lng, zoom: 16 });
+              setMapCenter({ lat: row.lat, lng: row.lng, zoom: 17 });
             }}
             className="px-2.5 py-1 bg-blue-600/20 hover:bg-blue-600/30 text-blue-300 border border-blue-500/30 rounded-lg text-xs font-bold transition-all flex items-center gap-1"
           >
@@ -498,7 +498,7 @@ export const CctvDashboard: React.FC<CctvDashboardProps> = ({ searchQuery }) => 
                 pageSize={7}
                 onRowClick={(row) => {
                   setSelectedMarkerId(row.id);
-                  setMapCenter({ lat: row.lat, lng: row.lng, zoom: 16 });
+                  setMapCenter({ lat: row.lat, lng: row.lng, zoom: 17 });
                 }}
               />
             </div>
@@ -532,7 +532,7 @@ export const CctvDashboard: React.FC<CctvDashboardProps> = ({ searchQuery }) => 
               <div
                 key={cam.id}
                 onClick={() => {
-                  setMapCenter({ lat: cam.lat, lng: cam.lng, zoom: 16 });
+                  setMapCenter({ lat: cam.lat, lng: cam.lng, zoom: 17 });
                 }}
                 className="relative group glass-panel bg-slate-950 border border-slate-800 hover:border-blue-500 rounded-xl p-4 cursor-pointer transition-all duration-200 shadow-lg space-y-2.5"
               >
