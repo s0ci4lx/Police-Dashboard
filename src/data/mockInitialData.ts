@@ -17,6 +17,16 @@ export const DEFAULT_PAGES: DynamicPageConfig[] = [
     createdAt: Date.now(),
   },
   {
+    id: 'cctv-wall',
+    title: 'ไดเรกทอรีกล้อง',
+    department: 'งานสืบสวน',
+    sheetUrl: '',
+    displayType: 'map-only',
+    iconName: 'LayoutGrid',
+    isCustom: false,
+    createdAt: Date.now(),
+  },
+  {
     id: 'poi',
     title: 'ข้อมูลท้องถิ่น',
     department: 'ข้อมูลท้องถิ่น',
@@ -95,7 +105,7 @@ function generateFullHatYaiCctvData(): CctvItem[] {
   let idCount = 1;
 
   const agencyBreakdown = [
-    { agency: 'กทม/อบจ.', count: 339 },
+    { agency: 'อบจ.สงขลา', count: 339 },
     { agency: 'มหาดไทย', count: 332 },
     { agency: 'เอกชน', count: 85 },
     { agency: 'รฟท./สภ.', count: 42 },

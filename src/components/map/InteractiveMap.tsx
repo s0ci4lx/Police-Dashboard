@@ -71,7 +71,7 @@ function MapController({ center }: { center: { lat: number; lng: number; zoom?: 
 }
 
 export const CATEGORY_COLORS: Record<string, string> = {
-  'กทม/อบจ.': '#ec4899', // Pink
+  'อบจ.สงขลา': '#ec4899', // Pink
   'มหาดไทย': '#0ea5e9', // Light Blue
   'เอกชน': '#10b981', // Emerald
   'รฟท./สภ.': '#f59e0b', // Amber

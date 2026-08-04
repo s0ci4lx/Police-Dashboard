@@ -111,6 +111,18 @@ body {
   box-shadow: 0 10px 25px -5px rgba(14, 165, 233, 0.15);
 }
 
+/* Diagonal hatch used for vacant/unfilled staffing portions */
+.personnel-hatch {
+  background-color: rgba(244, 63, 94, 0.18);
+  background-image: repeating-linear-gradient(
+    45deg,
+    rgba(244, 63, 94, 0.55) 0,
+    rgba(244, 63, 94, 0.55) 2px,
+    transparent 2px,
+    transparent 6px
+  );
+}
+
 /* Custom Marker Styling */
 .custom-map-pin {
   display: flex;

@@ -142,7 +142,7 @@ export const CctvDashboard: React.FC<CctvDashboardProps> = ({ searchQuery }) => 
     let maintCount = 0;
 
     cctvData.forEach((item) => {
-      if (item.agency.includes('กทม') || item.agency.includes('อบจ')) bkk++;
+      if (item.agency.includes('อบจ')) bkk++;
       else if (item.agency.includes('มหาดไทย')) moi++;
       else if (item.agency.includes('เอกชน')) priv++;
       else if (item.agency.includes('รฟท') || item.agency.includes('สภ')) srt++;
@@ -402,13 +402,13 @@ export const CctvDashboard: React.FC<CctvDashboardProps> = ({ searchQuery }) => 
           onClick={() => setSelectedAgencyFilter('ทั้งหมด')}
         />
         <KpiCard
-          title="กทม. / อบจ."
+          title="อบจ.สงขลา"
           value={agencyCounts.bkk}
           subtext="สัดส่วน 41.1%"
           icon={Building}
           colorTheme="purple"
-          isActive={selectedAgencyFilter === 'กทม/อบจ.'}
-          onClick={() => setSelectedAgencyFilter('กทม/อบจ.')}
+          isActive={selectedAgencyFilter === 'อบจ.สงขลา'}
+          onClick={() => setSelectedAgencyFilter('อบจ.สงขลา')}
         />
         <KpiCard
           title="มหาดไทย"
@@ -491,7 +491,7 @@ export const CctvDashboard: React.FC<CctvDashboardProps> = ({ searchQuery }) => 
               <StatChart
                 title="สัดส่วนกล้องวงจรปิดแยกตามหน่วยงานสังกัด"
                 type="pie"
-                labels={['กทม / อบจ.', 'มหาดไทย', 'เอกชน', 'รฟท. / สภ.', 'หน่วยงานอื่นๆ']}
+                labels={['อบจ.สงขลา', 'มหาดไทย', 'เอกชน', 'รฟท. / สภ.', 'หน่วยงานอื่นๆ']}
                 dataValues={[agencyCounts.bkk, agencyCounts.moi, agencyCounts.private, agencyCounts.srt, agencyCounts.others]}
                 customColors={['#ec4899', '#0ea5e9', '#10b981', '#f59e0b', '#8b5cf6']}
               />

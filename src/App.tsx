@@ -10,6 +10,7 @@ import { DynamicPageModal } from './components/layout/DynamicPageModal';
 
 // Dashboard Views
 import { CctvDashboard } from './components/dashboards/CctvDashboard';
+import { CctvWallDashboard } from './components/dashboards/CctvWallDashboard';
 import { LocalPoiDashboard } from './components/dashboards/LocalPoiDashboard';
 import { CaseTrackerDashboard } from './components/dashboards/CaseTrackerDashboard';
 import { PersonnelDashboard } from './components/dashboards/PersonnelDashboard';
@@ -89,6 +90,8 @@ export function App() {
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 lg:px-8 py-6 space-y-6">
         {activePageId === 'cctv' && <CctvDashboard searchQuery={searchQuery} />}
 
+        {activePageId === 'cctv-wall' && <CctvWallDashboard searchQuery={searchQuery} />}
+
         {activePageId === 'poi' && <LocalPoiDashboard searchQuery={searchQuery} />}
 
         {activePageId === 'cases' && <CaseTrackerDashboard searchQuery={searchQuery} />}
@@ -100,6 +103,7 @@ export function App() {
         {activePageId === 'weapons' && <WeaponsDashboard searchQuery={searchQuery} />}
 
         {activePageId !== 'cctv' &&
+          activePageId !== 'cctv-wall' &&
           activePageId !== 'poi' &&
           activePageId !== 'cases' &&
           activePageId !== 'personnel' &&

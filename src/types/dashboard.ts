@@ -22,7 +22,7 @@ export interface DynamicPageConfig {
 export interface CctvItem {
   id: string;
   no: number;
-  agency: 'กทม/อบจ.' | 'มหาดไทย' | 'เอกชน' | 'รฟท./สภ.' | 'หน่วยงานอื่นๆ' | string;
+  agency: 'อบจ.สงขลา' | 'มหาดไทย' | 'เอกชน' | 'รฟท./สภ.' | 'หน่วยงานอื่นๆ' | string;
   locationName: string;
   address: string;
   notes: string;
@@ -82,7 +82,7 @@ export interface PersonnelItem {
   detachedIn: number;
   detachedOut: number;
   effectiveTotal: number;
-  category: 'นายตำรวจชั้นผู้บังคับบัญชา' | 'สัญญาบัตร (พงส./สายงาน)' | 'ชั้นประทวนปฏิบัติการ';
+  category: 'นายตำรวจชั้นผู้บังคับบัญชา' | 'สัญญาบัตร (พงส./สายงาน)' | 'ชั้นประทวนปฏิบัติการ' | string;
 }
 
 export interface GenericRecord {

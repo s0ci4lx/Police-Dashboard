@@ -11,6 +11,7 @@ import {
   Table,
   Building2,
   FolderKanban,
+  LayoutGrid,
 } from 'lucide-react';
 
 interface NavigationProps {
@@ -23,6 +24,7 @@ interface NavigationProps {
 
 const ICON_MAP: Record<string, React.FC<{ className?: string }>> = {
   Camera: Camera,
+  LayoutGrid: LayoutGrid,
   MapPin: MapPin,
   FileText: FileText,
   Car: Car,
