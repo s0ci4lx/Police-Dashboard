@@ -1,5 +1,5 @@
-import React, { useEffect } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
+import React, { useEffect, useRef, useMemo, useCallback } from 'react';
+import { MapContainer, TileLayer, Marker, Popup, useMap, useMapEvents } from 'react-leaflet';
 import L from 'leaflet';
 import MarkerClusterGroup from 'react-leaflet-cluster';
 import 'leaflet/dist/leaflet.css';
@@ -26,6 +26,7 @@ interface InteractiveMapProps {
   height?: string;
   enableClustering?: boolean;
   onSelectMarker?: (marker: MapMarkerItem) => void;
+  onClearSelection?: () => void;
   selectedMarkerId?: string;
 }
 
@@ -68,24 +69,60 @@ export function createHighlightedIcon(color: string = '#3b82f6') {
 }
 
 // Controller component to smoothly adjust Map View when center changes without abrupt zoom jitter
-function MapController({ center }: { center: { lat: number; lng: number; zoom?: number } }) {
+function MapController({
+  center,
+  selectedMarkerId,
+  markersRefs,
+}: {
+  center: { lat: number; lng: number; zoom?: number };
+  selectedMarkerId?: string;
+  markersRefs: React.RefObject<Record<string, L.Marker>>;
+}) {
   const map = useMap();
+  const prevCenterRef = useRef<{ lat: number; lng: number; zoom?: number } | null>(null);
 
   useEffect(() => {
-    if (center && typeof center.lat === 'number' && typeof center.lng === 'number') {
-      const currentCenter = map.getCenter();
-      const latDiff = Math.abs(currentCenter.lat - center.lat);
-      const lngDiff = Math.abs(currentCenter.lng - center.lng);
+    const prevCenter = prevCenterRef.current;
+    
+    // Determine if center changed noticeably compared to the previous center prop
+    const centerChanged = !prevCenter ||
+      Math.abs(prevCenter.lat - center.lat) > 0.00001 ||
+      Math.abs(prevCenter.lng - center.lng) > 0.00001 ||
+      (center.zoom !== undefined && prevCenter.zoom !== center.zoom);
 
-      // Only animate setView if the center has actually changed noticeably
-      if (latDiff > 0.0001 || lngDiff > 0.0001) {
-        map.setView([center.lat, center.lng], center.zoom || map.getZoom(), {
-          animate: true,
-          duration: 0.8,
-        });
+    prevCenterRef.current = center;
+
+    if (centerChanged) {
+      const targetZoom = center.zoom || map.getZoom();
+      map.setView([center.lat, center.lng], targetZoom, {
+        animate: true,
+        duration: 0.8,
+      });
+    } else {
+      if (selectedMarkerId && markersRefs.current) {
+        const marker = markersRefs.current[selectedMarkerId];
+        if (marker && map.hasLayer(marker) && !marker.isPopupOpen()) {
+          marker.openPopup();
+        }
       }
     }
-  }, [center, map]);
+  }, [center, map, selectedMarkerId, markersRefs]);
+
+  useEffect(() => {
+    const onMoveEnd = () => {
+      if (selectedMarkerId && markersRefs.current) {
+        const marker = markersRefs.current[selectedMarkerId];
+        if (marker && map.hasLayer(marker) && !marker.isPopupOpen()) {
+          marker.openPopup();
+        }
+      }
+    };
+
+    map.on('moveend', onMoveEnd);
+    return () => {
+      map.off('moveend', onMoveEnd);
+    };
+  }, [map, selectedMarkerId, markersRefs]);
 
   return null;
 }
@@ -103,6 +140,16 @@ export const CATEGORY_COLORS: Record<string, string> = {
   'โรงพยาบาล': '#06b6d4',
   'ธนาคาร': '#10b981',
   'สถานที่ท่องเที่ยว': '#f97316',
+};
+
+export const TYPE_COLORS: Record<string, string> = {
+  'Fixed Camera': '#0ea5e9', // Light Blue
+  'PTZ Camera': '#8b5cf6',   // Purple
+  'LPR/AI Camera': '#10b981', // Emerald
+  'Speed Cam': '#f59e0b',    // Amber
+  '4G': '#ec4899',           // Pink
+  '5G': '#f43f5e',           // Rose
+  'WiFi': '#3b82f6',         // Indigo
 };
 
 /**
@@ -127,6 +174,122 @@ export function centerOfMarkers(
   return { lat, lng, zoom };
 }
 
+// Helper component to collect map events and notify when a popup is closed
+function MapEventsCollector({
+  lastCenterChangeTime,
+  onPopupClose,
+}: {
+  lastCenterChangeTime: React.RefObject<number>;
+  onPopupClose: () => void;
+}) {
+  useMapEvents({
+    popupclose: () => {
+      const timeSinceMove = Date.now() - (lastCenterChangeTime.current || 0);
+      // Ignore programmatic popupclose events caused by panning/zooming animations
+      if (timeSinceMove > 1000) {
+        onPopupClose();
+      }
+    },
+  });
+  return null;
+}
+
+// A custom Marker wrapper
+const MapMarker = ({
+  marker,
+  isSelected,
+  pinColor,
+  onSelectMarker,
+  hasMiddleContent,
+  markerRef,
+}: {
+  marker: MapMarkerItem;
+  isSelected: boolean;
+  pinColor: string;
+  onSelectMarker?: (marker: MapMarkerItem) => void;
+  hasMiddleContent: boolean;
+  markerRef: (ref: L.Marker | null) => void;
+}) => {
+  return (
+    <Marker
+      ref={markerRef}
+      position={[marker.lat, marker.lng]}
+      icon={isSelected ? createHighlightedIcon(pinColor) : createCustomIcon(pinColor)}
+      zIndexOffset={isSelected ? 1000 : 0}
+      eventHandlers={{
+        click: () => {
+          if (onSelectMarker) {
+            setTimeout(() => {
+              onSelectMarker(marker);
+            }, 50);
+          }
+        },
+      }}
+    >
+      <Popup className="custom-leaflet-popup" autoPan={false}>
+        <div className="p-1 space-y-1.5 min-w-[210px] text-slate-900 font-sans">
+          <div className={`font-bold text-sm text-slate-900 pb-1 flex items-center justify-between ${
+            hasMiddleContent ? 'border-b' : ''
+          }`}>
+            <span>{marker.title}</span>
+            <span
+              className="text-[10px] px-1.5 py-0.5 rounded text-white font-bold shrink-0 ml-1"
+              style={{ backgroundColor: marker.color || '#3b82f6' }}
+            >
+              {marker.category}
+            </span>
+          </div>
+
+          {(marker.type || marker.status) && (
+            <div className="flex flex-wrap items-center gap-1.5 text-[10px] font-semibold">
+              {marker.type && (
+                <span className="bg-blue-50/80 text-blue-600 border border-blue-200/50 px-1.5 py-0.5 rounded shrink-0">
+                  📹 {marker.type}
+                </span>
+              )}
+              {marker.status && (
+                <span className={`px-1.5 py-0.5 rounded border shrink-0 ${
+                  marker.status.includes('ปกติ') || marker.status.includes('ออนไลน์')
+                    ? 'bg-emerald-50/80 text-emerald-600 border-emerald-200/50'
+                    : 'bg-rose-50/80 text-rose-600 border-rose-200/50'
+                }`}>
+                  {marker.status}
+                </span>
+              )}
+            </div>
+          )}
+
+          {marker.address && marker.address !== '-' && (
+            <p className="text-xs text-slate-600 font-normal leading-tight">
+              📍 {marker.address}
+            </p>
+          )}
+
+          {marker.notes && (
+            <p className="text-[11px] text-slate-500 italic bg-slate-100 p-1.5 rounded">
+              {marker.notes}
+            </p>
+          )}
+
+          <div className="pt-1 flex items-center justify-between text-[11px] border-t border-slate-200">
+            <span className="font-mono text-slate-500">
+              {marker.lat.toFixed(4)}, {marker.lng.toFixed(4)}
+            </span>
+            <a
+              href={`https://www.google.com/maps/search/?api=1&query=${marker.lat},${marker.lng}`}
+              target="_blank"
+              rel="noreferrer"
+              className="font-bold text-blue-600 hover:underline"
+            >
+              Google Maps ➔
+            </a>
+          </div>
+        </div>
+      </Popup>
+    </Marker>
+  );
+};
+
 export const InteractiveMap: React.FC<InteractiveMapProps> = ({
   markers,
   center,
@@ -135,9 +298,78 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
   height = '450px',
   enableClustering = true,
   onSelectMarker,
+  onClearSelection,
   selectedMarkerId,
 }) => {
   const [mapStyle, setMapStyle] = React.useState<'streets' | 'satellite' | 'dark'>('streets');
+  const lastCenterChangeTime = useRef<number>(0);
+  const markersRefs = useRef<Record<string, L.Marker>>({});
+
+  // Use refs to stabilize callbacks and prevent useMemo from re-running on every render
+  // when parent components pass inline functions (which causes popup blinking).
+  const onSelectMarkerRef = useRef(onSelectMarker);
+  const onClearSelectionRef = useRef(onClearSelection);
+
+  useEffect(() => {
+    onSelectMarkerRef.current = onSelectMarker;
+    onClearSelectionRef.current = onClearSelection;
+  }, [onSelectMarker, onClearSelection]);
+
+  const stableOnSelectMarker = useCallback((marker: MapMarkerItem) => {
+    if (onSelectMarkerRef.current) {
+      onSelectMarkerRef.current(marker);
+    }
+  }, []);
+
+  const stableOnClearSelection = useCallback(() => {
+    if (onClearSelectionRef.current) {
+      onClearSelectionRef.current();
+    }
+  }, []);
+
+  useEffect(() => {
+    lastCenterChangeTime.current = Date.now();
+  }, [center]);
+
+  const renderedMarkers = useMemo(() => {
+    const list = markers.map((marker) => {
+      const isSelected = marker.id === selectedMarkerId;
+      const pinColor = marker.color || CATEGORY_COLORS[marker.category] || '#3b82f6';
+      const hasMiddleContent = !!((marker.address && marker.address !== '-') || marker.notes || marker.type || marker.status);
+      return (
+        <MapMarker
+          key={marker.id}
+          marker={marker}
+          isSelected={isSelected}
+          pinColor={pinColor}
+          onSelectMarker={stableOnSelectMarker}
+          hasMiddleContent={hasMiddleContent}
+          markerRef={(ref) => {
+            if (ref) {
+              markersRefs.current[marker.id] = ref;
+            } else {
+              delete markersRefs.current[marker.id];
+            }
+          }}
+        />
+      );
+    });
+
+    if (enableClustering) {
+      return (
+        <MarkerClusterGroup
+          chunkedLoading
+          maxClusterRadius={45}
+          spiderfyOnMaxZoom={true}
+          showCoverageOnHover={false}
+          disableClusteringAtZoom={16}
+        >
+          {list}
+        </MarkerClusterGroup>
+      );
+    }
+    return <>{list}</>;
+  }, [markers, selectedMarkerId, enableClustering, onSelectMarker]);
 
   const tileUrls = {
     dark: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
@@ -202,7 +434,17 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
           scrollWheelZoom={true}
           style={{ height: '100%', width: '100%' }}
         >
-          <MapController center={center} />
+          <MapController
+            center={center}
+            selectedMarkerId={selectedMarkerId}
+            markersRefs={markersRefs}
+          />
+          <MapEventsCollector
+            lastCenterChangeTime={lastCenterChangeTime}
+            onPopupClose={() => {
+              stableOnClearSelection();
+            }}
+          />
 
           <TileLayer
             attribution={tileAttributions[mapStyle]}
@@ -210,135 +452,7 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
             maxZoom={19}
           />
 
-          {enableClustering ? (
-            <MarkerClusterGroup
-              chunkedLoading
-              maxClusterRadius={45}
-              spiderfyOnMaxZoom={true}
-              showCoverageOnHover={false}
-              disableClusteringAtZoom={16}
-            >
-              {markers.map((marker) => {
-                const isSelected = marker.id === selectedMarkerId;
-                const pinColor = marker.color || CATEGORY_COLORS[marker.category] || '#3b82f6';
-                return (
-                <Marker
-                  key={marker.id}
-                  position={[marker.lat, marker.lng]}
-                  icon={isSelected ? createHighlightedIcon(pinColor) : createCustomIcon(pinColor)}
-                  zIndexOffset={isSelected ? 1000 : 0}
-                  eventHandlers={{
-                    click: () => {
-                      if (onSelectMarker) {
-                        onSelectMarker(marker);
-                      }
-                    },
-                  }}
-                >
-                  <Popup className="custom-leaflet-popup">
-                    <div className="p-1 space-y-1.5 min-w-[210px] text-slate-900 font-sans">
-                      <div className="font-bold text-sm text-slate-900 border-b pb-1 flex items-center justify-between">
-                        <span>{marker.title}</span>
-                        <span
-                          className="text-[10px] px-1.5 py-0.5 rounded text-white font-bold shrink-0 ml-1"
-                          style={{ backgroundColor: marker.color || '#3b82f6' }}
-                        >
-                          {marker.category}
-                        </span>
-                      </div>
-
-                      {marker.address && marker.address !== '-' && (
-                        <p className="text-xs text-slate-600 font-normal leading-tight">
-                          📍 {marker.address}
-                        </p>
-                      )}
-
-                      {marker.notes && (
-                        <p className="text-[11px] text-slate-500 italic bg-slate-100 p-1.5 rounded">
-                          {marker.notes}
-                        </p>
-                      )}
-
-                      <div className="pt-1 flex items-center justify-between text-[11px] border-t border-slate-200">
-                        <span className="font-mono text-slate-500">
-                          {marker.lat.toFixed(4)}, {marker.lng.toFixed(4)}
-                        </span>
-                        <a
-                          href={`https://www.google.com/maps/search/?api=1&query=${marker.lat},${marker.lng}`}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="font-bold text-blue-600 hover:underline"
-                        >
-                          Google Maps ➔
-                        </a>
-                      </div>
-                    </div>
-                  </Popup>
-                </Marker>
-                );
-              })}
-            </MarkerClusterGroup>
-          ) : (
-            markers.map((marker) => {
-              const isSelected = marker.id === selectedMarkerId;
-              const pinColor = marker.color || CATEGORY_COLORS[marker.category] || '#3b82f6';
-              return (
-              <Marker
-                key={marker.id}
-                position={[marker.lat, marker.lng]}
-                icon={isSelected ? createHighlightedIcon(pinColor) : createCustomIcon(pinColor)}
-                zIndexOffset={isSelected ? 1000 : 0}
-                eventHandlers={{
-                  click: () => {
-                    if (onSelectMarker) {
-                      onSelectMarker(marker);
-                    }
-                  },
-                }}
-              >
-                <Popup className="custom-leaflet-popup">
-                  <div className="p-1 space-y-1.5 min-w-[210px] text-slate-900 font-sans">
-                    <div className="font-bold text-sm text-slate-900 border-b pb-1 flex items-center justify-between">
-                      <span>{marker.title}</span>
-                      <span
-                        className="text-[10px] px-1.5 py-0.5 rounded text-white font-bold shrink-0 ml-1"
-                        style={{ backgroundColor: marker.color || '#3b82f6' }}
-                      >
-                        {marker.category}
-                      </span>
-                    </div>
-
-                    {marker.address && (
-                      <p className="text-xs text-slate-600 font-normal leading-tight">
-                        📍 {marker.address}
-                      </p>
-                    )}
-
-                    {marker.notes && (
-                      <p className="text-[11px] text-slate-500 italic bg-slate-100 p-1.5 rounded">
-                        {marker.notes}
-                      </p>
-                    )}
-
-                    <div className="pt-1 flex items-center justify-between text-[11px] border-t border-slate-200">
-                      <span className="font-mono text-slate-500">
-                        {marker.lat.toFixed(4)}, {marker.lng.toFixed(4)}
-                      </span>
-                      <a
-                        href={`https://www.google.com/maps/search/?api=1&query=${marker.lat},${marker.lng}`}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="font-bold text-blue-600 hover:underline"
-                      >
-                        Google Maps ➔
-                      </a>
-                    </div>
-                  </div>
-                </Popup>
-              </Marker>
-              );
-            })
-          )}
+          {renderedMarkers}
         </MapContainer>
       </div>
     </div>

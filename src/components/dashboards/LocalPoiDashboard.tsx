@@ -61,7 +61,7 @@ export const LocalPoiDashboard: React.FC<LocalPoiDashboardProps> = ({ searchQuer
       if (data && data.length > 0) {
         const nameCol = columns.find((c) => c.includes('ชื่อ') || c.includes('สถานที่')) || columns[1] || columns[0];
         const categoryCol = columns.find((c) => c.includes('ประเภท') || c.includes('หมวด')) || columns[3] || columns[0];
-        const notesCol = columns.find((c) => c.includes('หมายเหตุ') || c.includes('รายละเอียด')) || '';
+        const notesCol = columns.find((c) => c.includes('ที่อยู่') || c.includes('ที่ตั้ง') || c.includes('หมายเหตุ') || c.includes('รายละเอียด')) || '';
         const zoneCol = columns.find((c) => c.includes('เขต') || c.includes('พื้นที่')) || '';
 
         const mappedPoi: PoiItem[] = data.map((row, idx) => {
@@ -90,7 +90,7 @@ export const LocalPoiDashboard: React.FC<LocalPoiDashboardProps> = ({ searchQuer
             no: idx + 1,
             category: cat,
             name: String(row[nameCol] || `สถานที่ #${idx + 1}`),
-            address: String(row[notesCol] || 'ต.สะท้อน อ.นาทวี จ.สงขลา'),
+            address: String(row[notesCol] || '-'),
             contactPerson: String(row[zoneCol] ? `เขตพื้นที่ ${row[zoneCol]}` : 'เจ้าหน้าที่ดูแล'),
             phone: '074-200000',
             lat: lat || 7.0084,

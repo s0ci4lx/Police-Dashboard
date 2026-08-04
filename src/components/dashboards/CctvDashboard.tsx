@@ -2,20 +2,17 @@ import React, { useState, useMemo, useEffect } from 'react';
 import type { CctvItem } from '../../types/dashboard';
 import { SAMPLE_CCTV_DATA, HAT_YAI_STATION_COORDS, USER_PROVIDED_CCTV_SHEET_URL } from '../../data/mockInitialData';
 import { fetchCctvFromSheet } from '../../data/cctvShared';
-import { fetchSheetData, detectLatLongColumns } from '../../services/googleSheetService';
 import { KpiCard } from '../common/KpiCard';
 import { DataTable } from '../common/DataTable';
 import type { ColumnDef } from '../common/DataTable';
 import { StatChart } from '../common/StatChart';
-import { InteractiveMap, CATEGORY_COLORS, centerOfMarkers } from '../map/InteractiveMap';
+import { InteractiveMap, CATEGORY_COLORS, TYPE_COLORS, centerOfMarkers } from '../map/InteractiveMap';
 import type { MapMarkerItem } from '../map/InteractiveMap';
 import {
   Camera,
   Building,
   Radio,
   ExternalLink,
-  Link2,
-  RefreshCw,
   Activity,
   AlertTriangle,
   CheckCircle2,
@@ -41,9 +38,6 @@ export const CctvDashboard: React.FC<CctvDashboardProps> = ({ searchQuery }) => 
   const [activeViewMode, setActiveViewMode] = useState<'map-split' | 'map-full' | 'grid'>('map-split');
   const [selectedMarkerId, setSelectedMarkerId] = useState<string | null>(null);
   const [mapCenter, setMapCenter] = useState(HAT_YAI_STATION_COORDS);
-  const [sheetUrlInput, setSheetUrlInput] = useState<string>('');
-  const [isSyncing, setIsSyncing] = useState<boolean>(false);
-  const [syncStatusMsg, setSyncStatusMsg] = useState<string>('');
   const [inspectCam, setInspectCam] = useState<CctvItem | null>(null);
 
   // Pagination for Grid View
@@ -65,50 +59,7 @@ export const CctvDashboard: React.FC<CctvDashboardProps> = ({ searchQuery }) => 
     setMapCenter(centerOfMarkers(cctvData, HAT_YAI_STATION_COORDS));
   }, [cctvData]);
 
-  // Sync custom Google Sheet for CCTV if provided by user
-  const handleSyncCustomCctvSheet = async (e?: React.FormEvent) => {
-    if (e) e.preventDefault();
-    if (!sheetUrlInput.trim()) return;
 
-    setIsSyncing(true);
-    setSyncStatusMsg('');
-    try {
-      const { data, columns } = await fetchSheetData<Record<string, any>>(sheetUrlInput.trim());
-      const { latCol, lngCol } = detectLatLongColumns(columns);
-
-      if (data && data.length > 0) {
-        const agencyCol = columns.find((c) => c.includes('หน่วยงาน') || c.includes('สังกัด')) || columns[0];
-        const locationCol = columns.find((c) => c.includes('ชื่อ') || c.includes('สถานที่') || c.includes('จุด')) || columns[1] || columns[0];
-        const addressCol = columns.find((c) => c.includes('ที่อยู่') || c.includes('ทำเล')) || columns[2] || '';
-        const notesCol = columns.find((c) => c.includes('หมายเหตุ') || c.includes('รายละเอียด')) || '';
-
-        const mapped: CctvItem[] = data.map((row, idx) => {
-          const latVal = latCol ? parseFloat(String(row[latCol])) : 7.0084 + (Math.random() - 0.5) * 0.05;
-          const lngVal = lngCol ? parseFloat(String(row[lngCol])) : 100.4767 + (Math.random() - 0.5) * 0.05;
-
-          return {
-            id: `sheet-cam-${idx + 1}`,
-            no: idx + 1,
-            agency: String(row[agencyCol] || 'หน่วยงาน').trim(),
-            locationName: String(row[locationCol] || `จุดกล้องที่ ${idx + 1}`),
-            address: String(row[addressCol] || 'ต.สะท้อน อ.นาทวี จ.สงขลา'),
-            notes: String(row[notesCol] || ''),
-            lat: isNaN(latVal) ? 7.0084 : latVal,
-            lng: isNaN(lngVal) ? 100.4767 : lngVal,
-            type: 'Fixed Camera',
-            status: 'ออนไลน์ (ปกติ)',
-          };
-        });
-
-        setCctvData(mapped);
-        setSyncStatusMsg(`✅ ดึงข้อมูลจาก Google Sheet สำเร็จ ทั้งหมด ${mapped.length} จุดกล้อง!`);
-      }
-    } catch (err: any) {
-      setSyncStatusMsg(`❌ เกิดข้อผิดพลาดในการโหลด Sheet: ${err.message || 'โปรดเปิดสิทธิ์เป็นสาธารณะ'}`);
-    } finally {
-      setIsSyncing(false);
-    }
-  };
 
   // Filter CCTV items based on global search, agency & status dropdown
   const filteredData = useMemo(() => {
@@ -206,7 +157,7 @@ export const CctvDashboard: React.FC<CctvDashboardProps> = ({ searchQuery }) => 
       notes: item.notes,
       type: item.type,
       status: item.status,
-      color: CATEGORY_COLORS[item.agency] || '#3b82f6',
+      color: TYPE_COLORS[item.type] || CATEGORY_COLORS[item.agency] || '#3b82f6',
       rawData: item,
     }));
   }, [filteredData]);
@@ -238,11 +189,21 @@ export const CctvDashboard: React.FC<CctvDashboardProps> = ({ searchQuery }) => 
     {
       key: 'type',
       header: 'ประเภทกล้อง',
-      render: (row) => (
-        <span className="text-[11px] font-semibold text-blue-300 bg-blue-500/10 px-2 py-0.5 rounded border border-blue-500/20">
-          {row.type}
-        </span>
-      ),
+      render: (row) => {
+        const typeColor = TYPE_COLORS[row.type] || '#3b82f6';
+        return (
+          <span
+            className="text-[11px] font-bold px-2 py-0.5 rounded border shadow-sm"
+            style={{
+              color: typeColor,
+              borderColor: `${typeColor}44`,
+              backgroundColor: `${typeColor}15`,
+            }}
+          >
+            {row.type}
+          </span>
+        );
+      },
     },
     {
       key: 'status',
@@ -385,37 +346,7 @@ export const CctvDashboard: React.FC<CctvDashboardProps> = ({ searchQuery }) => 
         </div>
       </div>
 
-      {/* Live Google Sheet Input Sync Bar */}
-      <form
-        onSubmit={handleSyncCustomCctvSheet}
-        className="glass-panel bg-slate-900/90 border border-slate-800 rounded-2xl p-3.5 flex flex-col md:flex-row items-center justify-between gap-3"
-      >
-        <div className="flex items-center gap-2 text-xs font-bold text-slate-300 shrink-0">
-          <Link2 className="w-4 h-4 text-blue-400" />
-          <span>เชื่อมต่อ Google Sheet กล้องวงจรปิด:</span>
-        </div>
-        <input
-          type="url"
-          value={sheetUrlInput}
-          onChange={(e) => setSheetUrlInput(e.target.value)}
-          placeholder="วางลิงก์ Google Sheet CCTV ของคุณที่นี่ (https://docs.google.com/spreadsheets/...)"
-          className="flex-1 w-full px-3.5 py-1.5 bg-slate-800 border border-slate-700 rounded-xl text-xs font-mono text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
-        <button
-          type="submit"
-          disabled={isSyncing}
-          className="flex items-center gap-1.5 px-4 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-bold transition-all active:scale-95 disabled:opacity-50 shrink-0"
-        >
-          <RefreshCw className={`w-3.5 h-3.5 ${isSyncing ? 'animate-spin' : ''}`} />
-          <span>ซิงค์พิกัด Sheet</span>
-        </button>
-      </form>
 
-      {syncStatusMsg && (
-        <div className="p-3 bg-slate-800 border border-slate-700 rounded-xl text-xs text-blue-300">
-          {syncStatusMsg}
-        </div>
-      )}
 
       {/* KPI Cards Row — dynamic by the actual agencies present in the data */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3.5">
@@ -454,6 +385,14 @@ export const CctvDashboard: React.FC<CctvDashboardProps> = ({ searchQuery }) => 
           title={`แผนที่ศูนย์ควบคุม CCTV โหมดเต็มหน้าจอ (${mapMarkers.length.toLocaleString('th-TH')} หมุดปัก)`}
           height="650px"
           enableClustering={true}
+          selectedMarkerId={selectedMarkerId || undefined}
+          onSelectMarker={(marker) => {
+            setSelectedMarkerId(marker ? marker.id : null);
+            if (marker) {
+              setMapCenter({ lat: marker.lat, lng: marker.lng, zoom: 17 });
+            }
+          }}
+          onClearSelection={() => setSelectedMarkerId(null)}
         />
       )}
 
@@ -467,6 +406,13 @@ export const CctvDashboard: React.FC<CctvDashboardProps> = ({ searchQuery }) => 
             height="500px"
             enableClustering={true}
             selectedMarkerId={selectedMarkerId || undefined}
+            onSelectMarker={(marker) => {
+              setSelectedMarkerId(marker ? marker.id : null);
+              if (marker) {
+                setMapCenter({ lat: marker.lat, lng: marker.lng, zoom: 17 });
+              }
+            }}
+            onClearSelection={() => setSelectedMarkerId(null)}
           />
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">

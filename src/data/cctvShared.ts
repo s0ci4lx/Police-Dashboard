@@ -19,7 +19,7 @@ export async function fetchCctvFromSheet(sheetUrl: string): Promise<CctvItem[]> 
   const agencyCol = columns.find((c) => c.includes('หน่วยงาน') || c.includes('สังกัด')) || columns[0];
   const locationCol =
     columns.find((c) => c.includes('ชื่อ') || c.includes('สถานที่') || c.includes('จุด')) || columns[1] || columns[0];
-  const addressCol = columns.find((c) => c.includes('ที่อยู่') || c.includes('ทำเล') || c.includes('เขต') || c.includes('พื้นที่')) || '';
+  const addressCol = columns.find((c) => c.includes('ที่อยู่') || c.includes('ที่ตั้ง') || c.includes('ทำเล') || c.includes('เขต') || c.includes('พื้นที่')) || '';
   const notesCol = columns.find((c) => c.includes('หมายเหตุ') || c.includes('รายละเอียด')) || '';
   const typeCol = columns.find((c) => c.includes('ประเภท') || c.includes('ชนิด')) || '';
   const statusCol = columns.find((c) => c.includes('สถานะ')) || '';

@@ -3,7 +3,7 @@ import type { CctvItem } from '../../types/dashboard';
 import { SAMPLE_CCTV_DATA, HAT_YAI_STATION_COORDS, USER_PROVIDED_CCTV_SHEET_URL } from '../../data/mockInitialData';
 import { fetchCctvFromSheet } from '../../data/cctvShared';
 import { StatChart } from '../common/StatChart';
-import { InteractiveMap, CATEGORY_COLORS, centerOfMarkers } from '../map/InteractiveMap';
+import { InteractiveMap, CATEGORY_COLORS, TYPE_COLORS, centerOfMarkers } from '../map/InteractiveMap';
 import type { MapMarkerItem } from '../map/InteractiveMap';
 import {
   Cctv,
@@ -42,14 +42,15 @@ const TYPE_STYLE: Record<string, { color: string; short: string }> = {
 const CameraCard: React.FC<{
   cam: CctvItem;
   onOpen: () => void;
-}> = ({ cam, onOpen }) => {
+  onFocus: (cam: CctvItem) => void;
+}> = ({ cam, onOpen, onFocus }) => {
   const agencyColor = CATEGORY_COLORS[cam.agency] || '#3b82f6';
   const typeInfo = TYPE_STYLE[cam.type] || { color: '#64748b', short: cam.type };
 
   return (
-    <button
-      onClick={onOpen}
-      className="group relative w-full overflow-hidden rounded-xl border border-slate-800 bg-slate-950/70 p-3.5 text-left transition-all hover:border-blue-500/60 hover:bg-slate-900 hover:-translate-y-0.5"
+    <div
+      onClick={() => onFocus(cam)}
+      className="group relative w-full overflow-hidden rounded-xl border border-slate-800 bg-slate-950/70 p-3.5 text-left transition-all hover:border-blue-500/60 hover:bg-slate-900 hover:-translate-y-0.5 cursor-pointer"
     >
       {/* accent bar by agency */}
       <span className="absolute left-0 top-0 h-full w-1" style={{ backgroundColor: agencyColor }} />
@@ -87,11 +88,17 @@ const CameraCard: React.FC<{
           <Crosshair className="w-3 h-3 text-blue-400 shrink-0" />
           {cam.lat.toFixed(4)}, {cam.lng.toFixed(4)}
         </span>
-        <span className="text-[10px] font-bold text-slate-500 group-hover:text-blue-400 flex items-center gap-0.5 shrink-0">
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onOpen();
+          }}
+          className="text-[10px] font-bold text-slate-400 hover:text-blue-300 flex items-center gap-0.5 shrink-0 px-2 py-0.5 rounded bg-slate-900 border border-slate-800 hover:border-blue-500/40 transition-all"
+        >
           ดูจุด <ChevronRight className="w-3 h-3" />
-        </span>
+        </button>
       </div>
-    </button>
+    </div>
   );
 };
 
@@ -200,7 +207,8 @@ export const CctvWallDashboard: React.FC<CctvWallDashboardProps> = ({ searchQuer
       address: item.address,
       notes: item.notes,
       type: item.type,
-      color: CATEGORY_COLORS[item.agency] || '#3b82f6',
+      status: item.status,
+      color: TYPE_COLORS[item.type] || CATEGORY_COLORS[item.agency] || '#3b82f6',
       rawData: item,
     }));
   }, [filtered]);
@@ -254,28 +262,41 @@ export const CctvWallDashboard: React.FC<CctvWallDashboardProps> = ({ searchQuer
       </div>
 
       {/* Stat strip — real, derivable numbers only */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-6 gap-3">
         {[
-          { label: 'จุดติดตั้งทั้งหมด', value: stats.total.toLocaleString('th-TH'), icon: Video, color: '#38bdf8', tint: 'from-sky-600/15 border-sky-500/30' },
-          { label: 'หน่วยงานเจ้าของ', value: stats.agencies, icon: Building2, color: '#a78bfa', tint: 'from-violet-600/15 border-violet-500/30' },
-          { label: 'ประเภทกล้อง', value: stats.types, icon: Layers, color: '#34d399', tint: 'from-emerald-600/15 border-emerald-500/30' },
-          { label: 'กล้องอัจฉริยะ (LPR/Speed)', value: stats.smart.toLocaleString('th-TH'), icon: Cpu, color: '#fbbf24', tint: 'from-amber-600/15 border-amber-500/30' },
-        ].map((s) => (
-          <div
-            key={s.label}
-            className={`glass-panel bg-gradient-to-br to-slate-900/10 border rounded-2xl p-4 flex items-center justify-between ${s.tint}`}
-          >
-            <div>
-              <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-300">{s.label}</p>
-              <h3 className="text-2xl font-extrabold tabular-nums" style={{ color: s.color }}>
-                {s.value}
-              </h3>
+          { label: 'จุดติดตั้งทั้งหมด', value: stats.total.toLocaleString('th-TH'), icon: Video },
+          { label: 'หน่วยงานเจ้าของ', value: stats.agencies.toLocaleString('th-TH'), icon: Building2 },
+          ...Object.entries(stats.typeCount).map(([type, count]) => ({
+            label: `กล้องแบบ ${type}`,
+            value: count.toLocaleString('th-TH'),
+            icon: Cpu,
+          })),
+        ].map((card, idx) => {
+          const theme = [
+            { color: '#38bdf8', tint: 'from-sky-600/15 border-sky-500/30' },
+            { color: '#a78bfa', tint: 'from-violet-600/15 border-violet-500/30' },
+            { color: '#34d399', tint: 'from-emerald-600/15 border-emerald-500/30' },
+            { color: '#fbbf24', tint: 'from-amber-600/15 border-amber-500/30' },
+            { color: '#f43f5e', tint: 'from-rose-600/15 border-rose-500/30' },
+            { color: '#06b6d4', tint: 'from-cyan-600/15 border-cyan-500/30' },
+          ][idx % 6];
+          return (
+            <div
+              key={card.label}
+              className={`glass-panel bg-gradient-to-br to-slate-900/10 border rounded-2xl p-4 flex items-center justify-between ${theme.tint}`}
+            >
+              <div>
+                <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-300">{card.label}</p>
+                <h3 className="text-2xl font-extrabold tabular-nums" style={{ color: theme.color }}>
+                  {card.value}
+                </h3>
+              </div>
+              <div className="p-2.5 rounded-xl border border-white/10 bg-black/20 shrink-0 ml-2" style={{ color: theme.color }}>
+                <card.icon className="w-5 h-5" />
+              </div>
             </div>
-            <div className="p-2.5 rounded-xl border border-white/10 bg-black/20" style={{ color: s.color }}>
-              <s.icon className="w-5 h-5" />
-            </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       {/* Control bar */}
@@ -346,7 +367,13 @@ export const CctvWallDashboard: React.FC<CctvWallDashboardProps> = ({ searchQuer
           enableClustering={true}
           title={`แผนที่จุดติดตั้งกล้อง (${mapMarkers.length.toLocaleString('th-TH')} หมุด)`}
           selectedMarkerId={focusedId || undefined}
-          onSelectMarker={(m) => setSelected(m.rawData as CctvItem)}
+          onSelectMarker={(m) => {
+            setTimeout(() => {
+              setFocusedId(m.id);
+              setMapCenter({ lat: m.lat, lng: m.lng, zoom: 17 });
+            }, 50);
+          }}
+          onClearSelection={() => setFocusedId(null)}
         />
       </div>
 
@@ -388,7 +415,7 @@ export const CctvWallDashboard: React.FC<CctvWallDashboardProps> = ({ searchQuer
           ) : (
             <div className={`grid ${gridColsClass} gap-3`}>
               {pageItems.map((cam) => (
-                <CameraCard key={cam.id} cam={cam} onOpen={() => setSelected(cam)} />
+                <CameraCard key={cam.id} cam={cam} onOpen={() => setSelected(cam)} onFocus={focusOnMap} />
               ))}
             </div>
           )}
@@ -466,14 +493,14 @@ export const CctvWallDashboard: React.FC<CctvWallDashboardProps> = ({ searchQuer
           type="doughnut"
           labels={Object.keys(stats.agencyCount)}
           dataValues={Object.values(stats.agencyCount)}
-          customColors={Object.keys(stats.agencyCount).map((a) => CATEGORY_COLORS[a] || '#3b82f6')}
+          customColors={Object.keys(stats.agencyCount).map((a, i) => CATEGORY_COLORS[a] || ['#ec4899', '#0ea5e9', '#10b981', '#f59e0b', '#8b5cf6', '#f43f5e', '#14b8a6', '#a855f7'][i % 8])}
         />
         <StatChart
           title="จำนวนกล้องแยกตามประเภทอุปกรณ์"
           type="bar"
           labels={Object.keys(stats.typeCount)}
           dataValues={Object.values(stats.typeCount)}
-          customColors={Object.keys(stats.typeCount).map((t) => TYPE_STYLE[t]?.color || '#64748b')}
+          customColors={Object.keys(stats.typeCount).map((t) => TYPE_STYLE[t]?.color || TYPE_COLORS[t] || '#64748b')}
         />
       </div>
 
