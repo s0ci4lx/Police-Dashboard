@@ -1,9 +1,12 @@
 # คู่มือการติดตั้งใช้งานและความปลอดภัย (Deployment & Security)
 
-ระบบแดชบอร์ด สภ.สะท้อน ใช้สถาปัตยกรรมความปลอดภัย **2 ชั้น**:
+ระบบแดชบอร์ด สภ.สะท้อน รองรับการล็อกอิน 3 แบบ (เลือกใช้แบบใดแบบหนึ่ง) + สิทธิ์ในแอป:
 
-1. **Cloudflare Access (ประตูจริง)** — กั้นหน้าเว็บทั้งหมด บังคับให้ล็อกอิน Google ก่อนเข้าถึงเว็บได้ คนที่ไม่ได้รับอนุญาตจะไม่เห็นแม้แต่หน้าเดียว
-2. **สิทธิ์ในแอป (RBAC)** — เมื่อผ่านประตูมาแล้ว แอปจะจัดการว่าอีเมลนี้เป็น Admin/User และดูหน้าไหนได้บ้าง
+- **Firebase Authentication** — ล็อกอิน Google จริง (ปุ่ม Sign in with Google) ใช้ได้บนทุกโดเมนรวม `*.vercel.app` ไม่ต้อง custom domain **(แนะนำสำหรับตอนนี้ — ดูส่วนที่ 5)**
+- **Cloudflare Access** — กั้นหน้าเว็บทั้งหมดก่อนเข้า (perimeter จริง) ต้องมี custom domain ผ่าน Cloudflare
+- **ล็อกอินชั่วคราว (พิมพ์อีเมล)** — ใช้เมื่อยังไม่ตั้งสองแบบข้างต้น (ประตูอ่อน สำหรับพรีวิว)
+
+ลำดับการทำงาน: Cloudflare (ถ้ามี) → Firebase (ถ้าตั้งค่า) → ล็อกอินชั่วคราว จากนั้น **สิทธิ์ในแอป (RBAC)** ตัดสินว่าอีเมลนั้นเป็น Admin/User และดูหน้าไหนได้
 
 > ⚠️ **สำคัญ:** ถ้า deploy โดย **ไม่มี** Cloudflare Access ข้อมูลจะเปิดสาธารณะ (ใครมีลิงก์ก็เข้าได้ เพราะแอปดึงข้อมูลฝั่ง browser) — RBAC ในแอปเพียงอย่างเดียว **ไม่ใช่** การป้องกันจริง ต้องตั้ง Cloudflare Access ด้วยเสมอสำหรับข้อมูลราชการ
 
@@ -65,6 +68,27 @@ export const BOOTSTRAP_ADMINS = ['tummarat@gmail.com', 'investigate.thepha@gmail
 
 ชีตต้องแชร์เป็น **"ทุกคนที่มีลิงก์ ดูได้"** (เพราะแอปดึงฝั่ง browser)
 - ต้องการความปลอดภัยสูงสุด (ชีตเป็นส่วนตัว) ให้ทำ backend proxy + service account เพิ่มในอนาคต
+
+---
+
+## ส่วนที่ 5 — Firebase Authentication (ล็อกอิน Google จริง) ⭐
+
+วิธีนี้ได้หน้าล็อกอิน Google จริง ใช้ได้บน `*.vercel.app` เลย ไม่ต้อง custom domain
+
+**สร้างโปรเจกต์ + เปิดใช้ Google**
+1. ไปที่ https://console.firebase.google.com → Add project
+2. เมนูซ้าย **Build → Authentication → Get started**
+3. แท็บ **Sign-in method → Add new provider → Google → Enable** → เลือก support email → Save
+4. แท็บ **Settings → Authorized domains** → ตรวจว่ามี `localhost` และ **กด Add domain ใส่ `sathon-police.vercel.app`** (โดเมน Vercel ของคุณ)
+5. **Project settings (เฟือง) → General → Your apps → Web app** → คัดลอกค่า config
+
+**ใส่ค่า config**
+- ในเครื่อง: สร้างไฟล์ `.env.local` (ดูตัวอย่างใน `.env.example`) ใส่ค่า `VITE_FIREBASE_*`
+- บน Vercel: **Project → Settings → Environment Variables** ใส่ค่าเดียวกันทั้ง 6 ตัว แล้ว **Redeploy**
+
+**การกำหนดสิทธิ์** ใช้ RBAC เดิม (ส่วนที่ 3) — อีเมลที่ล็อกอินต้องเป็น bootstrap admin หรืออยู่ในรายชื่อ ไม่งั้นเห็นหน้า "ไม่มีสิทธิ์"
+
+> หมายเหตุ: ค่า `VITE_FIREBASE_*` (apiKey ฯลฯ) **ไม่ใช่ความลับ** — Firebase ออกแบบให้เปิดเผยฝั่ง client ได้ ความปลอดภัยอยู่ที่ Authorized domains + Auth provider + สิทธิ์ในแอป
 
 ---
 

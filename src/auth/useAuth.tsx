@@ -1,30 +1,31 @@
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
+import { onAuthStateChanged, signInWithPopup, signOut } from 'firebase/auth';
 import { resolveAccess, type ResolvedAccess } from '../config/access';
+import { auth, googleProvider, isFirebaseConfigured } from '../config/firebase';
 
 /* Identity resolution order:
- *  1. Cloudflare Access  — /cdn-cgi/access/get-identity (the real gate, on prod)
- *  2. Manual email login — a soft in-app gate used when Cloudflare is absent
- *     (local dev, or a Vercel *.vercel.app preview that can't use Cloudflare).
- *     On localhost it defaults to a bootstrap admin for convenience; elsewhere
- *     the user must type an authorized email on the no-access screen.
+ *  1. Cloudflare Access  — /cdn-cgi/access/get-identity (perimeter gate on prod)
+ *  2. Firebase Auth      — real "Sign in with Google" (works on any domain)
+ *  3. Manual email login — soft gate fallback when neither is configured
  *
- * NOTE: manual login is NOT real security (a known email can be typed). It exists
- * so the app is usable/previewable before Cloudflare Access is configured. */
+ * The RBAC model (email → role → pages) is identical regardless of source. */
 
 const MANUAL_EMAIL_KEY = 'police_dashboard_manual_email';
 const CF_IDENTITY_URL = '/cdn-cgi/access/get-identity';
 const CF_LOGOUT_URL = '/cdn-cgi/access/logout';
 
-type Source = 'cloudflare' | 'manual' | null;
+type Source = 'cloudflare' | 'firebase' | 'manual' | null;
 
 interface AuthState {
   loading: boolean;
   email: string | null;
   access: ResolvedAccess;
   source: Source;
-  needsManualLogin: boolean; // Cloudflare absent → app should offer email entry
-  refreshAccess: () => void;
+  firebaseEnabled: boolean;
+  needsManualLogin: boolean; // no Cloudflare and no Firebase → offer email entry
+  signInWithGoogle: () => Promise<void>;
   submitEmail: (email: string) => void;
+  refreshAccess: () => void;
   logout: () => void;
 }
 
@@ -62,37 +63,59 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setAccess(resolveAccess(e));
   }, []);
 
-  const init = useCallback(async () => {
-    setLoading(true);
-    const cfEmail = await fetchCloudflareEmail();
-    if (cfEmail) {
-      apply(cfEmail, 'cloudflare');
-      setLoading(false);
-      return;
-    }
+  useEffect(() => {
+    let cancelled = false;
+    let unsub: (() => void) | undefined;
 
-    // No Cloudflare identity → manual mode
-    let manual: string | null = null;
-    try {
-      manual = localStorage.getItem(MANUAL_EMAIL_KEY);
-    } catch {
-      /* ignore */
-    }
-    if (manual) {
-      apply(manual, 'manual');
-    } else if (isLocalDev()) {
-      apply('tummarat@gmail.com', 'manual'); // dev convenience
-    } else {
-      apply(null, null); // production preview → require manual email entry
-    }
-    setLoading(false);
+    (async () => {
+      // 1. Cloudflare Access
+      const cfEmail = await fetchCloudflareEmail();
+      if (cancelled) return;
+      if (cfEmail) {
+        apply(cfEmail, 'cloudflare');
+        setLoading(false);
+        return;
+      }
+
+      // 2. Firebase (real Google sign-in)
+      if (isFirebaseConfigured && auth) {
+        unsub = onAuthStateChanged(auth, (user) => {
+          if (cancelled) return;
+          if (user && user.email) apply(user.email, 'firebase');
+          else apply(null, null); // not signed in → show Google button
+          setLoading(false);
+        });
+        return;
+      }
+
+      // 3. Manual email fallback
+      let manual: string | null = null;
+      try {
+        manual = localStorage.getItem(MANUAL_EMAIL_KEY);
+      } catch {
+        /* ignore */
+      }
+      if (manual) apply(manual, 'manual');
+      else if (isLocalDev()) apply('tummarat@gmail.com', 'manual');
+      else apply(null, null);
+      setLoading(false);
+    })();
+
+    return () => {
+      cancelled = true;
+      if (unsub) unsub();
+    };
   }, [apply]);
 
-  useEffect(() => {
-    init();
-  }, [init]);
-
-  const refreshAccess = useCallback(() => setAccess(resolveAccess(email)), [email]);
+  const signInWithGoogle = useCallback(async () => {
+    if (!auth) return;
+    try {
+      await signInWithPopup(auth, googleProvider);
+      // onAuthStateChanged updates state
+    } catch (e) {
+      console.warn('Google sign-in failed:', e);
+    }
+  }, []);
 
   const submitEmail = useCallback(
     (e: string) => {
@@ -108,9 +131,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     [apply],
   );
 
-  const logout = useCallback(() => {
+  const refreshAccess = useCallback(() => setAccess(resolveAccess(email)), [email]);
+
+  const logout = useCallback(async () => {
     if (source === 'cloudflare') {
       window.location.href = CF_LOGOUT_URL;
+      return;
+    }
+    if (source === 'firebase' && auth) {
+      try {
+        await signOut(auth);
+      } catch {
+        /* ignore */
+      }
+      apply(null, null);
       return;
     }
     try {
@@ -121,10 +155,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     apply(null, null);
   }, [source, apply]);
 
-  const needsManualLogin = source !== 'cloudflare';
+  const needsManualLogin = source !== 'cloudflare' && !isFirebaseConfigured;
 
   return (
-    <AuthContext.Provider value={{ loading, email, access, source, needsManualLogin, refreshAccess, submitEmail, logout }}>
+    <AuthContext.Provider
+      value={{
+        loading,
+        email,
+        access,
+        source,
+        firebaseEnabled: isFirebaseConfigured,
+        needsManualLogin,
+        signInWithGoogle,
+        submitEmail,
+        refreshAccess,
+        logout,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );
