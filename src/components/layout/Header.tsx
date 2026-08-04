@@ -10,7 +10,7 @@ interface HeaderProps {
   userEmail?: string | null;
   roleLabel?: string;
   isAdmin?: boolean;
-  isDev?: boolean;
+  isTemporary?: boolean;
   onOpenSettings?: () => void;
   onLogout?: () => void;
 }
@@ -24,7 +24,7 @@ export const Header: React.FC<HeaderProps> = ({
   userEmail,
   roleLabel,
   isAdmin = false,
-  isDev = false,
+  isTemporary = false,
   onOpenSettings,
   onLogout,
 }) => {
@@ -160,7 +160,7 @@ export const Header: React.FC<HeaderProps> = ({
                 <div className="text-[11px] font-bold text-slate-200 max-w-[150px] truncate">{userEmail}</div>
                 <div className="text-[9px] text-slate-400">
                   {roleLabel}
-                  {isDev && <span className="ml-1 text-amber-400 font-bold">· DEV</span>}
+                  {isTemporary && <span className="ml-1 text-amber-400 font-bold">· ชั่วคราว</span>}
                 </div>
               </div>
               {isAdmin && onOpenSettings && (

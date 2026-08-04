@@ -1,22 +1,30 @@
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { resolveAccess, type ResolvedAccess } from '../config/access';
 
-/* Identity comes from Cloudflare Access, which sits in front of the site and
- * exposes the signed-in user at /cdn-cgi/access/get-identity. In local dev there
- * is no Cloudflare, so we fall back to a "dev email" (defaults to a bootstrap
- * admin) that can be switched from the UI for testing different roles. */
+/* Identity resolution order:
+ *  1. Cloudflare Access  — /cdn-cgi/access/get-identity (the real gate, on prod)
+ *  2. Manual email login — a soft in-app gate used when Cloudflare is absent
+ *     (local dev, or a Vercel *.vercel.app preview that can't use Cloudflare).
+ *     On localhost it defaults to a bootstrap admin for convenience; elsewhere
+ *     the user must type an authorized email on the no-access screen.
+ *
+ * NOTE: manual login is NOT real security (a known email can be typed). It exists
+ * so the app is usable/previewable before Cloudflare Access is configured. */
 
-const DEV_EMAIL_KEY = 'police_dashboard_dev_email';
+const MANUAL_EMAIL_KEY = 'police_dashboard_manual_email';
 const CF_IDENTITY_URL = '/cdn-cgi/access/get-identity';
 const CF_LOGOUT_URL = '/cdn-cgi/access/logout';
+
+type Source = 'cloudflare' | 'manual' | null;
 
 interface AuthState {
   loading: boolean;
   email: string | null;
   access: ResolvedAccess;
-  isDev: boolean; // true when identity came from the local dev fallback
+  source: Source;
+  needsManualLogin: boolean; // Cloudflare absent → app should offer email entry
   refreshAccess: () => void;
-  setDevEmail: (email: string) => void;
+  submitEmail: (email: string) => void;
   logout: () => void;
 }
 
@@ -45,12 +53,12 @@ async function fetchCloudflareEmail(): Promise<string | null> {
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [email, setEmail] = useState<string | null>(null);
-  const [isDev, setIsDev] = useState(false);
+  const [source, setSource] = useState<Source>(null);
   const [access, setAccess] = useState<ResolvedAccess>(resolveAccess(null));
 
-  const applyEmail = useCallback((e: string | null, dev: boolean) => {
+  const apply = useCallback((e: string | null, src: Source) => {
     setEmail(e);
-    setIsDev(dev);
+    setSource(src);
     setAccess(resolveAccess(e));
   }, []);
 
@@ -58,61 +66,65 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setLoading(true);
     const cfEmail = await fetchCloudflareEmail();
     if (cfEmail) {
-      // Real identity from Cloudflare Access
-      applyEmail(cfEmail, false);
+      apply(cfEmail, 'cloudflare');
+      setLoading(false);
+      return;
+    }
+
+    // No Cloudflare identity → manual mode
+    let manual: string | null = null;
+    try {
+      manual = localStorage.getItem(MANUAL_EMAIL_KEY);
+    } catch {
+      /* ignore */
+    }
+    if (manual) {
+      apply(manual, 'manual');
     } else if (isLocalDev()) {
-      // LOCAL DEV ONLY: no Cloudflare here, so simulate an identity for convenience.
-      // Defaults to a bootstrap admin; switchable from the no-access screen.
-      let dev: string | null = null;
-      try {
-        dev = localStorage.getItem(DEV_EMAIL_KEY);
-      } catch {
-        /* ignore */
-      }
-      applyEmail(dev || 'tummarat@gmail.com', true);
+      apply('tummarat@gmail.com', 'manual'); // dev convenience
     } else {
-      // PRODUCTION without a Cloudflare identity → treat as unauthenticated.
-      // (Never auto-grant access off localhost — the real gate is Cloudflare Access.)
-      applyEmail(null, false);
+      apply(null, null); // production preview → require manual email entry
     }
     setLoading(false);
-  }, [applyEmail]);
+  }, [apply]);
 
   useEffect(() => {
     init();
   }, [init]);
 
-  const refreshAccess = useCallback(() => {
-    setAccess(resolveAccess(email));
-  }, [email]);
+  const refreshAccess = useCallback(() => setAccess(resolveAccess(email)), [email]);
 
-  const setDevEmail = useCallback(
+  const submitEmail = useCallback(
     (e: string) => {
+      const clean = e.trim();
+      if (!clean) return;
       try {
-        localStorage.setItem(DEV_EMAIL_KEY, e);
+        localStorage.setItem(MANUAL_EMAIL_KEY, clean);
       } catch {
         /* ignore */
       }
-      applyEmail(e, true);
+      apply(clean, 'manual');
     },
-    [applyEmail],
+    [apply],
   );
 
   const logout = useCallback(() => {
-    if (isDev) {
-      try {
-        localStorage.removeItem(DEV_EMAIL_KEY);
-      } catch {
-        /* ignore */
-      }
-      applyEmail(null, true);
-    } else {
+    if (source === 'cloudflare') {
       window.location.href = CF_LOGOUT_URL;
+      return;
     }
-  }, [isDev, applyEmail]);
+    try {
+      localStorage.removeItem(MANUAL_EMAIL_KEY);
+    } catch {
+      /* ignore */
+    }
+    apply(null, null);
+  }, [source, apply]);
+
+  const needsManualLogin = source !== 'cloudflare';
 
   return (
-    <AuthContext.Provider value={{ loading, email, access, isDev, refreshAccess, setDevEmail, logout }}>
+    <AuthContext.Provider value={{ loading, email, access, source, needsManualLogin, refreshAccess, submitEmail, logout }}>
       {children}
     </AuthContext.Provider>
   );

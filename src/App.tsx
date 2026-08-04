@@ -26,7 +26,7 @@ import { GenericSheetDashboard } from './components/dashboards/GenericSheetDashb
 import { Shield, Radio, MapPin, Loader2, ShieldAlert, LogOut } from 'lucide-react';
 
 export function App() {
-  const { loading, email, access, isDev, refreshAccess, setDevEmail, logout } = useAuth();
+  const { loading, email, access, source, needsManualLogin, refreshAccess, submitEmail, logout } = useAuth();
 
   const [customPages, setCustomPages] = useState<DynamicPageConfig[]>([]);
   const [activePageId, setActivePageId] = useState<string>('cctv');
@@ -34,7 +34,7 @@ export function App() {
   const [isAddModalOpen, setIsAddModalOpen] = useState<boolean>(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState<boolean>(false);
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
-  const [devEmailInput, setDevEmailInput] = useState<string>('');
+  const [emailInput, setEmailInput] = useState<string>('');
 
   const station = getStation();
 
@@ -113,18 +113,19 @@ export function App() {
             )}
           </p>
 
-          {isDev && (
+          {needsManualLogin && (
             <div className="mt-4 pt-4 border-t border-slate-800 text-left space-y-2">
-              <p className="text-[10px] font-bold text-amber-400 uppercase">โหมดพัฒนา (Dev) — จำลองอีเมล</p>
+              <p className="text-[10px] font-bold text-amber-400 uppercase">ล็อกอินชั่วคราว (ยังไม่ได้ตั้ง Cloudflare)</p>
               <div className="flex gap-2">
                 <input
-                  value={devEmailInput}
-                  onChange={(e) => setDevEmailInput(e.target.value)}
-                  placeholder="พิมพ์อีเมลเพื่อทดสอบสิทธิ์"
+                  value={emailInput}
+                  onChange={(e) => setEmailInput(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && emailInput && submitEmail(emailInput)}
+                  placeholder="พิมพ์อีเมลที่ได้รับสิทธิ์"
                   className="flex-1 px-3 py-1.5 bg-slate-800 border border-slate-700 rounded-lg text-xs text-white"
                 />
-                <button onClick={() => devEmailInput && setDevEmail(devEmailInput)} className="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-xs font-bold">
-                  ใช้
+                <button onClick={() => emailInput && submitEmail(emailInput)} className="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-xs font-bold">
+                  เข้าใช้งาน
                 </button>
               </div>
             </div>
@@ -151,7 +152,7 @@ export function App() {
         userEmail={email}
         roleLabel={roleLabel}
         isAdmin={access.isAdmin}
-        isDev={isDev}
+        isTemporary={source === 'manual'}
         onOpenSettings={() => setIsSettingsOpen(true)}
         onLogout={logout}
       />
