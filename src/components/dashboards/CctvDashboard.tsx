@@ -12,8 +12,6 @@ import type { MapMarkerItem } from '../map/InteractiveMap';
 import {
   Camera,
   Building,
-  ShieldCheck,
-  Server,
   Radio,
   ExternalLink,
   Link2,
@@ -182,6 +180,19 @@ export const CctvDashboard: React.FC<CctvDashboardProps> = ({ searchQuery }) => 
       onlineRate: cctvData.length > 0 ? ((onlineCount / cctvData.length) * 100).toFixed(1) : '95.2',
     };
   }, [cctvData]);
+
+  // Real agency breakdown from the data (not hardcoded categories)
+  const agencyBreakdown = useMemo(() => {
+    const counts: Record<string, number> = {};
+    cctvData.forEach((c) => {
+      const name = (c.agency || 'ไม่ระบุหน่วยงาน').trim();
+      counts[name] = (counts[name] || 0) + 1;
+    });
+    return Object.entries(counts).sort((a, b) => b[1] - a[1]);
+  }, [cctvData]);
+
+  const AGENCY_PALETTE = ['#ec4899', '#0ea5e9', '#10b981', '#f59e0b', '#8b5cf6', '#f43f5e', '#14b8a6', '#a855f7'];
+  const KPI_THEMES = ['purple', 'blue', 'emerald', 'amber', 'indigo', 'slate'] as const;
 
   // Map Markers format
   const mapMarkers: MapMarkerItem[] = useMemo(() => {
@@ -406,7 +417,7 @@ export const CctvDashboard: React.FC<CctvDashboardProps> = ({ searchQuery }) => 
         </div>
       )}
 
-      {/* KPI Cards Row (Exact Looker Studio Numbers) */}
+      {/* KPI Cards Row — dynamic by the actual agencies present in the data */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3.5">
         <KpiCard
           title="กล้องทั้งหมด"
@@ -417,51 +428,21 @@ export const CctvDashboard: React.FC<CctvDashboardProps> = ({ searchQuery }) => 
           isActive={selectedAgencyFilter === 'ทั้งหมด'}
           onClick={() => setSelectedAgencyFilter('ทั้งหมด')}
         />
-        <KpiCard
-          title="อบจ.สงขลา"
-          value={agencyCounts.bkk}
-          subtext="สัดส่วน 41.1%"
-          icon={Building}
-          colorTheme="purple"
-          isActive={selectedAgencyFilter === 'อบจ.สงขลา'}
-          onClick={() => setSelectedAgencyFilter('อบจ.สงขลา')}
-        />
-        <KpiCard
-          title="มหาดไทย"
-          value={agencyCounts.moi}
-          subtext="สัดส่วน 40.2%"
-          icon={ShieldCheck}
-          colorTheme="blue"
-          isActive={selectedAgencyFilter === 'มหาดไทย'}
-          onClick={() => setSelectedAgencyFilter('มหาดไทย')}
-        />
-        <KpiCard
-          title="เอกชน"
-          value={agencyCounts.private}
-          subtext="สัดส่วน 10.3%"
-          icon={Server}
-          colorTheme="emerald"
-          isActive={selectedAgencyFilter === 'เอกชน'}
-          onClick={() => setSelectedAgencyFilter('เอกชน')}
-        />
-        <KpiCard
-          title="รฟท. / สภ.หมู"
-          value={agencyCounts.srt}
-          subtext="สัดส่วน 5.1%"
-          icon={Camera}
-          colorTheme="amber"
-          isActive={selectedAgencyFilter === 'รฟท./สภ.'}
-          onClick={() => setSelectedAgencyFilter('รฟท./สภ.')}
-        />
-        <KpiCard
-          title="หน่วยงานอื่นๆ"
-          value={agencyCounts.others}
-          subtext="สัดส่วน 3.3%"
-          icon={Building}
-          colorTheme="indigo"
-          isActive={selectedAgencyFilter === 'หน่วยงานอื่นๆ'}
-          onClick={() => setSelectedAgencyFilter('หน่วยงานอื่นๆ')}
-        />
+        {agencyBreakdown.slice(0, 5).map(([name, count], i) => {
+          const pct = agencyCounts.total > 0 ? ((count / agencyCounts.total) * 100).toFixed(1) : '0';
+          return (
+            <KpiCard
+              key={name}
+              title={name}
+              value={count}
+              subtext={`สัดส่วน ${pct}%`}
+              icon={Building}
+              colorTheme={KPI_THEMES[i % KPI_THEMES.length]}
+              isActive={selectedAgencyFilter === name}
+              onClick={() => setSelectedAgencyFilter(selectedAgencyFilter === name ? 'ทั้งหมด' : name)}
+            />
+          );
+        })}
       </div>
 
       {/* Main Content Area based on View Mode - Standard Leaflet Popup Over Pins */}
@@ -507,9 +488,9 @@ export const CctvDashboard: React.FC<CctvDashboardProps> = ({ searchQuery }) => 
               <StatChart
                 title="สัดส่วนกล้องวงจรปิดแยกตามหน่วยงานสังกัด"
                 type="pie"
-                labels={['อบจ.สงขลา', 'มหาดไทย', 'เอกชน', 'รฟท. / สภ.', 'หน่วยงานอื่นๆ']}
-                dataValues={[agencyCounts.bkk, agencyCounts.moi, agencyCounts.private, agencyCounts.srt, agencyCounts.others]}
-                customColors={['#ec4899', '#0ea5e9', '#10b981', '#f59e0b', '#8b5cf6']}
+                labels={agencyBreakdown.map(([name]) => name)}
+                dataValues={agencyBreakdown.map(([, count]) => count)}
+                customColors={agencyBreakdown.map(([name], i) => CATEGORY_COLORS[name] || AGENCY_PALETTE[i % AGENCY_PALETTE.length])}
               />
             </div>
           </div>
