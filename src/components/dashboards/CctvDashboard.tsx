@@ -7,7 +7,7 @@ import { KpiCard } from '../common/KpiCard';
 import { DataTable } from '../common/DataTable';
 import type { ColumnDef } from '../common/DataTable';
 import { StatChart } from '../common/StatChart';
-import { InteractiveMap, CATEGORY_COLORS } from '../map/InteractiveMap';
+import { InteractiveMap, CATEGORY_COLORS, centerOfMarkers } from '../map/InteractiveMap';
 import type { MapMarkerItem } from '../map/InteractiveMap';
 import {
   Camera,
@@ -61,6 +61,11 @@ export const CctvDashboard: React.FC<CctvDashboardProps> = ({ searchQuery }) => 
       })
       .catch((e) => console.warn('โหลดชีต CCTV ไม่สำเร็จ:', e));
   }, []);
+
+  // Center the map on the middle of the actual camera pins when data changes
+  useEffect(() => {
+    setMapCenter(centerOfMarkers(cctvData, HAT_YAI_STATION_COORDS));
+  }, [cctvData]);
 
   // Sync custom Google Sheet for CCTV if provided by user
   const handleSyncCustomCctvSheet = async (e?: React.FormEvent) => {

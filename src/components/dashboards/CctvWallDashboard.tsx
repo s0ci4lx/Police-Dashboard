@@ -3,7 +3,7 @@ import type { CctvItem } from '../../types/dashboard';
 import { SAMPLE_CCTV_DATA, HAT_YAI_STATION_COORDS, USER_PROVIDED_CCTV_SHEET_URL } from '../../data/mockInitialData';
 import { fetchCctvFromSheet } from '../../data/cctvShared';
 import { StatChart } from '../common/StatChart';
-import { InteractiveMap, CATEGORY_COLORS } from '../map/InteractiveMap';
+import { InteractiveMap, CATEGORY_COLORS, centerOfMarkers } from '../map/InteractiveMap';
 import type { MapMarkerItem } from '../map/InteractiveMap';
 import {
   Cctv,
@@ -107,6 +107,11 @@ export const CctvWallDashboard: React.FC<CctvWallDashboardProps> = ({ searchQuer
       })
       .catch((e) => console.warn('โหลดชีต CCTV ไม่สำเร็จ:', e));
   }, []);
+
+  // Center the map on the middle of the actual camera pins when data changes
+  useEffect(() => {
+    setMapCenter(centerOfMarkers(cctvData, HAT_YAI_STATION_COORDS));
+  }, [cctvData]);
   const [agencyFilter, setAgencyFilter] = useState<string>('ทั้งหมด');
   const [typeFilter, setTypeFilter] = useState<string>('ทั้งหมด');
   const [density, setDensity] = useState<2 | 3 | 4>(3);

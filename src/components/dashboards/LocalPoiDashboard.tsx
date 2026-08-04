@@ -6,7 +6,7 @@ import { KpiCard } from '../common/KpiCard';
 import { DataTable } from '../common/DataTable';
 import type { ColumnDef } from '../common/DataTable';
 import { StatChart } from '../common/StatChart';
-import { InteractiveMap, CATEGORY_COLORS } from '../map/InteractiveMap';
+import { InteractiveMap, CATEGORY_COLORS, centerOfMarkers } from '../map/InteractiveMap';
 import type { MapMarkerItem } from '../map/InteractiveMap';
 import {
   MapPin,
@@ -113,6 +113,11 @@ export const LocalPoiDashboard: React.FC<LocalPoiDashboardProps> = ({ searchQuer
   useEffect(() => {
     loadLivePoiSheetData();
   }, []);
+
+  // Center the map on the middle of the actual pins whenever the data changes
+  useEffect(() => {
+    setMapCenter(centerOfMarkers(poiData, HAT_YAI_STATION_COORDS));
+  }, [poiData]);
 
   // Filter POI items based on selected category, zone & global search
   const filteredData = useMemo(() => {

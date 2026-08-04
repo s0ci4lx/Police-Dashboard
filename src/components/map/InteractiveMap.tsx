@@ -85,6 +85,28 @@ export const CATEGORY_COLORS: Record<string, string> = {
   'สถานที่ท่องเที่ยว': '#f97316',
 };
 
+/**
+ * Center + zoom that frames a set of markers (average position, zoom from spread).
+ * Falls back to the given default when there are no valid points.
+ */
+export function centerOfMarkers(
+  points: { lat: number; lng: number }[],
+  fallback: { lat: number; lng: number; zoom: number },
+): { lat: number; lng: number; zoom: number } {
+  const valid = points.filter((p) => Number.isFinite(p.lat) && Number.isFinite(p.lng));
+  if (valid.length === 0) return fallback;
+
+  const lats = valid.map((p) => p.lat);
+  const lngs = valid.map((p) => p.lng);
+  const lat = lats.reduce((a, b) => a + b, 0) / valid.length;
+  const lng = lngs.reduce((a, b) => a + b, 0) / valid.length;
+
+  const spread = Math.max(Math.max(...lats) - Math.min(...lats), Math.max(...lngs) - Math.min(...lngs));
+  const zoom = spread < 0.008 ? 16 : spread < 0.03 ? 15 : spread < 0.08 ? 14 : spread < 0.2 ? 13 : spread < 0.6 ? 12 : 11;
+
+  return { lat, lng, zoom };
+}
+
 export const InteractiveMap: React.FC<InteractiveMapProps> = ({
   markers,
   center,
@@ -94,7 +116,7 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
   enableClustering = true,
   onSelectMarker,
 }) => {
-  const [mapStyle, setMapStyle] = React.useState<'streets' | 'satellite' | 'dark'>('dark');
+  const [mapStyle, setMapStyle] = React.useState<'streets' | 'satellite' | 'dark'>('streets');
 
   const tileUrls = {
     dark: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
