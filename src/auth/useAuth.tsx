@@ -22,6 +22,15 @@ interface AuthState {
 
 const AuthContext = createContext<AuthState | null>(null);
 
+function isLocalDev(): boolean {
+  try {
+    const h = window.location.hostname;
+    return h === 'localhost' || h === '127.0.0.1' || h === '::1' || h.endsWith('.local');
+  } catch {
+    return false;
+  }
+}
+
 async function fetchCloudflareEmail(): Promise<string | null> {
   try {
     const res = await fetch(CF_IDENTITY_URL, { credentials: 'include' });
@@ -49,17 +58,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setLoading(true);
     const cfEmail = await fetchCloudflareEmail();
     if (cfEmail) {
+      // Real identity from Cloudflare Access
       applyEmail(cfEmail, false);
-    } else {
-      // Dev / no-Cloudflare fallback
+    } else if (isLocalDev()) {
+      // LOCAL DEV ONLY: no Cloudflare here, so simulate an identity for convenience.
+      // Defaults to a bootstrap admin; switchable from the no-access screen.
       let dev: string | null = null;
       try {
         dev = localStorage.getItem(DEV_EMAIL_KEY);
       } catch {
         /* ignore */
       }
-      // Default dev identity to a bootstrap admin so local setup works out of the box
       applyEmail(dev || 'tummarat@gmail.com', true);
+    } else {
+      // PRODUCTION without a Cloudflare identity → treat as unauthenticated.
+      // (Never auto-grant access off localhost — the real gate is Cloudflare Access.)
+      applyEmail(null, false);
     }
     setLoading(false);
   }, [applyEmail]);
