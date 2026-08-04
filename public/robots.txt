@@ -1,0 +1,8 @@
+# ระบบสารสนเทศภายในราชการ สภ.สะท้อน — ข้อมูลอ่อนไหว ห้ามจัดทำดัชนี/รวบรวมข้อมูล
+# Internal Royal Thai Police dashboard — sensitive official data.
+# Search engines and crawlers must NOT index or crawl any part of this site.
+
+User-agent: *
+Disallow: /
+
+# No sitemap is provided intentionally.

@@ -46,19 +46,30 @@ body {
   font-family: 'Prompt', sans-serif;
 }
 
+/* Map popups are a light card in BOTH themes (their content is authored with
+   dark text on white); explicit colours below keep them readable even though
+   the light theme inverts the slate token scale. */
 .leaflet-popup-content-wrapper {
-  background: rgba(15, 23, 42, 0.95);
-  backdrop-filter: blur(12px);
-  color: #f8fafc;
-  border: 1px solid rgba(59, 130, 246, 0.3);
+  background: #ffffff;
+  color: #0f172a;
+  border: 1px solid rgba(37, 99, 235, 0.25);
   border-radius: 0.75rem;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.35), 0 8px 10px -6px rgba(0, 0, 0, 0.3);
 }
 
 .leaflet-popup-tip {
-  background: rgba(15, 23, 42, 0.95);
-  border: 1px solid rgba(59, 130, 246, 0.3);
+  background: #ffffff;
+  border: 1px solid rgba(37, 99, 235, 0.25);
 }
+
+.leaflet-popup-content .text-slate-900 { color: #0f172a !important; }
+.leaflet-popup-content .text-slate-600 { color: #475569 !important; }
+.leaflet-popup-content .text-slate-500 { color: #64748b !important; }
+.leaflet-popup-content .bg-slate-100 { background-color: #f1f5f9 !important; }
+.leaflet-popup-content .border-slate-200 { border-color: #e2e8f0 !important; }
+.leaflet-popup-content .border-b { border-color: #e2e8f0 !important; }
+.leaflet-popup-content .text-blue-600 { color: #2563eb !important; }
+.leaflet-popup-content .text-white { color: #ffffff !important; }
 
 /* Marker Cluster Custom styling */
 .marker-cluster-small {
@@ -136,4 +147,97 @@ body {
 .custom-map-pin:hover {
   transform: scale(1.25);
   z-index: 999;
+}
+
+/* =========================================================================
+   LIGHT THEME
+   Tailwind v4 utilities resolve colors via CSS variables (e.g. bg-slate-950 →
+   var(--color-slate-950)). We remap the token scale under [data-theme="light"]
+   so the whole app themes from one place:
+   - slate scale is inverted (dark surfaces → light, light text → dark)
+   - text-white → dark (headings/labels sit on light surfaces now)
+   - accent 200–400 (used as text/icons) are darkened for contrast on white
+   - accent 900–950 (used as banner/callout backgrounds) become soft tints
+   ========================================================================= */
+:root[data-theme='light'] {
+  color-scheme: light;
+
+  /* Surfaces & neutral text (inverted slate) */
+  --color-slate-950: #eef2f7;
+  --color-slate-900: #ffffff;
+  --color-slate-800: #e6ebf2;
+  --color-slate-700: #cdd6e2;
+  --color-slate-600: #9aa7b8;
+  --color-slate-500: #64748b;
+  --color-slate-400: #5a6b7f;
+  --color-slate-300: #33415a;
+  --color-slate-200: #1e293b;
+  --color-slate-100: #0f172a;
+  --color-slate-50: #0b1220;
+  --color-white: #0f172a;
+
+  /* Accent text/icons (200–400) darkened for light backgrounds */
+  --color-blue-200: #1e40af;
+  --color-blue-300: #1d4ed8;
+  --color-blue-400: #2563eb;
+  --color-sky-300: #0369a1;
+  --color-sky-400: #0284c7;
+  --color-cyan-300: #0e7490;
+  --color-cyan-400: #0891b2;
+  --color-indigo-200: #3730a3;
+  --color-indigo-300: #4338ca;
+  --color-indigo-400: #4f46e5;
+  --color-violet-300: #6d28d9;
+  --color-purple-200: #6b21a8;
+  --color-purple-300: #7e22ce;
+  --color-purple-400: #9333ea;
+  --color-emerald-200: #065f46;
+  --color-emerald-300: #047857;
+  --color-emerald-400: #059669;
+  --color-amber-200: #92400e;
+  --color-amber-300: #b45309;
+  --color-amber-400: #d97706;
+  --color-rose-200: #9f1239;
+  --color-rose-300: #be123c;
+  --color-rose-400: #e11d48;
+  --color-red-300: #b91c1c;
+  --color-red-400: #dc2626;
+
+  /* Deep accent backgrounds (900–950) → soft tints so dark text reads */
+  --color-blue-900: #dbeafe;
+  --color-blue-950: #eff6ff;
+  --color-indigo-900: #e0e7ff;
+  --color-indigo-950: #eef2ff;
+  --color-cyan-950: #ecfeff;
+  --color-slate-950-tint: #f1f5f9;
+  --color-red-900: #fee2e2;
+  --color-red-950: #fef2f2;
+  --color-amber-950: #fffbeb;
+  --color-rose-950: #fff1f2;
+  --color-emerald-950: #ecfdf5;
+}
+
+:root[data-theme='light'] body {
+  background-color: #eef2f7;
+  color: #0f172a;
+}
+
+:root[data-theme='light'] .glass-panel {
+  background: rgba(255, 255, 255, 0.85);
+  border-color: rgba(15, 23, 42, 0.1);
+}
+
+:root[data-theme='light'] .glass-panel-hover:hover {
+  background: rgba(241, 245, 249, 0.95);
+  border-color: rgba(37, 99, 235, 0.35);
+}
+
+:root[data-theme='light'] ::-webkit-scrollbar-track {
+  background: #e6ebf2;
+}
+:root[data-theme='light'] ::-webkit-scrollbar-thumb {
+  background: #b9c4d3;
+}
+:root[data-theme='light'] ::-webkit-scrollbar-thumb:hover {
+  background: #9aa7b8;
 }

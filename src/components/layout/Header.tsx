@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Shield, Radio, Search, Clock, RefreshCw } from 'lucide-react';
+import { Shield, Radio, Search, Clock, RefreshCw, Sun, Moon } from 'lucide-react';
 
 interface HeaderProps {
   stationName?: string;
@@ -17,6 +17,26 @@ export const Header: React.FC<HeaderProps> = ({
   isLoading = false,
 }) => {
   const [timeStr, setTimeStr] = useState<string>('');
+  const [theme, setTheme] = useState<'dark' | 'light'>(() => {
+    if (typeof document !== 'undefined' && document.documentElement.getAttribute('data-theme') === 'light') return 'light';
+    try {
+      return localStorage.getItem('theme') === 'light' ? 'light' : 'dark';
+    } catch {
+      return 'dark';
+    }
+  });
+
+  // Apply & persist theme
+  useEffect(() => {
+    const el = document.documentElement;
+    if (theme === 'light') el.setAttribute('data-theme', 'light');
+    else el.removeAttribute('data-theme');
+    try {
+      localStorage.setItem('theme', theme);
+    } catch {
+      /* ignore */
+    }
+  }, [theme]);
 
   useEffect(() => {
     const updateTime = () => {
@@ -87,6 +107,16 @@ export const Header: React.FC<HeaderProps> = ({
               </button>
             )}
           </div>
+
+          {/* Theme Toggle Button */}
+          <button
+            onClick={() => setTheme((t) => (t === 'dark' ? 'light' : 'dark'))}
+            title={theme === 'dark' ? 'สลับเป็นธีมสว่าง' : 'สลับเป็นธีมมืด'}
+            aria-label="สลับธีมสว่าง/มืด"
+            className="p-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white rounded-xl border border-slate-700 transition-all active:scale-95"
+          >
+            {theme === 'dark' ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-blue-500" />}
+          </button>
 
           {/* Refresh Button */}
           {onRefreshData && (
