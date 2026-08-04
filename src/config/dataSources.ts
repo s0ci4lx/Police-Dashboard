@@ -53,7 +53,7 @@ export const DATA_SOURCE_META: Array<{
   optional?: boolean;
   hint?: string;
 }> = [
-  { key: 'cctv', label: 'กล้องวงจรปิด (CCTV)', page: 'กล้องวงจรปิด · ไดเรกทอรีกล้อง', optional: true, hint: 'เว้นว่างไว้ = ใช้ข้อมูลตัวอย่างจำลอง' },
+  { key: 'cctv', label: 'กล้องวงจรปิด (CCTV)', page: 'กล้องวงจรปิด · สารบบกล้อง CCTV', optional: true, hint: 'เว้นว่างไว้ = ใช้ข้อมูลตัวอย่างจำลอง' },
   { key: 'poi', label: 'ข้อมูลท้องถิ่น (จุดสำคัญ)', page: 'ข้อมูลท้องถิ่น' },
   { key: 'cases', label: 'คดีระหว่างสอบสวน', page: 'คดีระหว่างสอบสวน' },
   { key: 'personnel', label: 'ข้อมูลกำลังพล', page: 'ข้อมูลกำลังพล' },

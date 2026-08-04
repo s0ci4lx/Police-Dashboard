@@ -232,7 +232,7 @@ export const CctvWallDashboard: React.FC<CctvWallDashboardProps> = ({ searchQuer
                 <Layers className="w-3.5 h-3.5 text-cyan-400" /> CCTV ASSET DIRECTORY · ทะเบียนจุดติดตั้งกล้อง
               </div>
               <h2 className="text-xl lg:text-2xl font-extrabold text-white tracking-tight">
-                บอร์ดไดเรกทอรีจุดติดตั้งกล้องวงจรปิด สภ.สะท้อน
+                สารบบจุดติดตั้งกล้องวงจรปิด สภ.สะท้อน
               </h2>
               <p className="text-xs text-slate-400 mt-0.5">
                 รวม <b className="text-blue-300">{stats.total.toLocaleString('th-TH')} จุด</b> จาก{' '}

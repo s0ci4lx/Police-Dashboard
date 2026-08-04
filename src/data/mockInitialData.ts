@@ -22,7 +22,7 @@ export const DEFAULT_PAGES: DynamicPageConfig[] = [
   },
   {
     id: 'cctv-wall',
-    title: 'ไดเรกทอรีกล้อง',
+    title: 'สารบบกล้อง CCTV',
     department: 'งานสืบสวน',
     sheetUrl: '',
     displayType: 'map-only',

@@ -50,54 +50,52 @@ export const Navigation: React.FC<NavigationProps> = ({
   };
 
   return (
-    <nav className="glass-panel border-b border-slate-800 bg-slate-900/80 px-4 lg:px-8 py-2 overflow-x-auto scrollbar-none">
-      <div className="max-w-7xl mx-auto flex items-center justify-between gap-4 min-w-max">
-        {/* Navigation Tabs */}
-        <div className="flex items-center gap-1.5 py-1">
-          {pages.map((page) => {
-            const isActive = page.id === activePageId;
-            return (
-              <div key={page.id} className="relative group">
-                <button
-                  onClick={() => onSelectPage(page.id)}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs lg:text-sm font-medium transition-all duration-200 ${
-                    isActive
-                      ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/30 border border-blue-400/30 font-semibold'
-                      : 'text-slate-300 hover:text-white hover:bg-slate-800/80 border border-transparent hover:border-slate-700/60'
-                  }`}
-                >
-                  {renderIcon(page.iconName)}
-                  <span>{page.title}</span>
-                  {page.department && (
-                    <span
-                      className={`text-[10px] px-1.5 py-0.5 rounded ${
-                        isActive ? 'bg-blue-700/80 text-blue-100' : 'bg-slate-800 text-slate-400'
-                      }`}
-                    >
-                      {page.department}
-                    </span>
-                  )}
-                </button>
-
-                {/* Option to delete user-added custom pages */}
-                {canManage && page.isCustom && onDeleteCustomPage && (
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      if (confirm(`คุณต้องการลบหน้า "${page.title}" หรือไม่?`)) {
-                        onDeleteCustomPage(page.id);
-                      }
-                    }}
-                    title="ลบหน้านี้"
-                    className="absolute -top-1 -right-1 hidden group-hover:flex items-center justify-center w-5 h-5 bg-red-600 text-white rounded-full text-xs shadow-md hover:bg-red-500 transition-all"
+    <nav className="glass-panel border-b border-slate-800 bg-slate-900/80 px-4 lg:px-8 py-2">
+      {/* Tabs wrap onto multiple rows so every menu is always visible — no horizontal scrolling */}
+      <div className="max-w-7xl mx-auto flex flex-wrap items-center gap-1.5 py-1">
+        {pages.map((page) => {
+          const isActive = page.id === activePageId;
+          return (
+            <div key={page.id} className="relative group">
+              <button
+                onClick={() => onSelectPage(page.id)}
+                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs lg:text-sm font-medium transition-all duration-200 ${
+                  isActive
+                    ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/30 border border-blue-400/30 font-semibold'
+                    : 'text-slate-300 hover:text-white hover:bg-slate-800/80 border border-transparent hover:border-slate-700/60'
+                }`}
+              >
+                {renderIcon(page.iconName)}
+                <span>{page.title}</span>
+                {page.department && (
+                  <span
+                    className={`text-[10px] px-1.5 py-0.5 rounded ${
+                      isActive ? 'bg-blue-700/80 text-blue-100' : 'bg-slate-800 text-slate-400'
+                    }`}
                   >
-                    <Trash2 className="w-3 h-3" />
-                  </button>
+                    {page.department}
+                  </span>
                 )}
-              </div>
-            );
-          })}
-        </div>
+              </button>
+
+              {/* Option to delete user-added custom pages */}
+              {canManage && page.isCustom && onDeleteCustomPage && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (confirm(`คุณต้องการลบหน้า "${page.title}" หรือไม่?`)) {
+                      onDeleteCustomPage(page.id);
+                    }
+                  }}
+                  title="ลบหน้านี้"
+                  className="absolute -top-1 -right-1 hidden group-hover:flex items-center justify-center w-5 h-5 bg-red-600 text-white rounded-full text-xs shadow-md hover:bg-red-500 transition-all"
+                >
+                  <Trash2 className="w-3 h-3" />
+                </button>
+              )}
+            </div>
+          );
+        })}
 
         {/* Add Dynamic Sheet Page Button (admins only) */}
         {canManage && (
