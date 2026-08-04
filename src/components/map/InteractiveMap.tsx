@@ -247,7 +247,7 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
                         </span>
                       </div>
 
-                      {marker.address && (
+                      {marker.address && marker.address !== '-' && (
                         <p className="text-xs text-slate-600 font-normal leading-tight">
                           📍 {marker.address}
                         </p>
