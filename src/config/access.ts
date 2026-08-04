@@ -24,8 +24,19 @@ export interface UserAccess {
   pages: string[]; // page ids the user may view (ignored for admins — they see all)
 }
 
-/** อีเมลผู้ดูแลตั้งต้น — เป็น Admin เสมอ ไม่ว่าจะมีในรายชื่อหรือไม่ (กันล็อกเอาต์) */
-export const BOOTSTRAP_ADMINS: string[] = ['tummarat@gmail.com', 'investigate.thepha@gmail.com'];
+/**
+ * อีเมลผู้ดูแลตั้งต้น — เป็น Admin เสมอ (กันล็อกเอาต์)
+ * ตั้งผ่าน env var VITE_BOOTSTRAP_ADMINS (คั่นด้วยจุลภาค) เพื่อย้ายสถานีโดยไม่ต้องแก้โค้ด
+ * เช่น ตั้งใน Vercel: VITE_BOOTSTRAP_ADMINS="chief@example.com, deputy@example.com"
+ * ถ้าไม่ตั้งค่า จะใช้ค่าเริ่มต้นด้านล่าง
+ */
+const _envAdmins = (import.meta.env.VITE_BOOTSTRAP_ADMINS || '')
+  .split(',')
+  .map((s) => s.trim().toLowerCase())
+  .filter(Boolean);
+
+export const BOOTSTRAP_ADMINS: string[] =
+  _envAdmins.length > 0 ? _envAdmins : ['tummarat@gmail.com', 'investigate.thepha@gmail.com'];
 
 const STORAGE_KEY = 'police_dashboard_access_v1';
 

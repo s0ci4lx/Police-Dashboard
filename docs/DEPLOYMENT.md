@@ -44,11 +44,13 @@ Cloudflare Access ต้องให้ทราฟฟิกวิ่งผ่�
 ## ส่วนที่ 3 — สิทธิ์ผู้ใช้ในแอป (RBAC)
 
 ### ผู้ดูแลตั้งต้น (Bootstrap Admin)
-กำหนดในโค้ด `src/config/access.ts` → `BOOTSTRAP_ADMINS` (เป็น Admin เสมอ กันล็อกตัวเองออก):
+ตั้งผ่าน **env var** `VITE_BOOTSTRAP_ADMINS` (คั่นด้วยจุลภาค) — **ย้ายสถานีแค่เปลี่ยนค่านี้ ไม่ต้องแก้โค้ด**
+- ในเครื่อง: ใส่ใน `.env.local`
+- บน Vercel: Settings → Environment Variables → `VITE_BOOTSTRAP_ADMINS="chief@example.com, deputy@example.com"` → Redeploy
 
-```
-export const BOOTSTRAP_ADMINS = ['tummarat@gmail.com', 'investigate.thepha@gmail.com'];
-```
+ถ้าไม่ตั้งค่า จะใช้ค่าเริ่มต้นในโค้ด `src/config/access.ts`
+
+> ⚠️ Firestore Security Rules ก็มีรายชื่อ bootstrap admin (ฟังก์ชัน `isBootstrap()`) เพื่ออนุญาต "การเขียน" ครั้งแรก — เมื่อย้ายสถานีให้แก้อีเมลในกฎ (Firebase Console → Firestore → Rules) ให้ตรงกับ env var ด้วย **หรือ** เพิ่มเอกสาร admin คนแรกใน Firestore ด้วยมือ (collection `access`, id = อีเมล, `role: "admin"`) — หลังจากมี admin คนแรกแล้ว จัดการที่เหลือในหน้า ⚙️ ได้เลย
 
 ### การจัดการผู้ใช้ (ทำในแอป — ไม่ต้องแก้โค้ด)
 1. ล็อกอินด้วยอีเมล Admin → กดปุ่ม **⚙️ (เฟือง)** มุมขวาบน
