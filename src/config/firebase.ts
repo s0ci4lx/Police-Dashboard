@@ -24,6 +24,7 @@ import {
   GoogleAuthProvider,
   type Auth,
 } from 'firebase/auth';
+import { getFirestore, type Firestore } from 'firebase/firestore';
 
 const cfg = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -38,9 +39,11 @@ export const isFirebaseConfigured = Boolean(cfg.apiKey && cfg.authDomain && cfg.
 
 let app: FirebaseApp | null = null;
 let auth: Auth | null = null;
+let db: Firestore | null = null;
 
 if (isFirebaseConfigured) {
   app = initializeApp(cfg);
+  db = getFirestore(app);
   // Use localStorage persistence (avoids the "Database is closing" IndexedDB error
   // seen in some browsers) and the popup/redirect resolver for Google sign-in.
   try {
@@ -58,4 +61,4 @@ export const googleProvider = new GoogleAuthProvider();
 // Always show the account chooser (so users can pick which Google account to use)
 googleProvider.setCustomParameters({ prompt: 'select_account' });
 
-export { auth };
+export { auth, db };

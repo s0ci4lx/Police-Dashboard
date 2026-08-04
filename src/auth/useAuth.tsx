@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
-import { onAuthStateChanged, signInWithRedirect, getRedirectResult, signOut } from 'firebase/auth';
-import { resolveAccess, type ResolvedAccess } from '../config/access';
+import { onAuthStateChanged, signInWithPopup, getRedirectResult, signOut } from 'firebase/auth';
+import { resolveAccess, resolveAccessAsync, type ResolvedAccess } from '../config/access';
 import { auth, googleProvider, isFirebaseConfigured } from '../config/firebase';
 
 /* Identity resolution order:
@@ -57,10 +57,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [source, setSource] = useState<Source>(null);
   const [access, setAccess] = useState<ResolvedAccess>(resolveAccess(null));
 
-  const apply = useCallback((e: string | null, src: Source) => {
+  const apply = useCallback(async (e: string | null, src: Source) => {
     setEmail(e);
     setSource(src);
-    setAccess(resolveAccess(e));
+    const a = await resolveAccessAsync(e); // reads Firestore (central) or localStorage
+    setAccess(a);
   }, []);
 
   useEffect(() => {
@@ -72,24 +73,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const cfEmail = await fetchCloudflareEmail();
       if (cancelled) return;
       if (cfEmail) {
-        apply(cfEmail, 'cloudflare');
+        await apply(cfEmail, 'cloudflare');
         setLoading(false);
         return;
       }
 
-      // 2. Firebase (real Google sign-in via redirect)
+      // 2. Firebase (real Google sign-in)
       if (isFirebaseConfigured && auth) {
         try {
-          await getRedirectResult(auth); // completes a returning sign-in redirect
+          await getRedirectResult(auth); // completes any returning sign-in redirect
         } catch (e) {
           console.warn('Google redirect result error:', e);
         }
         if (cancelled) return;
-        unsub = onAuthStateChanged(auth, (user) => {
+        unsub = onAuthStateChanged(auth, async (user) => {
           if (cancelled) return;
-          if (user && user.email) apply(user.email, 'firebase');
-          else apply(null, null); // not signed in → show Google button
-          setLoading(false);
+          await apply(user?.email ?? null, user?.email ? 'firebase' : null);
+          if (!cancelled) setLoading(false);
         });
         return;
       }
@@ -101,9 +101,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       } catch {
         /* ignore */
       }
-      if (manual) apply(manual, 'manual');
-      else if (isLocalDev()) apply('tummarat@gmail.com', 'manual');
-      else apply(null, null);
+      if (manual) await apply(manual, 'manual');
+      else if (isLocalDev()) await apply('tummarat@gmail.com', 'manual');
+      else await apply(null, null);
       setLoading(false);
     })();
 
@@ -116,8 +116,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const signInWithGoogle = useCallback(async () => {
     if (!auth) return;
     try {
-      await signInWithRedirect(auth, googleProvider);
-      // Page redirects to Google; onAuthStateChanged fires after returning.
+      // Popup works across domains (app on vercel.app, authDomain on
+      // firebaseapp.com) where signInWithRedirect breaks on third-party storage.
+      await signInWithPopup(auth, googleProvider);
+      // onAuthStateChanged updates state
     } catch (e) {
       console.warn('Google sign-in failed:', e);
     }
@@ -137,7 +139,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     [apply],
   );
 
-  const refreshAccess = useCallback(() => setAccess(resolveAccess(email)), [email]);
+  const refreshAccess = useCallback(async () => {
+    const a = await resolveAccessAsync(email);
+    setAccess(a);
+  }, [email]);
 
   const logout = useCallback(async () => {
     if (source === 'cloudflare') {

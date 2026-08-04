@@ -13,6 +13,9 @@
  * (กันโดนล็อกตัวเองออก) — แก้ให้เป็นอีเมลผู้ดูแลจริงของ สภ. ก่อน deploy
  * ========================================================================== */
 
+import { db } from './firebase';
+import { doc, getDoc, setDoc, deleteDoc, collection, getDocs } from 'firebase/firestore';
+
 export type Role = 'admin' | 'user';
 
 export interface UserAccess {
@@ -105,4 +108,74 @@ export function canViewPage(access: ResolvedAccess, pageId: string): boolean {
   if (access.isAdmin) return true;
   if (!access.known) return false;
   return access.pages.includes(pageId);
+}
+
+/* ==========================================================================
+ * Firestore-backed store (ส่วนกลาง — ใช้ร่วมกันทุกเครื่อง)
+ * ถ้าตั้งค่า Firebase/Firestore แล้ว จะเก็บสิทธิ์ใน Firestore (collection "access")
+ * ไม่งั้น fallback ไป localStorage (ในเครื่องเท่านั้น)
+ * ========================================================================== */
+const COLLECTION = 'access';
+
+export const isCentralStore = (): boolean => !!db;
+
+/** ตัดสินสิทธิ์แบบ async — bootstrap admin → Firestore → (fallback) localStorage */
+export async function resolveAccessAsync(email: string | null): Promise<ResolvedAccess> {
+  if (!email) return { email: null, role: null, pages: [], isAdmin: false, known: false };
+
+  if (BOOTSTRAP_ADMINS.map(norm).includes(norm(email))) {
+    return { email, role: 'admin', pages: [], isAdmin: true, known: true };
+  }
+
+  if (db) {
+    try {
+      const snap = await getDoc(doc(db, COLLECTION, norm(email)));
+      if (snap.exists()) {
+        const d = snap.data() as { role: Role; pages?: string[] };
+        return {
+          email,
+          role: d.role,
+          pages: d.role === 'admin' ? [] : d.pages || [],
+          isAdmin: d.role === 'admin',
+          known: true,
+        };
+      }
+      return { email, role: null, pages: [], isAdmin: false, known: false };
+    } catch (e) {
+      console.warn('อ่านสิทธิ์จาก Firestore ไม่สำเร็จ:', e);
+    }
+  }
+  return resolveAccess(email); // localStorage fallback
+}
+
+export async function getUsersAsync(): Promise<UserAccess[]> {
+  if (db) {
+    try {
+      const qs = await getDocs(collection(db, COLLECTION));
+      return qs.docs.map((d) => {
+        const data = d.data() as { email?: string; role: Role; pages?: string[] };
+        return { email: data.email || d.id, role: data.role, pages: data.pages || [] };
+      });
+    } catch (e) {
+      console.warn('อ่านรายชื่อผู้ใช้จาก Firestore ไม่สำเร็จ:', e);
+    }
+  }
+  return getUsers();
+}
+
+export async function upsertUserAsync(user: UserAccess): Promise<void> {
+  const clean = { email: user.email.trim(), role: user.role, pages: user.role === 'admin' ? [] : user.pages };
+  if (db) {
+    await setDoc(doc(db, COLLECTION, norm(user.email)), clean);
+    return;
+  }
+  upsertUser(user);
+}
+
+export async function removeUserAsync(email: string): Promise<void> {
+  if (db) {
+    await deleteDoc(doc(db, COLLECTION, norm(email)));
+    return;
+  }
+  removeUser(email);
 }

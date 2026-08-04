@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   DATA_SOURCE_META,
   DEFAULT_DATA_SOURCES,
@@ -12,7 +12,7 @@ import {
   resetAllConfig,
   type DataSourceKey,
 } from '../../config/dataSources';
-import { getUsers, upsertUser, removeUser, type UserAccess, type Role } from '../../config/access';
+import { getUsersAsync, upsertUserAsync, removeUserAsync, isCentralStore, type UserAccess, type Role } from '../../config/access';
 import { fetchSheetData } from '../../services/googleSheetService';
 import {
   Settings,
@@ -59,7 +59,11 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, p
   const [savedMsg, setSavedMsg] = useState<string>('');
 
   // Users
-  const [users, setUsersState] = useState<UserAccess[]>(() => getUsers());
+  const [users, setUsersState] = useState<UserAccess[]>([]);
+  const reloadUsers = () => getUsersAsync().then(setUsersState);
+  useEffect(() => {
+    if (isOpen) getUsersAsync().then(setUsersState);
+  }, [isOpen]);
   const [newEmail, setNewEmail] = useState('');
   const [newRole, setNewRole] = useState<Role>('user');
   const [newPages, setNewPages] = useState<string[]>([]);
@@ -99,40 +103,40 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, p
     setTests((t) => ({ ...t, [key]: { status: 'idle' } }));
   };
 
-  const addUser = () => {
+  const addUser = async () => {
     const email = newEmail.trim();
     if (!email || !email.includes('@')) {
       setSavedMsg('กรุณากรอกอีเมลให้ถูกต้อง');
       return;
     }
-    const updated = upsertUser({ email, role: newRole, pages: newRole === 'admin' ? [] : newPages });
-    setUsersState(updated);
+    await upsertUserAsync({ email, role: newRole, pages: newRole === 'admin' ? [] : newPages });
+    await reloadUsers();
     setNewEmail('');
     setNewRole('user');
     setNewPages([]);
     onAccessChanged();
   };
 
-  const deleteUser = (email: string) => {
-    const updated = removeUser(email);
-    setUsersState(updated);
+  const deleteUser = async (email: string) => {
+    await removeUserAsync(email);
+    await reloadUsers();
     onAccessChanged();
   };
 
-  const toggleUserPage = (email: string, pageId: string) => {
+  const toggleUserPage = async (email: string, pageId: string) => {
     const u = users.find((x) => x.email === email);
     if (!u) return;
     const has = u.pages.includes(pageId);
-    const updated = upsertUser({ ...u, pages: has ? u.pages.filter((p) => p !== pageId) : [...u.pages, pageId] });
-    setUsersState(updated);
+    await upsertUserAsync({ ...u, pages: has ? u.pages.filter((p) => p !== pageId) : [...u.pages, pageId] });
+    await reloadUsers();
     onAccessChanged();
   };
 
-  const changeUserRole = (email: string, role: Role) => {
+  const changeUserRole = async (email: string, role: Role) => {
     const u = users.find((x) => x.email === email);
     if (!u) return;
-    const updated = upsertUser({ ...u, role });
-    setUsersState(updated);
+    await upsertUserAsync({ ...u, role });
+    await reloadUsers();
     onAccessChanged();
   };
 
@@ -245,6 +249,11 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, p
           {/* ---- Users & permissions ---- */}
           {tab === 'users' && (
             <div className="space-y-4">
+              <div className={`text-[11px] px-3 py-2 rounded-lg border ${isCentralStore() ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-300' : 'bg-amber-500/10 border-amber-500/30 text-amber-300'}`}>
+                {isCentralStore()
+                  ? '✓ เก็บสิทธิ์ที่ Firestore (ส่วนกลาง) — เพิ่ม/แก้ที่นี่มีผลกับทุกเครื่องทันที'
+                  : '⚠️ เก็บสิทธิ์ในเครื่องนี้เท่านั้น (ยังไม่ได้ตั้ง Firestore) — ผู้ใช้อื่นจะยังเข้าไม่ได้จากเครื่องตัวเอง'}
+              </div>
               {/* Add user */}
               <div className="p-3 bg-slate-950/50 border border-slate-800 rounded-xl space-y-2.5">
                 <h4 className="text-[12px] font-bold text-slate-100 flex items-center gap-1.5"><Plus className="w-3.5 h-3.5 text-emerald-400" /> เพิ่มผู้ใช้</h4>
