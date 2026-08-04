@@ -3,6 +3,8 @@ import type { WeaponItem } from '../../types/dashboard';
 import { USER_PROVIDED_WEAPONS_SHEET_URL } from '../../data/mockInitialData';
 import { StatChart } from '../common/StatChart';
 import { KpiCard } from '../common/KpiCard';
+import { DataTable } from '../common/DataTable';
+import type { ColumnDef } from '../common/DataTable';
 import {
   useWeaponsData,
   deriveSegments,
@@ -25,6 +27,8 @@ import {
   Send,
   Package,
   Info,
+  Table as TableIcon,
+  LayoutGrid,
 } from 'lucide-react';
 
 interface WeaponsDashboardProps {
@@ -86,6 +90,7 @@ export const WeaponsDashboard: React.FC<WeaponsDashboardProps> = ({ searchQuery 
   const { data, loading, syncMsg, reload } = useWeaponsData();
   const [selectedCategory, setSelectedCategory] = useState<string>('ทั้งหมด');
   const [selected, setSelected] = useState<WeaponItem | null>(null);
+  const [viewMode, setViewMode] = useState<'table' | 'board'>('table');
 
   const filtered = useMemo(() => {
     return data.filter((w) => {
@@ -118,6 +123,52 @@ export const WeaponsDashboard: React.FC<WeaponsDashboardProps> = ({ searchQuery 
       items: filtered.filter((w) => w.category === cat),
     })).filter((g) => g.items.length > 0);
   }, [filtered]);
+
+  // Columns for the table view
+  const columns: ColumnDef<WeaponItem>[] = [
+    {
+      key: 'category',
+      header: 'หมวด',
+      render: (w) => (
+        <span className="px-2 py-0.5 rounded text-[10px] font-bold text-white shadow-sm inline-block" style={{ backgroundColor: WEAPON_CAT_COLOR[w.category] }}>
+          {w.category}
+        </span>
+      ),
+    },
+    { key: 'name', header: 'รายการ', render: (w) => <span className="font-bold text-slate-100">{w.name}</span> },
+    {
+      key: 'total',
+      header: 'ทั้งหมด',
+      render: (w) => <span className="font-mono font-extrabold text-white">{w.total.toLocaleString('th-TH')}</span>,
+    },
+    {
+      key: 'available',
+      header: 'พร้อมใช้ (คลัง)',
+      render: (w) => {
+        const a = deriveSegments(w).available;
+        return <span className="font-mono font-bold text-emerald-300">{a > 0 ? a.toLocaleString('th-TH') : '-'}</span>;
+      },
+    },
+    {
+      key: 'issued',
+      header: 'เบิกจ่าย',
+      render: (w) => <span className="font-mono text-amber-300">{w.issued > 0 ? w.issued.toLocaleString('th-TH') : '-'}</span>,
+    },
+    {
+      key: 'unusable',
+      header: 'ชำรุด',
+      render: (w) => <span className="font-mono font-bold text-rose-300">{w.unusable > 0 ? w.unusable.toLocaleString('th-TH') : '-'}</span>,
+    },
+    {
+      key: 'readiness',
+      header: '% พร้อม',
+      render: (w) => {
+        const p = readinessPct(w);
+        const st = readyStyle(p);
+        return <span className={`px-2 py-0.5 rounded border font-bold text-[11px] ${st.chip}`}>{w.total > 0 ? `${p.toFixed(0)}%` : '-'}</span>;
+      },
+    },
+  ];
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -217,33 +268,54 @@ export const WeaponsDashboard: React.FC<WeaponsDashboardProps> = ({ searchQuery 
         </div>
       )}
 
-      {/* Main: condition ledger + category readiness */}
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 items-start">
-        {/* Condition ledger */}
-        <div className="xl:col-span-2 glass-panel bg-slate-900/90 border border-slate-800 rounded-2xl p-5">
+      {/* View toggle */}
+      <div className="flex items-center justify-between gap-3">
+        <span className="text-[11px] text-slate-400 font-mono">รวม {filtered.length} รายการ</span>
+        <div className="flex items-center bg-slate-900 border border-slate-800 rounded-lg p-0.5 text-xs">
+          <button
+            onClick={() => setViewMode('table')}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md font-bold transition-all ${viewMode === 'table' ? 'bg-red-600 text-white' : 'text-slate-400 hover:text-white'}`}
+          >
+            <TableIcon className="w-3.5 h-3.5" /> ตาราง
+          </button>
+          <button
+            onClick={() => setViewMode('board')}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md font-bold transition-all ${viewMode === 'board' ? 'bg-red-600 text-white' : 'text-slate-400 hover:text-white'}`}
+          >
+            <LayoutGrid className="w-3.5 h-3.5" /> การ์ด/แถบสภาพ
+          </button>
+        </div>
+      </div>
+
+      {/* Item listing: table (default) or condition board */}
+      {viewMode === 'table' ? (
+        <DataTable
+          title="บัญชีคุมรายการยุทธภัณฑ์ (คลิกแถวเพื่อดูรายละเอียด)"
+          data={filtered}
+          columns={columns}
+          searchPlaceholder="ค้นหาชื่ออาวุธ / ยุทธภัณฑ์..."
+          pageSize={30}
+          onRowClick={(row) => setSelected(row)}
+        />
+      ) : (
+        <div className="glass-panel bg-slate-900/90 border border-slate-800 rounded-2xl p-5">
           <div className="flex items-center justify-between mb-3 pb-3 border-b border-slate-800">
             <h3 className="text-sm font-bold text-white flex items-center gap-2">
               <Package className="w-4 h-4 text-amber-400" /> บัญชีคุมรายการยุทธภัณฑ์
-              <span className="text-[11px] font-mono text-slate-500">({filtered.length} รายการ)</span>
             </h3>
           </div>
-
-          {/* Legend */}
           <div className="flex flex-wrap items-center gap-3 mb-4 text-[10px] text-slate-400">
             <span className="flex items-center gap-1"><span className="w-3 h-2 rounded-sm bg-emerald-500" /> พร้อมใช้ในคลัง</span>
             <span className="flex items-center gap-1"><span className="w-3 h-2 rounded-sm bg-amber-500" /> เบิกจ่ายให้ ตร.</span>
             <span className="flex items-center gap-1"><span className="w-3 h-2 rounded-sm personnel-hatch" /> ชำรุด/เสื่อม</span>
             <span className="flex items-center gap-1"><span className="w-3 h-2 rounded-sm bg-slate-600" /> สูญหาย</span>
           </div>
-
           <div className="space-y-5">
             {grouped.map((g) => (
               <div key={g.category}>
                 <div className="flex items-center gap-2 mb-2">
                   <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: WEAPON_CAT_COLOR[g.category] }} />
-                  <span className="text-[11px] font-bold uppercase tracking-wider" style={{ color: WEAPON_CAT_COLOR[g.category] }}>
-                    {g.category}
-                  </span>
+                  <span className="text-[11px] font-bold uppercase tracking-wider" style={{ color: WEAPON_CAT_COLOR[g.category] }}>{g.category}</span>
                   <span className="text-[10px] font-mono text-slate-500">({g.items.length})</span>
                 </div>
                 <div className="space-y-2">
@@ -256,46 +328,46 @@ export const WeaponsDashboard: React.FC<WeaponsDashboardProps> = ({ searchQuery 
             {grouped.length === 0 && <div className="text-center py-10 text-slate-500 text-sm">ไม่พบรายการตามเงื่อนไข</div>}
           </div>
         </div>
+      )}
 
-        {/* Right: category readiness + chart */}
-        <div className="space-y-6">
-          <div className="glass-panel bg-slate-900/90 border border-slate-800 rounded-2xl p-5">
-            <h3 className="text-sm font-bold text-white flex items-center gap-2 mb-3 pb-3 border-b border-slate-800">
-              <ShieldAlert className="w-4 h-4 text-amber-400" /> ความพร้อมใช้แยกตามหมวด
-            </h3>
-            <div className="space-y-3.5">
-              {summary.filter((s) => WEAPON_CATEGORIES.includes(s.category as any)).map((s) => {
-                const st = readyStyle(s.readiness);
-                return (
-                  <button key={s.category} onClick={() => setSelectedCategory(s.category)} className="w-full text-left">
-                    <div className="flex items-center justify-between text-[11px] mb-1">
-                      <span className="font-bold text-slate-200 flex items-center gap-1.5">
-                        <span className="w-2 h-2 rounded-full" style={{ backgroundColor: WEAPON_CAT_COLOR[s.category] }} />
-                        {s.category}
-                      </span>
-                      <span className={`font-mono font-bold ${st.text}`}>{s.readiness.toFixed(0)}%</span>
-                    </div>
-                    <div className="h-2 rounded-full bg-slate-800 overflow-hidden">
-                      <div className="h-full rounded-full" style={{ width: `${s.readiness}%`, backgroundColor: WEAPON_CAT_COLOR[s.category] }} />
-                    </div>
-                    <div className="text-[9px] text-slate-500 font-mono mt-0.5">
-                      รวม {s.total.toLocaleString('th-TH')} · ชำรุด {s.unusable.toLocaleString('th-TH')}
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
+      {/* Analytics — always shown */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
+        <div className="glass-panel bg-slate-900/90 border border-slate-800 rounded-2xl p-5">
+          <h3 className="text-sm font-bold text-white flex items-center gap-2 mb-3 pb-3 border-b border-slate-800">
+            <ShieldAlert className="w-4 h-4 text-amber-400" /> ความพร้อมใช้แยกตามหมวด
+          </h3>
+          <div className="space-y-3.5">
+            {summary.filter((s) => WEAPON_CATEGORIES.includes(s.category as any)).map((s) => {
+              const st = readyStyle(s.readiness);
+              return (
+                <button key={s.category} onClick={() => setSelectedCategory(s.category)} className="w-full text-left">
+                  <div className="flex items-center justify-between text-[11px] mb-1">
+                    <span className="font-bold text-slate-200 flex items-center gap-1.5">
+                      <span className="w-2 h-2 rounded-full" style={{ backgroundColor: WEAPON_CAT_COLOR[s.category] }} />
+                      {s.category}
+                    </span>
+                    <span className={`font-mono font-bold ${st.text}`}>{s.readiness.toFixed(0)}%</span>
+                  </div>
+                  <div className="h-2 rounded-full bg-slate-800 overflow-hidden">
+                    <div className="h-full rounded-full" style={{ width: `${s.readiness}%`, backgroundColor: WEAPON_CAT_COLOR[s.category] }} />
+                  </div>
+                  <div className="text-[9px] text-slate-500 font-mono mt-0.5">
+                    รวม {s.total.toLocaleString('th-TH')} · ชำรุด {s.unusable.toLocaleString('th-TH')}
+                  </div>
+                </button>
+              );
+            })}
           </div>
+        </div>
 
-          <div className="h-[320px]">
-            <StatChart
-              title="สัดส่วนอาวุธปืนแยกตามชนิด"
-              type="doughnut"
-              labels={firearmBreakdown.map(([k]) => k)}
-              dataValues={firearmBreakdown.map(([, v]) => v)}
-              customColors={['#ef4444', '#f97316', '#f59e0b', '#eab308', '#a855f7']}
-            />
-          </div>
+        <div className="h-[320px]">
+          <StatChart
+            title="สัดส่วนอาวุธปืนแยกตามชนิด"
+            type="doughnut"
+            labels={firearmBreakdown.map(([k]) => k)}
+            dataValues={firearmBreakdown.map(([, v]) => v)}
+            customColors={['#ef4444', '#f97316', '#f59e0b', '#eab308', '#a855f7']}
+          />
         </div>
       </div>
 

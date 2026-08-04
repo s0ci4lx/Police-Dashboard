@@ -4,6 +4,8 @@ import { USER_PROVIDED_PERSONNEL_SHEET_URL } from '../../data/mockInitialData';
 import { fetchSheetData } from '../../services/googleSheetService';
 import { KpiCard } from '../common/KpiCard';
 import { StatChart } from '../common/StatChart';
+import { DataTable } from '../common/DataTable';
+import type { ColumnDef } from '../common/DataTable';
 import {
   Users,
   UserCheck,
@@ -20,6 +22,7 @@ import {
   ListFilter,
   Layers,
   Info,
+  Table as TableIcon,
 } from 'lucide-react';
 
 interface PersonnelDashboardProps {
@@ -172,6 +175,7 @@ export const PersonnelDashboard: React.FC<PersonnelDashboardProps> = ({ searchQu
   const [syncStatusMsg, setSyncStatusMsg] = useState<string>('');
   const [selectedPersonnel, setSelectedPersonnel] = useState<PersonnelItem | null>(null);
   const [sortMode, setSortMode] = useState<'structure' | 'shortage'>('structure');
+  const [viewMode, setViewMode] = useState<'table' | 'board'>('table');
 
   const loadPersonnelSheetData = async () => {
     setLoading(true);
@@ -277,6 +281,49 @@ export const PersonnelDashboard: React.FC<PersonnelDashboardProps> = ({ searchQu
     return acc;
   }, [personnelData]);
 
+  // Columns for the overview table
+  const columns: ColumnDef<PersonnelItem>[] = [
+    {
+      key: 'position',
+      header: 'ตำแหน่ง / สายงาน',
+      render: (p) => (
+        <div>
+          <div className="font-bold text-slate-100">{p.position}</div>
+          <div className="text-[10px] text-slate-500">{groupOf(p.position).label}</div>
+        </div>
+      ),
+    },
+    { key: 'authorized', header: 'กรอบ', render: (p) => <span className="font-mono font-bold text-blue-300">{p.authorized}</span> },
+    { key: 'assigned', header: 'ครองจริง', render: (p) => <span className="font-mono font-bold text-emerald-300">{p.assigned}</span> },
+    {
+      key: 'vacant',
+      header: 'ว่าง',
+      render: (p) => <span className={`font-mono font-bold ${p.vacant > 0 ? 'text-rose-300' : 'text-slate-500'}`}>{p.vacant > 0 ? p.vacant : '-'}</span>,
+    },
+    {
+      key: 'detachedIn',
+      header: 'ช่วย รชก.',
+      render: (p) => (
+        <span className="font-mono text-[11px]">
+          {p.detachedIn > 0 && <span className="text-emerald-400">+{p.detachedIn}</span>}
+          {p.detachedIn > 0 && p.detachedOut > 0 && ' / '}
+          {p.detachedOut > 0 && <span className="text-rose-400">−{p.detachedOut}</span>}
+          {p.detachedIn === 0 && p.detachedOut === 0 && <span className="text-slate-500">-</span>}
+        </span>
+      ),
+    },
+    { key: 'effectiveTotal', header: 'ปฏิบัติจริง', render: (p) => <span className="font-mono font-bold text-cyan-300">{p.effectiveTotal}</span> },
+    {
+      key: 'fill',
+      header: '% ครอง',
+      render: (p) => {
+        const pct = pctOf(p);
+        const st = fillStyle(pct);
+        return <span className={`px-2 py-0.5 rounded border font-bold text-[11px] ${st.chip}`}>{pct.toFixed(0)}%</span>;
+      },
+    },
+  ];
+
   return (
     <div className="space-y-6 animate-fade-in">
       {/* Title Banner */}
@@ -379,9 +426,37 @@ export const PersonnelDashboard: React.FC<PersonnelDashboardProps> = ({ searchQu
       </div>
 
       {/* Main: staffing bars (grouped) + critical shortage panel */}
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 items-start">
-        {/* Staffing bars */}
-        <div className="xl:col-span-2 glass-panel bg-slate-900/90 border border-slate-800 rounded-2xl p-5">
+      {/* View toggle */}
+      <div className="flex items-center justify-between gap-3">
+        <span className="text-[11px] text-slate-400 font-mono">{filteredData.length} ตำแหน่ง/สายงาน</span>
+        <div className="flex items-center bg-slate-950 border border-slate-800 rounded-lg p-0.5 text-xs">
+          <button
+            onClick={() => setViewMode('table')}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md font-bold transition-all ${viewMode === 'table' ? 'bg-cyan-600 text-white' : 'text-slate-400 hover:text-white'}`}
+          >
+            <TableIcon className="w-3.5 h-3.5" /> ตาราง
+          </button>
+          <button
+            onClick={() => setViewMode('board')}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md font-bold transition-all ${viewMode === 'board' ? 'bg-cyan-600 text-white' : 'text-slate-400 hover:text-white'}`}
+          >
+            <Layers className="w-3.5 h-3.5" /> แถบกำลังพล
+          </button>
+        </div>
+      </div>
+
+      {/* Item listing: table (default) or staffing bars */}
+      {viewMode === 'table' ? (
+        <DataTable
+          title="ตารางสรุปอัตรากำลังพล (คลิกแถวเพื่อดูรายละเอียด)"
+          data={filteredData}
+          columns={columns}
+          searchPlaceholder="ค้นหาตำแหน่ง / สายงาน..."
+          pageSize={25}
+          onRowClick={(row) => setSelectedPersonnel(row)}
+        />
+      ) : (
+        <div className="glass-panel bg-slate-900/90 border border-slate-800 rounded-2xl p-5">
           <div className="flex items-center justify-between mb-4 pb-3 border-b border-slate-800">
             <h3 className="text-sm font-bold text-white flex items-center gap-2">
               <Layers className="w-4 h-4 text-cyan-400" /> ผังอัตรากำลังรายตำแหน่ง
@@ -442,11 +517,12 @@ export const PersonnelDashboard: React.FC<PersonnelDashboardProps> = ({ searchQu
             )}
           </div>
         </div>
+      )}
 
-        {/* Right column: critical shortage + chart */}
-        <div className="space-y-6">
-          {/* Critical shortage */}
-          <div className="glass-panel bg-slate-900/90 border border-rose-500/20 rounded-2xl p-5">
+      {/* Analytics — always shown */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
+        {/* Critical shortage */}
+        <div className="glass-panel bg-slate-900/90 border border-rose-500/20 rounded-2xl p-5">
             <h3 className="text-sm font-bold text-white flex items-center gap-2 mb-3 pb-3 border-b border-slate-800">
               <AlertTriangle className="w-4 h-4 text-rose-400" /> จุดวิกฤตต้องเติมกำลังด่วน
             </h3>
@@ -494,7 +570,6 @@ export const PersonnelDashboard: React.FC<PersonnelDashboardProps> = ({ searchQu
               customColors={GROUP_ORDER.map((k) => GROUP_META[k].color)}
             />
           </div>
-        </div>
       </div>
 
       {/* Detail Modal */}
