@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Shield, Radio, Search, Clock, RefreshCw, Sun, Moon } from 'lucide-react';
+import { Shield, Radio, Search, Clock, RefreshCw, Sun, Moon, Settings, LogOut, UserCircle } from 'lucide-react';
 
 interface HeaderProps {
   stationName?: string;
@@ -7,6 +7,12 @@ interface HeaderProps {
   onSearchChange: (q: string) => void;
   onRefreshData?: () => void;
   isLoading?: boolean;
+  userEmail?: string | null;
+  roleLabel?: string;
+  isAdmin?: boolean;
+  isDev?: boolean;
+  onOpenSettings?: () => void;
+  onLogout?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -15,14 +21,21 @@ export const Header: React.FC<HeaderProps> = ({
   onSearchChange,
   onRefreshData,
   isLoading = false,
+  userEmail,
+  roleLabel,
+  isAdmin = false,
+  isDev = false,
+  onOpenSettings,
+  onLogout,
 }) => {
   const [timeStr, setTimeStr] = useState<string>('');
   const [theme, setTheme] = useState<'dark' | 'light'>(() => {
+    // Light is the default; only an explicit 'dark' choice opts out.
     if (typeof document !== 'undefined' && document.documentElement.getAttribute('data-theme') === 'light') return 'light';
     try {
-      return localStorage.getItem('theme') === 'light' ? 'light' : 'dark';
+      return localStorage.getItem('theme') === 'dark' ? 'dark' : 'light';
     } catch {
-      return 'dark';
+      return 'light';
     }
   });
 
@@ -133,10 +146,35 @@ export const Header: React.FC<HeaderProps> = ({
           )}
         </div>
 
-        {/* Right: Realtime Clock Badge */}
-        <div className="hidden lg:flex items-center gap-2 bg-slate-800/60 border border-slate-700/50 px-3.5 py-1.5 rounded-xl text-slate-300 text-xs shadow-inner">
-          <Clock className="w-3.5 h-3.5 text-blue-400" />
-          <span className="font-mono text-slate-200 font-medium">{timeStr}</span>
+        {/* Right: Clock + User */}
+        <div className="flex items-center gap-2">
+          <div className="hidden lg:flex items-center gap-2 bg-slate-800/60 border border-slate-700/50 px-3.5 py-1.5 rounded-xl text-slate-300 text-xs shadow-inner">
+            <Clock className="w-3.5 h-3.5 text-blue-400" />
+            <span className="font-mono text-slate-200 font-medium">{timeStr}</span>
+          </div>
+
+          {userEmail && (
+            <div className="flex items-center gap-1.5 bg-slate-800/60 border border-slate-700/50 px-2.5 py-1.5 rounded-xl">
+              <UserCircle className={`w-4 h-4 ${isAdmin ? 'text-amber-400' : 'text-blue-400'}`} />
+              <div className="hidden sm:block leading-tight">
+                <div className="text-[11px] font-bold text-slate-200 max-w-[150px] truncate">{userEmail}</div>
+                <div className="text-[9px] text-slate-400">
+                  {roleLabel}
+                  {isDev && <span className="ml-1 text-amber-400 font-bold">· DEV</span>}
+                </div>
+              </div>
+              {isAdmin && onOpenSettings && (
+                <button onClick={onOpenSettings} title="ตั้งค่าระบบ (Admin)" className="p-1.5 text-slate-300 hover:text-white hover:bg-slate-700 rounded-lg">
+                  <Settings className="w-4 h-4" />
+                </button>
+              )}
+              {onLogout && (
+                <button onClick={onLogout} title="ออกจากระบบ" className="p-1.5 text-slate-300 hover:text-rose-300 hover:bg-slate-700 rounded-lg">
+                  <LogOut className="w-4 h-4" />
+                </button>
+              )}
+            </div>
+          )}
         </div>
       </div>
     </header>

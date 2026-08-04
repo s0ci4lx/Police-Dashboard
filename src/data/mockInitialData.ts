@@ -1,9 +1,13 @@
 import type { CctvItem, PoiItem, CaseItem, DynamicPageConfig } from '../types/dashboard';
+import { getDataSource, getStation } from '../config/dataSources';
 
-export const USER_PROVIDED_SHEET_URL = 'https://docs.google.com/spreadsheets/d/1C0TSUo2oqRcOlbixjymsLFZerkQ1xVTBrlaLHkCdoAU/edit?usp=sharing';
-export const USER_PROVIDED_POI_SHEET_URL = 'https://docs.google.com/spreadsheets/d/1C0TSUo2oqRcOlbixjymsLFZerkQ1xVTBrlaLHkCdoAU/export?format=csv&gid=1578849502';
-export const USER_PROVIDED_WEAPONS_SHEET_URL = 'https://docs.google.com/spreadsheets/d/1C0TSUo2oqRcOlbixjymsLFZerkQ1xVTBrlaLHkCdoAU/export?format=csv&gid=1819093863';
-export const USER_PROVIDED_PERSONNEL_SHEET_URL = 'https://docs.google.com/spreadsheets/d/1C0TSUo2oqRcOlbixjymsLFZerkQ1xVTBrlaLHkCdoAU/gviz/tq?tqx=out:csv&sheet=%E0%B8%81%E0%B8%B3%E0%B8%A5%E0%B8%B1%E0%B8%87%E0%B8%9E%E0%B8%A5';
+// Resolved at load from the central config (respects in-app overrides in localStorage).
+// To change these permanently for everyone, edit src/config/dataSources.ts.
+export const USER_PROVIDED_SHEET_URL = getDataSource('cases');
+export const USER_PROVIDED_POI_SHEET_URL = getDataSource('poi');
+export const USER_PROVIDED_WEAPONS_SHEET_URL = getDataSource('weapons');
+export const USER_PROVIDED_PERSONNEL_SHEET_URL = getDataSource('personnel');
+export const USER_PROVIDED_CCTV_SHEET_URL = getDataSource('cctv');
 
 export const DEFAULT_PAGES: DynamicPageConfig[] = [
   {
@@ -88,12 +92,9 @@ export const DEFAULT_PAGES: DynamicPageConfig[] = [
   },
 ];
 
-// Center coordinates for Sathon Police Station (สภ.สะท้อน)
-export const HAT_YAI_STATION_COORDS = {
-  lat: 6.7571,
-  lng: 100.6725,
-  zoom: 13,
-};
+// Map center for the station — sourced from central config (edit in Settings or
+// src/config/dataSources.ts). Kept under the original name for compatibility.
+export const HAT_YAI_STATION_COORDS = getStation().center;
 
 // Seeded random number generator for realistic Sathon CCTV distribution
 function pseudoRandom(seed: number) {

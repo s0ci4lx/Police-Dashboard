@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import type { CctvItem } from '../../types/dashboard';
-import { SAMPLE_CCTV_DATA, HAT_YAI_STATION_COORDS } from '../../data/mockInitialData';
+import { SAMPLE_CCTV_DATA, HAT_YAI_STATION_COORDS, USER_PROVIDED_CCTV_SHEET_URL } from '../../data/mockInitialData';
+import { fetchCctvFromSheet } from '../../data/cctvShared';
 import { fetchSheetData, detectLatLongColumns } from '../../services/googleSheetService';
 import { KpiCard } from '../common/KpiCard';
 import { DataTable } from '../common/DataTable';
@@ -50,6 +51,16 @@ export const CctvDashboard: React.FC<CctvDashboardProps> = ({ searchQuery }) => 
   // Pagination for Grid View
   const [gridPage, setGridPage] = useState<number>(1);
   const gridPageSize = 12;
+
+  // Auto-load real CCTV points from a configured sheet on mount (falls back to sample)
+  useEffect(() => {
+    if (!USER_PROVIDED_CCTV_SHEET_URL) return;
+    fetchCctvFromSheet(USER_PROVIDED_CCTV_SHEET_URL)
+      .then((rows) => {
+        if (rows.length) setCctvData(rows);
+      })
+      .catch((e) => console.warn('โหลดชีต CCTV ไม่สำเร็จ:', e));
+  }, []);
 
   // Sync custom Google Sheet for CCTV if provided by user
   const handleSyncCustomCctvSheet = async (e?: React.FormEvent) => {

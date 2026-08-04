@@ -9,13 +9,16 @@
     <meta name="referrer" content="no-referrer" />
     <title>ศูนย์แดชบอร์ดสารสนเทศ สภ.สะท้อน</title>
     <script>
-      // Apply saved theme before first paint to avoid a flash
+      // Light is the default theme; apply before first paint to avoid a flash.
+      // Only an explicit 'dark' choice opts out.
       (function () {
         try {
-          if (localStorage.getItem('theme') === 'light') {
+          if (localStorage.getItem('theme') !== 'dark') {
             document.documentElement.setAttribute('data-theme', 'light');
           }
-        } catch (e) {}
+        } catch (e) {
+          document.documentElement.setAttribute('data-theme', 'light');
+        }
       })();
     </script>
   </head>

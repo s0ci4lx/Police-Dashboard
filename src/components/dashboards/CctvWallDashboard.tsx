@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import type { CctvItem } from '../../types/dashboard';
-import { SAMPLE_CCTV_DATA, HAT_YAI_STATION_COORDS } from '../../data/mockInitialData';
+import { SAMPLE_CCTV_DATA, HAT_YAI_STATION_COORDS, USER_PROVIDED_CCTV_SHEET_URL } from '../../data/mockInitialData';
+import { fetchCctvFromSheet } from '../../data/cctvShared';
 import { StatChart } from '../common/StatChart';
 import { InteractiveMap, CATEGORY_COLORS } from '../map/InteractiveMap';
 import type { MapMarkerItem } from '../map/InteractiveMap';
@@ -95,7 +96,17 @@ const CameraCard: React.FC<{
 };
 
 export const CctvWallDashboard: React.FC<CctvWallDashboardProps> = ({ searchQuery }) => {
-  const [cctvData] = useState<CctvItem[]>(SAMPLE_CCTV_DATA);
+  const [cctvData, setCctvData] = useState<CctvItem[]>(SAMPLE_CCTV_DATA);
+
+  // Load real CCTV points from a configured sheet (falls back to sample data)
+  useEffect(() => {
+    if (!USER_PROVIDED_CCTV_SHEET_URL) return;
+    fetchCctvFromSheet(USER_PROVIDED_CCTV_SHEET_URL)
+      .then((rows) => {
+        if (rows.length) setCctvData(rows);
+      })
+      .catch((e) => console.warn('โหลดชีต CCTV ไม่สำเร็จ:', e));
+  }, []);
   const [agencyFilter, setAgencyFilter] = useState<string>('ทั้งหมด');
   const [typeFilter, setTypeFilter] = useState<string>('ทั้งหมด');
   const [density, setDensity] = useState<2 | 3 | 4>(3);

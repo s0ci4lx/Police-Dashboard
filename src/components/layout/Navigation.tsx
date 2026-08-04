@@ -21,6 +21,7 @@ interface NavigationProps {
   onSelectPage: (id: string) => void;
   onOpenAddModal: () => void;
   onDeleteCustomPage?: (id: string) => void;
+  canManage?: boolean;
 }
 
 const ICON_MAP: Record<string, React.FC<{ className?: string }>> = {
@@ -41,6 +42,7 @@ export const Navigation: React.FC<NavigationProps> = ({
   onSelectPage,
   onOpenAddModal,
   onDeleteCustomPage,
+  canManage = true,
 }) => {
   const renderIcon = (name?: string) => {
     const IconComponent = (name && ICON_MAP[name]) || FolderKanban;
@@ -78,7 +80,7 @@ export const Navigation: React.FC<NavigationProps> = ({
                 </button>
 
                 {/* Option to delete user-added custom pages */}
-                {page.isCustom && onDeleteCustomPage && (
+                {canManage && page.isCustom && onDeleteCustomPage && (
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
@@ -97,14 +99,16 @@ export const Navigation: React.FC<NavigationProps> = ({
           })}
         </div>
 
-        {/* Add Dynamic Sheet Page Button */}
-        <button
-          onClick={onOpenAddModal}
-          className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs lg:text-sm font-semibold bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-300 hover:text-emerald-200 border border-emerald-500/40 transition-all shadow-md active:scale-95 whitespace-nowrap"
-        >
-          <Plus className="w-4 h-4 text-emerald-400" />
-          <span>เพิ่มหน้าแดชบอร์ดใหม่ (Google Sheet)</span>
-        </button>
+        {/* Add Dynamic Sheet Page Button (admins only) */}
+        {canManage && (
+          <button
+            onClick={onOpenAddModal}
+            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs lg:text-sm font-semibold bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-300 hover:text-emerald-200 border border-emerald-500/40 transition-all shadow-md active:scale-95 whitespace-nowrap"
+          >
+            <Plus className="w-4 h-4 text-emerald-400" />
+            <span>เพิ่มหน้าแดชบอร์ดใหม่ (Google Sheet)</span>
+          </button>
+        )}
       </div>
     </nav>
   );
