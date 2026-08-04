@@ -2,7 +2,7 @@ export type ViewMode = 'cctv' | 'poi' | 'cases' | 'traffic' | 'weapons' | 'perso
 
 export type DisplayType = 'map-and-table' | 'table-and-chart' | 'map-only' | 'table-only';
 
-export type PoliceDepartment = 'งานสืบสวน' | 'งานสอบสวน' | 'งานจราจร' | 'งานป้องกันปราบปราม' | 'งานบริหาร' | 'ข้อมูลท้องถิ่น' | 'กำลังพล' | 'อื่นๆ';
+export type PoliceDepartment = 'งานสืบสวน' | 'งานสอบสวน' | 'งานจราจร' | 'งานป้องกันปราบปราม' | 'งานส่งกำลังบำรุง' | 'งานบริหาร' | 'ข้อมูลท้องถิ่น' | 'กำลังพล' | 'อื่นๆ';
 
 export interface DynamicPageConfig {
   id: string;

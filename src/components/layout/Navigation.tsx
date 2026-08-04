@@ -12,6 +12,7 @@ import {
   Building2,
   FolderKanban,
   LayoutGrid,
+  Gauge,
 } from 'lucide-react';
 
 interface NavigationProps {
@@ -31,6 +32,7 @@ const ICON_MAP: Record<string, React.FC<{ className?: string }>> = {
   ShieldAlert: ShieldAlert,
   Table: Table,
   Building: Building2,
+  Gauge: Gauge,
 };
 
 export const Navigation: React.FC<NavigationProps> = ({

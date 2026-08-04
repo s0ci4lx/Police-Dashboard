@@ -16,6 +16,7 @@ import { CaseTrackerDashboard } from './components/dashboards/CaseTrackerDashboa
 import { PersonnelDashboard } from './components/dashboards/PersonnelDashboard';
 import { TrafficDashboard } from './components/dashboards/TrafficDashboard';
 import { WeaponsDashboard } from './components/dashboards/WeaponsDashboard';
+import { WeaponsReadinessDashboard } from './components/dashboards/WeaponsReadinessDashboard';
 import { GenericSheetDashboard } from './components/dashboards/GenericSheetDashboard';
 
 import { Shield, Radio, MapPin } from 'lucide-react';
@@ -102,13 +103,16 @@ export function App() {
 
         {activePageId === 'weapons' && <WeaponsDashboard searchQuery={searchQuery} />}
 
+        {activePageId === 'weapons-readiness' && <WeaponsReadinessDashboard searchQuery={searchQuery} />}
+
         {activePageId !== 'cctv' &&
           activePageId !== 'cctv-wall' &&
           activePageId !== 'poi' &&
           activePageId !== 'cases' &&
           activePageId !== 'personnel' &&
           activePageId !== 'traffic' &&
-          activePageId !== 'weapons' && (
+          activePageId !== 'weapons' &&
+          activePageId !== 'weapons-readiness' && (
             <GenericSheetDashboard pageConfig={activePageConfig} searchQuery={searchQuery} />
           )}
       </main>
