@@ -81,6 +81,16 @@ export const DEFAULT_PAGES: DynamicPageConfig[] = [
     isCustom: false,
     createdAt: Date.now(),
   },
+  {
+    id: 'reports',
+    title: 'สถิติรายงานจุดตรวจ',
+    department: 'งานสื่อสาร',
+    sheetUrl: '',
+    displayType: 'table-and-chart',
+    iconName: 'LayoutGrid',
+    isCustom: false,
+    createdAt: Date.now(),
+  },
 ];
 
 // Map center for the station — sourced from central config (edit in Settings or

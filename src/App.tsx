@@ -21,6 +21,7 @@ import { PersonnelDashboard } from './components/dashboards/PersonnelDashboard';
 import { TrafficDashboard } from './components/dashboards/TrafficDashboard';
 import { WeaponsDashboard } from './components/dashboards/WeaponsDashboard';
 import { WeaponsReadinessDashboard } from './components/dashboards/WeaponsReadinessDashboard';
+import { ReportDashboard } from './components/dashboards/ReportDashboard';
 import { GenericSheetDashboard } from './components/dashboards/GenericSheetDashboard';
 
 import { Shield, Radio, MapPin, Loader2, ShieldAlert, LogOut } from 'lucide-react';
@@ -217,6 +218,7 @@ export function App() {
         {activeAllowed && activePageId === 'traffic' && <TrafficDashboard searchQuery={searchQuery} />}
         {activeAllowed && activePageId === 'weapons' && <WeaponsDashboard searchQuery={searchQuery} />}
         {activeAllowed && activePageId === 'weapons-readiness' && <WeaponsReadinessDashboard searchQuery={searchQuery} />}
+        {activeAllowed && activePageId === 'reports' && <ReportDashboard searchQuery={searchQuery} />}
         {activeAllowed &&
           activePageId !== 'cctv' &&
           activePageId !== 'cctv-wall' &&
@@ -225,7 +227,8 @@ export function App() {
           activePageId !== 'personnel' &&
           activePageId !== 'traffic' &&
           activePageId !== 'weapons' &&
-          activePageId !== 'weapons-readiness' && (
+          activePageId !== 'weapons-readiness' &&
+          activePageId !== 'reports' && (
             <GenericSheetDashboard pageConfig={activePageConfig} searchQuery={searchQuery} />
           )}
       </main>

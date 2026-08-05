@@ -97,6 +97,20 @@ export const Navigation: React.FC<NavigationProps> = ({
           );
         })}
 
+        {/* External Link for Report System */}
+        <a
+          href="https://sathon-report.vercel.app/"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs lg:text-sm font-medium transition-all duration-200 text-slate-300 hover:text-white hover:bg-slate-800/80 border border-transparent hover:border-slate-700/60 shrink-0"
+        >
+          <FileText className="w-4 h-4 text-blue-400" />
+          <span>กรอกรายงาน</span>
+          <span className="text-[10px] px-1.5 py-0.5 rounded bg-blue-500/10 text-blue-300 border border-blue-500/20">
+            ระบบแยก
+          </span>
+        </a>
+
         {/* Add Dynamic Sheet Page Button (admins only) */}
         {canManage && (
           <button
