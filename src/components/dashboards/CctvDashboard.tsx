@@ -6,7 +6,7 @@ import { KpiCard } from '../common/KpiCard';
 import { DataTable } from '../common/DataTable';
 import type { ColumnDef } from '../common/DataTable';
 import { StatChart } from '../common/StatChart';
-import { InteractiveMap, CATEGORY_COLORS, TYPE_COLORS, centerOfMarkers } from '../map/InteractiveMap';
+import { InteractiveMap, CATEGORY_COLORS, TYPE_COLORS, centerOfMarkers, getCategoryColor } from '../map/InteractiveMap';
 import type { MapMarkerItem } from '../map/InteractiveMap';
 import {
   Camera,
@@ -25,14 +25,90 @@ import {
   Info,
   ChevronLeft,
   ChevronRight,
+  Cctv,
+  Crosshair,
+  LayoutGrid,
+  Building2,
 } from 'lucide-react';
 
 interface CctvDashboardProps {
   searchQuery: string;
 }
 
+// Short device-type label chips
+const TYPE_STYLE: Record<string, { color: string; short: string }> = {
+  'Fixed Camera': { color: '#0ea5e9', short: 'FIXED' },
+  'PTZ Camera': { color: '#8b5cf6', short: 'PTZ' },
+  'LPR/AI Camera': { color: '#10b981', short: 'LPR/AI' },
+  'Speed Cam': { color: '#f59e0b', short: 'SPEED' },
+};
+
+// A single honest "installation point" card — shows only what the source data actually contains
+const CameraCard: React.FC<{
+  cam: CctvItem;
+  onOpen: () => void;
+  onFocus: (cam: CctvItem) => void;
+}> = ({ cam, onOpen, onFocus }) => {
+  const agencyColor = getCategoryColor(cam.agency);
+  const typeInfo = TYPE_STYLE[cam.type] || { color: '#64748b', short: cam.type };
+
+  return (
+    <div
+      onClick={() => onFocus(cam)}
+      className="group relative w-full overflow-hidden rounded-xl border border-slate-800 bg-slate-950/70 p-3.5 text-left transition-all hover:border-blue-500/60 hover:bg-slate-900 hover:-translate-y-0.5 cursor-pointer"
+    >
+      {/* accent bar by agency */}
+      <span className="absolute left-0 top-0 h-full w-1" style={{ backgroundColor: agencyColor }} />
+
+      <div className="flex items-start justify-between gap-2 pl-1.5">
+        <span
+          className="px-1.5 py-0.5 rounded text-[9px] font-bold text-white shadow"
+          style={{ backgroundColor: agencyColor }}
+        >
+          {cam.agency}
+        </span>
+        <span
+          className="px-1.5 py-0.5 rounded text-[9px] font-bold border"
+          style={{ color: typeInfo.color, borderColor: `${typeInfo.color}55`, backgroundColor: `${typeInfo.color}18` }}
+        >
+          {typeInfo.short}
+        </span>
+      </div>
+
+      <div className="mt-2.5 flex items-center gap-2.5 pl-1.5">
+        <div
+          className="p-2 rounded-lg border border-white/10 bg-black/30 shrink-0"
+          style={{ color: agencyColor }}
+        >
+          <Cctv className="w-4 h-4" />
+        </div>
+        <div className="min-w-0">
+          <p className="text-[12px] font-bold text-slate-100 truncate">{cam.locationName}</p>
+          <p className="text-[10px] text-slate-500 font-mono">CAM-{String(cam.no).padStart(4, '0')}</p>
+        </div>
+      </div>
+
+      <div className="mt-2.5 pt-2 border-t border-slate-800/80 flex items-center justify-between pl-1.5">
+        <span className="text-[10px] font-mono text-slate-400 flex items-center gap-1 truncate">
+          <Crosshair className="w-3 h-3 text-blue-400 shrink-0" />
+          {cam.lat.toFixed(4)}, {cam.lng.toFixed(4)}
+        </span>
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onOpen();
+          }}
+          className="text-[10px] font-bold text-slate-400 hover:text-blue-300 flex items-center gap-0.5 shrink-0 px-2 py-0.5 rounded bg-slate-900 border border-slate-800 hover:border-blue-500/40 transition-all"
+        >
+          ดูจุด <ChevronRight className="w-3 h-3" />
+        </button>
+      </div>
+    </div>
+  );
+};
+
 export const CctvDashboard: React.FC<CctvDashboardProps> = ({ searchQuery }) => {
-  const [cctvData, setCctvData] = useState<CctvItem[]>(SAMPLE_CCTV_DATA);
+  const [cctvData, setCctvData] = useState<CctvItem[]>(USER_PROVIDED_CCTV_SHEET_URL ? [] : SAMPLE_CCTV_DATA);
   const [selectedAgencyFilter, setSelectedAgencyFilter] = useState<string>('ทั้งหมด');
   const [selectedStatusFilter, setSelectedStatusFilter] = useState<string>('ทั้งหมด');
   const [activeViewMode, setActiveViewMode] = useState<'map-split' | 'map-full' | 'grid'>('map-split');
@@ -40,9 +116,14 @@ export const CctvDashboard: React.FC<CctvDashboardProps> = ({ searchQuery }) => 
   const [mapCenter, setMapCenter] = useState(HAT_YAI_STATION_COORDS);
   const [inspectCam, setInspectCam] = useState<CctvItem | null>(null);
 
-  // Pagination for Grid View
+  // Pagination for Map Split/Full views Data Table
   const [gridPage, setGridPage] = useState<number>(1);
   const gridPageSize = 12;
+
+  // State for Wall Dashboard section
+  const [wallPage, setWallPage] = useState<number>(0);
+  const [density] = useState<2 | 3 | 4>(3);
+  const wallPerPage = density * 3;
 
   // Auto-load real CCTV points from a configured sheet on mount (falls back to sample)
   useEffect(() => {
@@ -53,11 +134,6 @@ export const CctvDashboard: React.FC<CctvDashboardProps> = ({ searchQuery }) => 
       })
       .catch((e) => console.warn('โหลดชีต CCTV ไม่สำเร็จ:', e));
   }, []);
-
-  // Center the map on the middle of the actual camera pins when data changes
-  useEffect(() => {
-    setMapCenter(centerOfMarkers(cctvData, HAT_YAI_STATION_COORDS));
-  }, [cctvData]);
 
 
 
@@ -83,10 +159,16 @@ export const CctvDashboard: React.FC<CctvDashboardProps> = ({ searchQuery }) => 
     });
   }, [cctvData, selectedAgencyFilter, selectedStatusFilter, searchQuery]);
 
-  // Reset grid pagination when filters change
+  // Center the map on the middle of the actual camera pins when data changes
+  useEffect(() => {
+    setMapCenter(centerOfMarkers(filteredData, HAT_YAI_STATION_COORDS));
+  }, [filteredData]);
+
+  // Reset paginations when filters change
   useEffect(() => {
     setGridPage(1);
-  }, [selectedAgencyFilter, selectedStatusFilter, searchQuery]);
+    setWallPage(0);
+  }, [selectedAgencyFilter, selectedStatusFilter, searchQuery, density]);
 
   // Grid view pagination calculation
   const totalGridPages = Math.ceil(filteredData.length / gridPageSize) || 1;
@@ -94,6 +176,43 @@ export const CctvDashboard: React.FC<CctvDashboardProps> = ({ searchQuery }) => 
     const start = (gridPage - 1) * gridPageSize;
     return filteredData.slice(start, start + gridPageSize);
   }, [filteredData, gridPage]);
+
+  // Wall section stats and pagination calculation
+  const wallStats = useMemo(() => {
+    const agencyCount: Record<string, number> = {};
+    const typeCount: Record<string, number> = {};
+    let withCoords = 0;
+    cctvData.forEach((c) => {
+      agencyCount[c.agency] = (agencyCount[c.agency] || 0) + 1;
+      typeCount[c.type] = (typeCount[c.type] || 0) + 1;
+      if (Number.isFinite(c.lat) && Number.isFinite(c.lng)) withCoords++;
+    });
+    const total = cctvData.length;
+    const smart = (typeCount['LPR/AI Camera'] || 0) + (typeCount['Speed Cam'] || 0);
+    return {
+      total,
+      agencyCount,
+      typeCount,
+      agencies: Object.keys(agencyCount).length,
+      types: Object.keys(typeCount).length,
+      smart,
+      coordPct: total ? ((withCoords / total) * 100).toFixed(0) : '0',
+    };
+  }, [cctvData]);
+
+  const totalWallPages = Math.max(1, Math.ceil(filteredData.length / wallPerPage));
+
+  useEffect(() => {
+    if (wallPage > totalWallPages - 1) setWallPage(0);
+  }, [wallPage, totalWallPages]);
+
+  const wallPageItems = useMemo(() => {
+    const start = wallPage * wallPerPage;
+    return filteredData.slice(start, start + wallPerPage);
+  }, [filteredData, wallPage, wallPerPage]);
+
+  const gridColsClass =
+    density === 2 ? 'grid-cols-1 sm:grid-cols-2' : density === 3 ? 'grid-cols-2 lg:grid-cols-3' : 'grid-cols-2 lg:grid-cols-4';
 
   // Dynamic Agency Counts
   const agencyCounts = useMemo(() => {
@@ -142,7 +261,6 @@ export const CctvDashboard: React.FC<CctvDashboardProps> = ({ searchQuery }) => 
     return Object.entries(counts).sort((a, b) => b[1] - a[1]);
   }, [cctvData]);
 
-  const AGENCY_PALETTE = ['#ec4899', '#0ea5e9', '#10b981', '#f59e0b', '#8b5cf6', '#f43f5e', '#14b8a6', '#a855f7'];
   const KPI_THEMES = ['purple', 'blue', 'emerald', 'amber', 'indigo', 'slate'] as const;
 
   // Map Markers format
@@ -157,7 +275,7 @@ export const CctvDashboard: React.FC<CctvDashboardProps> = ({ searchQuery }) => 
       notes: item.notes,
       type: item.type,
       status: item.status,
-      color: TYPE_COLORS[item.type] || CATEGORY_COLORS[item.agency] || '#3b82f6',
+      color: TYPE_COLORS[item.type] || getCategoryColor(item.agency),
       rawData: item,
     }));
   }, [filteredData]);
@@ -170,7 +288,7 @@ export const CctvDashboard: React.FC<CctvDashboardProps> = ({ searchQuery }) => 
       render: (row) => (
         <span
           className="px-2 py-0.5 rounded text-[11px] font-bold text-white shadow-sm inline-block"
-          style={{ backgroundColor: CATEGORY_COLORS[row.agency] || '#3b82f6' }}
+          style={{ backgroundColor: getCategoryColor(row.agency) }}
         >
           {row.agency}
         </span>
@@ -182,7 +300,6 @@ export const CctvDashboard: React.FC<CctvDashboardProps> = ({ searchQuery }) => 
       render: (row) => (
         <div>
           <div className="font-bold text-slate-100">{row.locationName}</div>
-          <div className="text-[11px] text-slate-400">{row.notes}</div>
         </div>
       ),
     },
@@ -422,7 +539,7 @@ export const CctvDashboard: React.FC<CctvDashboardProps> = ({ searchQuery }) => 
                 data={filteredData}
                 columns={columns}
                 searchPlaceholder="ค้นหาจุดติดตั้ง, ที่อยู่, พิกัด..."
-                pageSize={7}
+                pageSize={10}
                 onRowClick={(row) => {
                   setSelectedMarkerId(row.id);
                   setMapCenter({ lat: row.lat, lng: row.lng, zoom: 17 });
@@ -436,7 +553,7 @@ export const CctvDashboard: React.FC<CctvDashboardProps> = ({ searchQuery }) => 
                 type="pie"
                 labels={agencyBreakdown.map(([name]) => name)}
                 dataValues={agencyBreakdown.map(([, count]) => count)}
-                customColors={agencyBreakdown.map(([name], i) => CATEGORY_COLORS[name] || AGENCY_PALETTE[i % AGENCY_PALETTE.length])}
+                customColors={agencyBreakdown.map(([name]) => getCategoryColor(name))}
               />
             </div>
           </div>
@@ -548,6 +665,143 @@ export const CctvDashboard: React.FC<CctvDashboardProps> = ({ searchQuery }) => 
           )}
         </div>
       )}
+
+      {/* --- Merged from CctvWallDashboard --- */}
+      <div className="mt-8 border-t border-slate-800 pt-8 space-y-6">
+        <div className="grid grid-cols-1 xl:grid-cols-4 gap-5">
+          {/* Board */}
+          <div className="xl:col-span-3 glass-panel bg-slate-950/70 border border-slate-800 rounded-2xl p-4">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                <LayoutGrid className="w-4 h-4 text-blue-400" /> ทะเบียนจุดติดตั้ง
+                <span className="text-[11px] font-mono text-slate-500">({filteredData.length.toLocaleString('th-TH')} จุด)</span>
+              </h3>
+              <div className="flex items-center gap-2 text-xs">
+                <button
+                  onClick={() => setWallPage((p) => (p - 1 + totalWallPages) % totalWallPages)}
+                  disabled={totalWallPages <= 1}
+                  className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 disabled:opacity-40 text-slate-300"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                </button>
+                <span className="font-mono text-slate-400 w-16 text-center">
+                  {wallPage + 1} / {totalWallPages}
+                </span>
+                <button
+                  onClick={() => setWallPage((p) => (p + 1) % totalWallPages)}
+                  disabled={totalWallPages <= 1}
+                  className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 disabled:opacity-40 text-slate-300"
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+
+            {wallPageItems.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-20 text-slate-500">
+                <Cctv className="w-10 h-10 mb-2" />
+                <p className="text-sm font-semibold">ไม่พบจุดติดตั้งตามเงื่อนไขที่เลือก</p>
+              </div>
+            ) : (
+              <div className={`grid ${gridColsClass} gap-3`}>
+                {wallPageItems.map((cam) => (
+                  <CameraCard 
+                    key={cam.id} 
+                    cam={cam} 
+                    onOpen={() => setInspectCam(cam)} 
+                    onFocus={(cam) => {
+                      setMapCenter({ lat: cam.lat, lng: cam.lng, zoom: 17 });
+                      setSelectedMarkerId(cam.id);
+                      window.scrollTo({ top: 0, behavior: 'smooth' }); // scroll up to map
+                    }} 
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Agency summary sidebar */}
+          <div className="glass-panel bg-slate-900/90 border border-slate-800 rounded-2xl p-4 flex flex-col">
+            <h3 className="text-sm font-bold text-white flex items-center gap-2 mb-3 pb-3 border-b border-slate-800">
+              <Building2 className="w-4 h-4 text-blue-400" /> สรุปตามหน่วยงาน
+            </h3>
+
+            <div className="space-y-3">
+              {Object.entries(wallStats.agencyCount)
+                .sort((a, b) => b[1] - a[1])
+                .map(([agency, count]) => {
+                  const color = getCategoryColor(agency);
+                  const pct = wallStats.total ? (count / wallStats.total) * 100 : 0;
+                  const active = selectedAgencyFilter === agency;
+                  return (
+                    <button
+                      key={agency}
+                      onClick={() => setSelectedAgencyFilter(active ? 'ทั้งหมด' : agency)}
+                      className={`w-full text-left group ${active ? 'opacity-100' : 'opacity-90 hover:opacity-100'}`}
+                    >
+                      <div className="flex items-center justify-between text-[11px] mb-1">
+                        <span className="font-bold text-slate-200 flex items-center gap-1.5">
+                          <span className="w-2 h-2 rounded-full" style={{ backgroundColor: color }} />
+                          {agency}
+                        </span>
+                        <span className="font-mono text-slate-400">
+                          {count.toLocaleString('th-TH')} · {pct.toFixed(1)}%
+                        </span>
+                      </div>
+                      <div className="h-2 rounded-full bg-slate-800 overflow-hidden">
+                        <div
+                          className={`h-full rounded-full transition-all ${active ? 'ring-1 ring-white/40' : ''}`}
+                          style={{ width: `${pct}%`, backgroundColor: color }}
+                        />
+                      </div>
+                    </button>
+                  );
+                })}
+            </div>
+
+            <div className="mt-4 pt-3 border-t border-slate-800">
+              <h4 className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">ประเภทกล้อง</h4>
+              <div className="space-y-1.5">
+                {Object.entries(wallStats.typeCount)
+                  .sort((a, b) => b[1] - a[1])
+                  .map(([type, count]) => {
+                    const info = TYPE_STYLE[type] || { color: '#64748b', short: type };
+                    return (
+                      <div
+                        key={type}
+                        className="w-full flex items-center justify-between text-[11px] p-1.5 rounded-lg bg-slate-800/40"
+                      >
+                        <span className="flex items-center gap-1.5 text-slate-300">
+                          <span className="w-2 h-2 rounded-sm" style={{ backgroundColor: info.color }} />
+                          {type}
+                        </span>
+                        <span className="font-mono font-bold text-slate-400">{count}</span>
+                      </div>
+                    );
+                  })}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Analytics */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+          <StatChart
+            title="สัดส่วนจุดติดตั้งแยกตามหน่วยงานสังกัด"
+            type="doughnut"
+            labels={Object.keys(wallStats.agencyCount)}
+            dataValues={Object.values(wallStats.agencyCount)}
+            customColors={Object.keys(wallStats.agencyCount).map((a) => getCategoryColor(a))}
+          />
+          <StatChart
+            title="จำนวนกล้องแยกตามประเภทอุปกรณ์"
+            type="bar"
+            labels={Object.keys(wallStats.typeCount)}
+            dataValues={Object.values(wallStats.typeCount)}
+            customColors={Object.keys(wallStats.typeCount).map((t) => TYPE_STYLE[t]?.color || TYPE_COLORS[t] || '#64748b')}
+          />
+        </div>
+      </div>
 
       {/* Slide-Over CCTV Camera Inspector Modal (Used only if triggered explicitly) */}
       {inspectCam && (

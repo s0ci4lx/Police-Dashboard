@@ -10,6 +10,7 @@ import {
   Title,
 } from 'chart.js';
 import { Pie, Doughnut, Bar } from 'react-chartjs-2';
+import ChartDataLabels from 'chartjs-plugin-datalabels';
 
 ChartJS.register(
   ArcElement,
@@ -18,7 +19,8 @@ ChartJS.register(
   CategoryScale,
   LinearScale,
   BarElement,
-  Title
+  Title,
+  ChartDataLabels
 );
 
 interface StatChartProps {
@@ -92,6 +94,19 @@ export const StatChart: React.FC<StatChartProps> = ({
             return ` ${context.label}: ${val.toLocaleString('th-TH')} (${percentage}%)`;
           },
         },
+      },
+      datalabels: {
+        color: '#ffffff',
+        font: {
+          family: 'Prompt',
+          weight: 'bold',
+          size: 13,
+        },
+        formatter: (value: any) => {
+          if (value === 0) return '';
+          return value;
+        },
+        display: (context: any) => context.dataset.data[context.dataIndex] > 0,
       },
     },
     scales:

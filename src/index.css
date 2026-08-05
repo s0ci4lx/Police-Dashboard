@@ -46,30 +46,107 @@ body {
   font-family: 'Prompt', sans-serif;
 }
 
-/* Map popups are a light card in BOTH themes (their content is authored with
-   dark text on white); explicit colours below keep them readable even though
-   the light theme inverts the slate token scale. */
-.leaflet-popup-content-wrapper {
-  background: #ffffff;
-  color: #0f172a;
-  border: 1px solid rgba(37, 99, 235, 0.25);
-  border-radius: 0.75rem;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.35), 0 8px 10px -6px rgba(0, 0, 0, 0.3);
+/* Modern Glassmorphism Popup Styles */
+.modern-glass-popup.is-dark .leaflet-popup-content-wrapper {
+  background: rgba(15, 23, 42, 0.7) !important;
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 1rem;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+  padding: 0;
+  overflow: hidden;
+  color: #f8fafc;
+  animation: popupFadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
-.leaflet-popup-tip {
-  background: #ffffff;
-  border: 1px solid rgba(37, 99, 235, 0.25);
+.modern-glass-popup.is-light .leaflet-popup-content-wrapper {
+  background: rgba(255, 255, 255, 0.95) !important;
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 1rem;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.2);
+  padding: 0;
+  overflow: hidden;
+  color: #1e293b;
+  animation: popupFadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
-.leaflet-popup-content .text-slate-900 { color: #0f172a !important; }
-.leaflet-popup-content .text-slate-600 { color: #475569 !important; }
-.leaflet-popup-content .text-slate-500 { color: #64748b !important; }
-.leaflet-popup-content .bg-slate-100 { background-color: #f1f5f9 !important; }
-.leaflet-popup-content .border-slate-200 { border-color: #e2e8f0 !important; }
-.leaflet-popup-content .border-b { border-color: #e2e8f0 !important; }
-.leaflet-popup-content .text-blue-600 { color: #2563eb !important; }
-.leaflet-popup-content .text-white { color: #ffffff !important; }
+.modern-glass-popup .leaflet-popup-content {
+  margin: 0 !important;
+  width: auto !important;
+}
+
+/* The map popup manages its own light/dark look via the map style (.is-light /
+ * .is-dark, hard-coded above) — it must NOT follow the app-wide light-theme
+ * token inversion, or its Tailwind text/bg utilities (text-slate-800, text-white,
+ * bg-slate-50 …) flip and the pin title blends into the light card. Restore the
+ * default Tailwind v4 color tokens inside the popup so those utilities render
+ * as designed regardless of the active app theme. */
+.modern-glass-popup .leaflet-popup-content {
+  --color-white: #fff;
+  --color-slate-50: oklch(98.4% 0.003 247.858);
+  --color-slate-200: oklch(92.9% 0.013 255.508);
+  --color-slate-300: oklch(86.9% 0.022 252.894);
+  --color-slate-400: oklch(70.4% 0.04 256.788);
+  --color-slate-500: oklch(55.4% 0.046 257.417);
+  --color-slate-600: oklch(44.6% 0.043 257.281);
+  --color-slate-700: oklch(37.2% 0.044 257.287);
+  --color-slate-800: oklch(27.9% 0.041 260.031);
+  --color-slate-900: oklch(20.8% 0.042 265.755);
+  --color-blue-300: oklch(80.9% 0.105 251.813);
+  --color-blue-400: oklch(70.7% 0.165 254.624);
+  --color-emerald-300: oklch(84.5% 0.143 164.978);
+  --color-emerald-400: oklch(76.5% 0.177 163.223);
+  --color-rose-300: oklch(81% 0.117 11.638);
+  --color-rose-400: oklch(71.2% 0.194 13.428);
+}
+
+.modern-glass-popup .leaflet-popup-tip-container {
+  display: none !important; /* Hide the default tip */
+}
+
+.modern-glass-popup.is-dark a.leaflet-popup-close-button {
+  color: #94a3b8 !important;
+  padding: 8px !important;
+  width: 28px !important;
+  height: 28px !important;
+  font-size: 20px !important;
+  z-index: 100;
+  border-radius: 50%;
+  transition: all 0.2s;
+}
+.modern-glass-popup.is-dark a.leaflet-popup-close-button:hover {
+  background: rgba(255, 255, 255, 0.1) !important;
+  color: #fff !important;
+}
+
+.modern-glass-popup.is-light a.leaflet-popup-close-button {
+  color: #64748b !important;
+  padding: 8px !important;
+  width: 28px !important;
+  height: 28px !important;
+  font-size: 20px !important;
+  z-index: 100;
+  border-radius: 50%;
+  transition: all 0.2s;
+}
+.modern-glass-popup.is-light a.leaflet-popup-close-button:hover {
+  background: rgba(0, 0, 0, 0.05) !important;
+  color: #0f172a !important;
+}
+
+@keyframes popupFadeIn {
+  0% {
+    opacity: 0;
+    transform: translateY(10px) scale(0.95);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
 
 /* Marker Cluster Custom styling */
 .marker-cluster-small {

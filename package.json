@@ -12,6 +12,7 @@
   "dependencies": {
     "@tailwindcss/vite": "^4.3.3",
     "chart.js": "^4.5.1",
+    "chartjs-plugin-datalabels": "^2.2.0",
     "firebase": "^12.17.0",
     "leaflet": "^1.9.4",
     "leaflet.markercluster": "^1.5.3",

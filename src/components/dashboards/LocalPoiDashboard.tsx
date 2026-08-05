@@ -1,12 +1,13 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import type { PoiItem } from '../../types/dashboard';
-import { SAMPLE_POI_DATA, HAT_YAI_STATION_COORDS, USER_PROVIDED_POI_SHEET_URL } from '../../data/mockInitialData';
+import { SAMPLE_POI_DATA, HAT_YAI_STATION_COORDS } from '../../data/mockInitialData';
 import { fetchSheetData, detectLatLongColumns, parseRowLatLng } from '../../services/googleSheetService';
+import { getDataSource } from '../../config/dataSources';
 import { KpiCard } from '../common/KpiCard';
 import { DataTable } from '../common/DataTable';
 import type { ColumnDef } from '../common/DataTable';
 import { StatChart } from '../common/StatChart';
-import { InteractiveMap, CATEGORY_COLORS, centerOfMarkers } from '../map/InteractiveMap';
+import { InteractiveMap, CATEGORY_COLORS, centerOfMarkers, getCategoryColor } from '../map/InteractiveMap';
 import type { MapMarkerItem } from '../map/InteractiveMap';
 import {
   MapPin,
@@ -40,7 +41,7 @@ const CATEGORY_META: Record<string, { icon: any; theme: 'blue' | 'indigo' | 'eme
 };
 
 export const LocalPoiDashboard: React.FC<LocalPoiDashboardProps> = ({ searchQuery }) => {
-  const [poiData, setPoiData] = useState<PoiItem[]>(SAMPLE_POI_DATA);
+  const [poiData, setPoiData] = useState<PoiItem[]>(getDataSource('poi') ? [] : SAMPLE_POI_DATA);
   const [selectedCategory, setSelectedCategory] = useState<string>('ทั้งหมด');
   const [selectedZone, setSelectedZone] = useState<string>('ทั้งหมด');
   const [mapCenter, setMapCenter] = useState(HAT_YAI_STATION_COORDS);
@@ -55,14 +56,17 @@ export const LocalPoiDashboard: React.FC<LocalPoiDashboardProps> = ({ searchQuer
     setLoading(true);
     setSyncStatusMsg('');
     try {
-      const { data, columns } = await fetchSheetData<Record<string, any>>(USER_PROVIDED_POI_SHEET_URL);
+      const poiUrl = getDataSource('poi');
+      if (!poiUrl) throw new Error('ไม่พบลิงก์ Google Sheet สำหรับข้อมูลท้องถิ่น');
+      const { data, columns } = await fetchSheetData<Record<string, any>>(poiUrl);
       const { latCol, lngCol, combinedCol } = detectLatLongColumns(columns);
 
       if (data && data.length > 0) {
         const nameCol = columns.find((c) => c.includes('ชื่อ') || c.includes('สถานที่')) || columns[1] || columns[0];
         const categoryCol = columns.find((c) => c.includes('ประเภท') || c.includes('หมวด')) || columns[3] || columns[0];
         const notesCol = columns.find((c) => c.includes('ที่อยู่') || c.includes('ที่ตั้ง') || c.includes('หมายเหตุ') || c.includes('รายละเอียด')) || '';
-        const zoneCol = columns.find((c) => c.includes('เขต') || c.includes('พื้นที่')) || '';
+        const subdistrictCol = columns.find((c) => c.includes('ตำบล') || c.includes('ต.')) || '';
+        const mooCol = columns.find((c) => c.includes('หมู่') || c.includes('ม.')) || '';
 
         const mappedPoi: PoiItem[] = data.map((row, idx) => {
           const { lat, lng } = parseRowLatLng(row, latCol, lngCol, combinedCol);
@@ -83,7 +87,13 @@ export const LocalPoiDashboard: React.FC<LocalPoiDashboardProps> = ({ searchQuer
             cat = 'โรงพยาบาล';
           }
 
-          const zoneVal = row[zoneCol] ? String(row[zoneCol]).trim() : `เขต ${(idx % 4) + 1}`;
+          let areaVal = 'ไม่ระบุพื้นที่';
+          const t = subdistrictCol ? String(row[subdistrictCol] || '').trim() : '';
+          const m = mooCol ? String(row[mooCol] || '').trim() : '';
+          
+          if (t && m) areaVal = `ต.${t} ม.${m}`;
+          else if (t) areaVal = `ต.${t}`;
+          else if (m) areaVal = `หมู่ ${m}`;
 
           return {
             id: `poi-live-${idx + 1}`,
@@ -91,12 +101,12 @@ export const LocalPoiDashboard: React.FC<LocalPoiDashboardProps> = ({ searchQuer
             category: cat,
             name: String(row[nameCol] || `สถานที่ #${idx + 1}`),
             address: String(row[notesCol] || '-'),
-            contactPerson: String(row[zoneCol] ? `เขตพื้นที่ ${row[zoneCol]}` : 'เจ้าหน้าที่ดูแล'),
+            contactPerson: areaVal !== 'ไม่ระบุพื้นที่' ? `พื้นที่ ${areaVal}` : 'เจ้าหน้าที่ดูแล',
             phone: '074-200000',
             lat: lat || 7.0084,
             lng: lng || 100.4767,
             riskLevel: cat === 'ธนาคาร' || cat === 'ร้านสะดวกซื้อ' ? 'สูง' : 'ปกติ',
-            policeSubstation: zoneVal.includes('เขต') ? zoneVal : `สายตรวจเขต ${zoneVal}`,
+            policeSubstation: areaVal,
           };
         });
 
@@ -115,10 +125,7 @@ export const LocalPoiDashboard: React.FC<LocalPoiDashboardProps> = ({ searchQuer
     loadLivePoiSheetData();
   }, []);
 
-  // Center the map on the middle of the actual pins whenever the data changes
-  useEffect(() => {
-    setMapCenter(centerOfMarkers(poiData, HAT_YAI_STATION_COORDS));
-  }, [poiData]);
+
 
   // Filter POI items based on selected category, zone & global search
   const filteredData = useMemo(() => {
@@ -139,6 +146,11 @@ export const LocalPoiDashboard: React.FC<LocalPoiDashboardProps> = ({ searchQuer
       );
     });
   }, [poiData, selectedCategory, selectedZone, searchQuery]);
+
+  // Center the map on the middle of the actual pins whenever the filtered data changes
+  useEffect(() => {
+    setMapCenter(centerOfMarkers(filteredData, HAT_YAI_STATION_COORDS));
+  }, [filteredData]);
 
   // Dynamic Category counts from actual dataset
   const activeCategoryCards = useMemo(() => {
@@ -171,7 +183,7 @@ export const LocalPoiDashboard: React.FC<LocalPoiDashboardProps> = ({ searchQuer
       const z = item.policeSubstation || 'สายตรวจเขต';
       map[z] = (map[z] || 0) + 1;
     });
-    return Object.entries(map).slice(0, 5);
+    return Object.entries(map).sort((a, b) => b[1] - a[1]);
   }, [poiData]);
 
   // Map Markers format
@@ -182,10 +194,10 @@ export const LocalPoiDashboard: React.FC<LocalPoiDashboardProps> = ({ searchQuer
       lng: item.lng,
       title: item.name,
       category: item.category,
-      address: item.address,
-      notes: `สายตรวจ: ${item.policeSubstation || '-'} | ข้อมูล: ${item.contactPerson || '-'}`,
+      address: item.policeSubstation || 'ไม่ระบุพื้นที่',
+      notes: item.address,
       status: `หมวดหมู่: ${item.category}`,
-      color: CATEGORY_COLORS[item.category] || '#3b82f6',
+      color: getCategoryColor(item.category),
       rawData: item,
     }));
   }, [filteredData]);
@@ -204,7 +216,7 @@ export const LocalPoiDashboard: React.FC<LocalPoiDashboardProps> = ({ searchQuer
       render: (row) => (
         <span
           className="px-2.5 py-0.5 rounded text-[11px] font-bold text-white shadow-sm inline-block"
-          style={{ backgroundColor: CATEGORY_COLORS[row.category] || '#3b82f6' }}
+          style={{ backgroundColor: getCategoryColor(row.category) }}
         >
           {row.category}
         </span>
@@ -266,7 +278,7 @@ export const LocalPoiDashboard: React.FC<LocalPoiDashboardProps> = ({ searchQuer
             <p className="text-xs text-slate-300 mt-1 flex items-center gap-1.5">
               <span>🔗 ซิงค์ข้อมูลเรียลไทม์จาก Google Sheet (ชีท ข้อมูลท้องถิ่น):</span>
               <a
-                href={USER_PROVIDED_POI_SHEET_URL}
+                href={getDataSource('poi')}
                 target="_blank"
                 rel="noreferrer"
                 className="text-blue-400 hover:underline font-mono text-[11px] truncate max-w-xs"
@@ -381,6 +393,8 @@ export const LocalPoiDashboard: React.FC<LocalPoiDashboardProps> = ({ searchQuer
         height="500px"
         enableClustering={true}
         selectedMarkerId={selectedMarkerId || undefined}
+        onSelectMarker={(m) => setSelectedMarkerId(m.id)}
+        onClearSelection={() => setSelectedMarkerId(null)}
       />
 
       {/* Table & Chart Split View */}
@@ -391,7 +405,7 @@ export const LocalPoiDashboard: React.FC<LocalPoiDashboardProps> = ({ searchQuer
             data={filteredData}
             columns={columns}
             searchPlaceholder="ค้นหาชื่อสถานที่, ที่อยู่, สายตรวจ..."
-            pageSize={8}
+            pageSize={10}
             onRowClick={(row) => {
               setSelectedMarkerId(row.id);
               setMapCenter({ lat: row.lat, lng: row.lng, zoom: 17 });
@@ -405,7 +419,7 @@ export const LocalPoiDashboard: React.FC<LocalPoiDashboardProps> = ({ searchQuer
             type="doughnut"
             labels={activeCategoryCards.map((c) => c.name)}
             dataValues={activeCategoryCards.map((c) => c.count)}
-            customColors={['#10b981', '#ec4899', '#3b82f6', '#8b5cf6', '#f59e0b', '#ef4444', '#06b6d4', '#64748b']}
+            customColors={activeCategoryCards.map((c) => getCategoryColor(c.name))}
           />
         </div>
       </div>

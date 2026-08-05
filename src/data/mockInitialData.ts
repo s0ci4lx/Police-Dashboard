@@ -20,16 +20,7 @@ export const DEFAULT_PAGES: DynamicPageConfig[] = [
     isCustom: false,
     createdAt: Date.now(),
   },
-  {
-    id: 'cctv-wall',
-    title: 'สารบบกล้อง CCTV',
-    department: 'งานสืบสวน',
-    sheetUrl: '',
-    displayType: 'map-only',
-    iconName: 'LayoutGrid',
-    isCustom: false,
-    createdAt: Date.now(),
-  },
+
   {
     id: 'poi',
     title: 'ข้อมูลท้องถิ่น',

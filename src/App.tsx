@@ -14,7 +14,7 @@ import { SettingsModal } from './components/layout/SettingsModal';
 
 // Dashboard Views
 import { CctvDashboard } from './components/dashboards/CctvDashboard';
-import { CctvWallDashboard } from './components/dashboards/CctvWallDashboard';
+
 import { LocalPoiDashboard } from './components/dashboards/LocalPoiDashboard';
 import { CaseTrackerDashboard } from './components/dashboards/CaseTrackerDashboard';
 import { PersonnelDashboard } from './components/dashboards/PersonnelDashboard';
@@ -210,7 +210,7 @@ export function App() {
 
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 lg:px-8 py-6 space-y-6">
         {activeAllowed && activePageId === 'cctv' && <CctvDashboard searchQuery={searchQuery} />}
-        {activeAllowed && activePageId === 'cctv-wall' && <CctvWallDashboard searchQuery={searchQuery} />}
+
         {activeAllowed && activePageId === 'poi' && <LocalPoiDashboard searchQuery={searchQuery} />}
         {activeAllowed && activePageId === 'cases' && <CaseTrackerDashboard searchQuery={searchQuery} />}
         {activeAllowed && activePageId === 'personnel' && <PersonnelDashboard searchQuery={searchQuery} />}

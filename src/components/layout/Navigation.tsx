@@ -51,12 +51,12 @@ export const Navigation: React.FC<NavigationProps> = ({
 
   return (
     <nav className="glass-panel border-b border-slate-800 bg-slate-900/80 px-4 lg:px-8 py-2">
-      {/* Tabs wrap onto multiple rows so every menu is always visible — no horizontal scrolling */}
-      <div className="max-w-7xl mx-auto flex flex-wrap items-center gap-1.5 py-1">
+      {/* Tabs are horizontally scrollable on mobile to save vertical space, but wrap on desktop */}
+      <div className="max-w-7xl mx-auto flex flex-nowrap md:flex-wrap overflow-x-auto md:overflow-visible items-center gap-1.5 py-1 scrollbar-none" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
         {pages.map((page) => {
           const isActive = page.id === activePageId;
           return (
-            <div key={page.id} className="relative group">
+            <div key={page.id} className="relative group shrink-0">
               <button
                 onClick={() => onSelectPage(page.id)}
                 className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs lg:text-sm font-medium transition-all duration-200 ${
@@ -101,7 +101,7 @@ export const Navigation: React.FC<NavigationProps> = ({
         {canManage && (
           <button
             onClick={onOpenAddModal}
-            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs lg:text-sm font-semibold bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-300 hover:text-emerald-200 border border-emerald-500/40 transition-all shadow-md active:scale-95 whitespace-nowrap"
+            className="flex shrink-0 items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs lg:text-sm font-semibold bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-300 hover:text-emerald-200 border border-emerald-500/40 transition-all shadow-md active:scale-95 whitespace-nowrap"
           >
             <Plus className="w-4 h-4 text-emerald-400" />
             <span>เพิ่มหน้าแดชบอร์ดใหม่ (Google Sheet)</span>
