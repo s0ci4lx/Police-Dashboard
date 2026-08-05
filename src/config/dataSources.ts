@@ -74,6 +74,9 @@ interface OverrideBlob {
 /** หน้าที่ซ่อนไว้เป็นค่าเริ่มต้น (ยังปรับปรุงอยู่) — ในโหมด dev/localhost ยังเห็นได้ */
 export const DEFAULT_HIDDEN_PAGES: string[] = ['cases', 'traffic'];
 
+import { db } from './firebase';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
+
 function readBlob(): OverrideBlob {
   try {
     if (typeof localStorage === 'undefined') return {};
@@ -89,6 +92,29 @@ function writeBlob(blob: OverrideBlob): void {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(blob));
   } catch (e) {
     console.error('ไม่สามารถบันทึกการตั้งค่าได้:', e);
+  }
+}
+
+async function syncConfigToFirebase(): Promise<void> {
+  if (!db) return;
+  try {
+    const blob = readBlob();
+    await setDoc(doc(db, 'system', 'config'), blob);
+  } catch (e) {
+    console.error('Failed to sync config to Firebase:', e);
+  }
+}
+
+export async function loadConfigFromFirebase(): Promise<void> {
+  if (!db) return;
+  try {
+    const docSnap = await getDoc(doc(db, 'system', 'config'));
+    if (docSnap.exists()) {
+      const data = docSnap.data() as OverrideBlob;
+      writeBlob(data);
+    }
+  } catch (e) {
+    console.error('Failed to load config from Firebase:', e);
   }
 }
 
@@ -115,6 +141,7 @@ export function setDataSource(key: DataSourceKey, url: string): void {
   const blob = readBlob();
   blob.sources = { ...(blob.sources || {}), [key]: url.trim() };
   writeBlob(blob);
+  syncConfigToFirebase();
 }
 
 export function resetDataSource(key: DataSourceKey): void {
@@ -122,6 +149,7 @@ export function resetDataSource(key: DataSourceKey): void {
   if (blob.sources) {
     delete blob.sources[key];
     writeBlob(blob);
+    syncConfigToFirebase();
   }
 }
 
@@ -144,6 +172,7 @@ export function setStation(patch: Partial<StationConfig>): void {
     center: { ...(current.center || {}), ...(patch.center || {}) } as StationConfig['center'],
   };
   writeBlob(blob);
+  syncConfigToFirebase();
 }
 
 export function isStationOverridden(): boolean {
@@ -160,6 +189,7 @@ export function setHiddenPages(ids: string[]): void {
   const blob = readBlob();
   blob.hiddenPages = ids;
   writeBlob(blob);
+  syncConfigToFirebase();
 }
 
 /** true เมื่อรันบน localhost/dev (ให้เห็นหน้าที่ซ่อนไว้ตอนปรับปรุง) */
@@ -182,6 +212,7 @@ export function isPageVisible(pageId: string): boolean {
 export function resetAllConfig(): void {
   try {
     localStorage.removeItem(STORAGE_KEY);
+    syncConfigToFirebase();
   } catch {
     /* ignore */
   }
