@@ -232,6 +232,63 @@ export const ReportDashboard: React.FC<ReportDashboardProps> = ({ searchQuery: _
   const tsRows = rows.slice(-30);
   const vmax = Math.max(1, ...tsRows.map(r => (r.relcp || 0) + (r.popup || 0)));
 
+  // Aggregate summary row for currently selected range filter
+  const summaryRow = useMemo<ReportRow>(() => {
+    const sRelcp = sum("relcp");
+    const sPopup = sum("popup");
+    const sCar = sum("car");
+    const sMc = sum("mc");
+    const sPerson = sum("person");
+    const sCcar = sum("ccar");
+    const sCmc = sum("cmc");
+    const sCperson = sum("cperson");
+    const sDna = sum("dna");
+    const sProfile = sum("profile");
+    const sS1mc = sum("s1mc");
+    const sS1car = sum("s1car");
+    const sS2mc = sum("s2mc");
+    const sS2car = sum("s2car");
+    const sRent = sum("rent");
+
+    const arrestMap: Record<string, number> = {};
+    rows.forEach(r => {
+      (r.arrests || []).forEach(a => {
+        if (a.count > 0) {
+          arrestMap[a.name] = (arrestMap[a.name] || 0) + a.count;
+        }
+      });
+    });
+    const summaryArrests: ArrestItem[] = Object.entries(arrestMap)
+      .map(([name, count]) => ({ name, count }))
+      .sort((a, b) => b.count - a.count);
+
+    const rangeStr = rows.length
+      ? `${thDate(rows[0].date)} – ${thDate(rows[rows.length - 1].date)}`
+      : 'ยังไม่มีข้อมูลช่วงที่เลือก';
+
+    return {
+      date: rangeStr,
+      relcp: sRelcp,
+      popup: sPopup,
+      car: sCar,
+      mc: sMc,
+      person: sPerson,
+      ccar: sCcar,
+      cmc: sCmc,
+      cperson: sCperson,
+      dna: sDna,
+      profile: sProfile,
+      s1mc: sS1mc,
+      s1car: sS1car,
+      s2mc: sS2mc,
+      s2car: sS2car,
+      rent: sRent,
+      arrests: summaryArrests,
+      officer: `ผลรวมจาก ${rows.length} รายงานประจำวัน`,
+      role: `ช่วงเวลาที่เลือก: ${rangeStr}`,
+    };
+  }, [rows]);
+
   const exportCSV = () => {
     if (rows.length === 0) {
       showToast("⚠️ ไม่มีข้อมูลส่งออก");
@@ -288,6 +345,13 @@ export const ReportDashboard: React.FC<ReportDashboardProps> = ({ searchQuery: _
         
         <div className="flex flex-wrap items-center gap-2.5">
           <button
+            onClick={() => setSelectedRow(summaryRow)}
+            className="flex items-center gap-1.5 px-3.5 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-bold transition-all shadow-md"
+            title="ดูสรุปรายละเอียดผลรวมทุกฟิลด์ของช่วงเวลาที่เลือก"
+          >
+            <Eye className="w-4 h-4" /> สรุปช่วงเวลา
+          </button>
+          <button
             onClick={exportCSV}
             className="flex items-center gap-1.5 px-3.5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold transition-all shadow-md"
             title="ส่งออกไฟล์ CSV"
@@ -310,7 +374,7 @@ export const ReportDashboard: React.FC<ReportDashboardProps> = ({ searchQuery: _
           <button
             onClick={syncFromSheet}
             disabled={isSyncing}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-bold transition-all shadow-lg shadow-blue-900/20"
+            className="flex items-center gap-2 px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-xs font-bold border border-slate-700 transition-all"
           >
             <RefreshCw className={`w-4 h-4 ${isSyncing ? 'animate-spin' : ''}`} /> ซิงก์ล่าสุด
           </button>
@@ -488,7 +552,16 @@ export const ReportDashboard: React.FC<ReportDashboardProps> = ({ searchQuery: _
 
         {/* Data Table */}
         <div className={`glass-panel bg-slate-900/60 p-5 rounded-2xl border border-slate-700/60 ${aitems.length === 0 ? 'lg:col-span-2' : ''}`}>
-          <div className="text-sm font-bold text-white mb-4">ตารางข้อมูลรายวัน</div>
+          <div className="flex items-center justify-between mb-4">
+            <div className="text-sm font-bold text-white">ตารางข้อมูลรายวัน</div>
+            <button
+              onClick={() => setSelectedRow(summaryRow)}
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-600/20 hover:bg-blue-600/30 text-blue-400 hover:text-white rounded-lg text-xs font-bold border border-blue-500/30 transition-all"
+              title="ดูสรุปรายละเอียดรวมตามฟิลด์ทั้งหมดของช่วงเวลาที่เลือก"
+            >
+              <Eye className="w-3.5 h-3.5" /> สรุปภาพรวมช่วงเวลา
+            </button>
+          </div>
           <div className="overflow-x-auto">
             <table className="w-full text-xs text-right whitespace-nowrap">
               <thead>
@@ -552,7 +625,11 @@ export const ReportDashboard: React.FC<ReportDashboardProps> = ({ searchQuery: _
             <div className="flex items-center justify-between p-5 border-b border-slate-800">
               <h3 className="text-lg font-bold text-white flex items-center gap-2">
                 <BarChart2 className="w-5 h-5 text-blue-400" />
-                รายละเอียดวันที่ {thDate(selectedRow.date)}
+                {selectedRow.date.startsWith('20') ? (
+                  `รายละเอียดวันที่ ${thDate(selectedRow.date)}`
+                ) : (
+                  `รายละเอียดผลรวมช่วงเวลา (${selectedRow.date})`
+                )}
               </h3>
               <button 
                 onClick={() => setSelectedRow(null)}
