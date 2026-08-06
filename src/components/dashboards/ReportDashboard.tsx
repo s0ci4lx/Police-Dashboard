@@ -408,7 +408,7 @@ export const ReportDashboard: React.FC<ReportDashboardProps> = ({ searchQuery: _
       )}
 
       {/* Filter Presets */}
-      <div className="glass-panel p-4 rounded-2xl border border-slate-200 dark:border-slate-800/60 flex flex-col md:flex-row md:items-center gap-4 overflow-x-auto shadow-sm">
+      <div className="glass-panel bg-white/70 dark:bg-slate-900/40 p-4 rounded-2xl border border-slate-200 dark:border-slate-800/60 flex flex-col md:flex-row md:items-center gap-4 overflow-x-auto shadow-sm">
         <div className="flex items-center gap-2 shrink-0">
           <ListFilter className="w-4 h-4 text-slate-500 dark:text-slate-400" />
           <span className="text-sm font-medium text-slate-700 dark:text-slate-300">ช่วงเวลา:</span>
@@ -427,7 +427,7 @@ export const ReportDashboard: React.FC<ReportDashboardProps> = ({ searchQuery: _
               className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all whitespace-nowrap ${
                 preset === p.id 
                 ? 'bg-blue-600 text-white border-blue-500 shadow-md shadow-blue-900/20' 
-                : 'bg-slate-100 dark:bg-transparent border border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:border-slate-400 dark:hover:border-slate-500'
+                : 'bg-white dark:bg-transparent border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:border-slate-400 dark:hover:border-slate-500'
               } border`}
             >
               {p.label}
@@ -440,14 +440,14 @@ export const ReportDashboard: React.FC<ReportDashboardProps> = ({ searchQuery: _
             type="date" 
             value={fromDate}
             onChange={e => { setFromDate(e.target.value); setPreset('all' as any); }}
-            className="bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg px-2.5 py-1 text-slate-800 dark:text-slate-200 text-xs focus:outline-none focus:border-blue-500"
+            className="bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg px-2.5 py-1 text-slate-800 dark:text-slate-200 text-xs focus:outline-none focus:border-blue-500 shadow-inner"
           />
           <span className="text-slate-400 dark:text-slate-500">-</span>
           <input 
             type="date" 
             value={toDate}
             onChange={e => { setToDate(e.target.value); setPreset('all' as any); }}
-            className="bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg px-2.5 py-1 text-slate-800 dark:text-slate-200 text-xs focus:outline-none focus:border-blue-500"
+            className="bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg px-2.5 py-1 text-slate-800 dark:text-slate-200 text-xs focus:outline-none focus:border-blue-500 shadow-inner"
           />
         </div>
       </div>
@@ -779,7 +779,7 @@ export const ReportDashboard: React.FC<ReportDashboardProps> = ({ searchQuery: _
 const KpiCard = ({ icon, val, label, color }: { icon: string, val: number, label: string, color: string }) => (
   <div className="glass-panel border border-slate-200 dark:border-slate-700/60 rounded-2xl p-4 transition-all hover:border-blue-500/50 shadow-sm">
     <div className="flex items-center gap-3 mb-2">
-      <div className="w-8 h-8 rounded-xl bg-slate-100 dark:bg-slate-900/80 flex items-center justify-center text-lg shadow-inner">{icon}</div>
+      <div className="w-8 h-8 rounded-xl bg-slate-900 text-white flex items-center justify-center text-lg shadow-md">{icon}</div>
       <div className="text-xs text-slate-600 dark:text-slate-400 flex-1 leading-tight font-medium">{label}</div>
     </div>
     <div className={`text-2xl font-bold tracking-tight font-mono ${color}`}>
