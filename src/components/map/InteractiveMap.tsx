@@ -74,10 +74,12 @@ function MapController({
   center,
   selectedMarkerId,
   markersRefs,
+  onSelectionSettled,
 }: {
   center: { lat: number; lng: number; zoom?: number };
   selectedMarkerId?: string;
   markersRefs: React.RefObject<Record<string, L.Marker>>;
+  onSelectionSettled?: () => void;
 }) {
   const map = useMap();
   const prevCenterRef = useRef<{ lat: number; lng: number; zoom?: number } | null>(null);
@@ -112,12 +114,20 @@ function MapController({
         targetLng = shifted.lng;
       }
 
+      // Opening the pin's popup in the same commit as this setView leaves it
+      // stuck at opacity 0 (its fade-in races the map move) — the popup only
+      // appeared on a second click. Signal when the move settles so the popup
+      // can be (re)mounted onto the already-settled map, where it opens cleanly.
+      if (selectedMarkerId && onSelectionSettled) {
+        map.once('moveend', onSelectionSettled);
+      }
+
       map.setView([targetLat, targetLng], targetZoom, {
         animate: true,
         duration: 0.8,
       });
     }
-  }, [center, map, selectedMarkerId, markersRefs]);
+  }, [center, map, selectedMarkerId, markersRefs, onSelectionSettled]);
 
   return null;
 }
@@ -277,10 +287,20 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
 }) => {
   const [mapStyle, setMapStyle] = React.useState<'streets' | 'satellite' | 'dark'>('streets');
   const [isFullScreen, setIsFullScreen] = React.useState<boolean>(false);
+  // Bumped when a selection-driven map move settles, to remount the popup onto
+  // the already-settled map (see MapController) so it opens on the first click.
+  const [popupNonce, setPopupNonce] = React.useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
   const lastCenterChangeTime = useRef<number>(0);
   const lastSelectChangeTime = useRef<number>(0);
   const markersRefs = useRef<Record<string, L.Marker>>({});
+
+  const settlePopup = useCallback(() => {
+    // Guard the imminent popupclose (from the popup remount) against clearing the
+    // selection, then remount the popup so it opens on the settled map.
+    lastSelectChangeTime.current = Date.now();
+    setPopupNonce((n) => n + 1);
+  }, []);
 
   const toggleFullScreen = useCallback(() => {
     if (!isFullScreen) {
@@ -512,6 +532,7 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
             center={center}
             selectedMarkerId={selectedMarkerId}
             markersRefs={markersRefs}
+            onSelectionSettled={settlePopup}
           />
           <MapEventsCollector
             lastCenterChangeTime={lastCenterChangeTime}
@@ -534,7 +555,7 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
             const isDark = mapStyle === 'dark'; 
             return (
               <Popup
-                key={`popup-${selectedMarkerData.id}-${mapStyle}`}
+                key={`popup-${selectedMarkerData.id}-${mapStyle}-${popupNonce}`}
                 position={[selectedMarkerData.lat, selectedMarkerData.lng]}
                 autoPan={false}
                 className={`modern-glass-popup ${isDark ? 'is-dark' : 'is-light'}`}
