@@ -576,7 +576,7 @@ export const CctvDashboard: React.FC<CctvDashboardProps> = ({ searchQuery }) => 
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
             <KpiCard
-              title="สังกัดทั้งหมด"
+              title="กล้องทั้งหมด"
               value={agencyCounts.total}
               subtext="ครอบคลุมทุกพื้นที่"
               icon={Building}
