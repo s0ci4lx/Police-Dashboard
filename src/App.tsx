@@ -121,7 +121,7 @@ export function App() {
           {firebaseEnabled && (
             <button
               onClick={signInWithGoogle}
-              className="w-full inline-flex items-center justify-center gap-2.5 px-4 py-2.5 bg-white text-slate-800 rounded-xl text-sm font-bold shadow hover:bg-slate-100 transition-all"
+              className="w-full inline-flex items-center justify-center gap-2.5 px-4 py-2.5 bg-white text-[#1f2937] rounded-xl text-sm font-bold shadow hover:bg-[#f1f5f9] transition-all"
             >
               <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
                 <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.76h3.56c2.08-1.92 3.28-4.74 3.28-8.09Z" />

@@ -4,6 +4,15 @@
 @import "leaflet.markercluster/dist/MarkerCluster.css";
 @import "leaflet.markercluster/dist/MarkerCluster.Default.css";
 
+/* ---------------------------------------------------------------------------
+   Dark-mode variant wired to the APP theme toggle (not the OS setting).
+   The app defaults to dark (no attribute) and sets data-theme="light" when the
+   user picks the light theme. Without this, Tailwind v4's `dark:` variant would
+   follow prefers-color-scheme and fight the manual toggle — the root cause of
+   the "colors all wrong" bug in components that use dark:* utilities.
+   --------------------------------------------------------------------------- */
+@custom-variant dark (&:where(:root:not([data-theme="light"]) *));
+
 :root {
   font-family: 'Prompt', 'Sarabun', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   color-scheme: dark light;
@@ -265,18 +274,20 @@ body {
 :root[data-theme='light'] {
   color-scheme: light;
 
-  /* Surfaces & neutral text (inverted slate) */
+  /* Light surfaces */
   --color-slate-950: #eef2f7;
   --color-slate-900: #ffffff;
-  --color-slate-800: #e6ebf2;
-  --color-slate-700: #cdd6e2;
-  --color-slate-600: #9aa7b8;
-  --color-slate-500: #64748b;
-  --color-slate-400: #5a6b7f;
-  --color-slate-300: #33415a;
-  --color-slate-200: #1e293b;
-  --color-slate-100: #f1f5f9;
-  --color-slate-50: #f8fafc;
+  --color-slate-800: #f1f5f9;
+  --color-slate-700: #cbd5e1;
+
+  /* Neutral text scale for light mode (MUST BE DARK FOR CONTRAST) */
+  --color-slate-600: #475569;
+  --color-slate-500: #334155;
+  --color-slate-400: #1e293b;
+  --color-slate-300: #0f172a;
+  --color-slate-200: #0f172a;
+  --color-slate-100: #020617;
+  --color-slate-50: #000000;
   --color-white: #ffffff;
 
   /* Accent text/icons (200–400) darkened for light backgrounds */
@@ -326,8 +337,33 @@ body {
 }
 
 :root[data-theme='light'] .glass-panel {
-  background: rgba(255, 255, 255, 0.85);
-  border-color: rgba(15, 23, 42, 0.1);
+  background: rgba(255, 255, 255, 0.95);
+  border-color: rgba(15, 23, 42, 0.12);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+}
+
+/* Ensure text on light cards is always dark & readable */
+:root[data-theme='light'] h1,
+:root[data-theme='light'] h2,
+:root[data-theme='light'] h3,
+:root[data-theme='light'] h4 {
+  color: #0f172a;
+}
+
+:root[data-theme='light'] .glass-panel .text-white {
+  color: #0f172a;
+}
+
+:root[data-theme='light'] .glass-panel .bg-blue-600 .text-white,
+:root[data-theme='light'] .glass-panel .bg-emerald-600 .text-white,
+:root[data-theme='light'] .glass-panel .bg-purple-600 .text-white,
+:root[data-theme='light'] button.bg-blue-600,
+:root[data-theme='light'] button.bg-emerald-600,
+:root[data-theme='light'] button.bg-purple-600,
+:root[data-theme='light'] button.bg-blue-600 *,
+:root[data-theme='light'] button.bg-emerald-600 *,
+:root[data-theme='light'] button.bg-purple-600 * {
+  color: #ffffff !important;
 }
 
 :root[data-theme='light'] .glass-panel-hover:hover {
@@ -343,4 +379,138 @@ body {
 }
 :root[data-theme='light'] ::-webkit-scrollbar-thumb:hover {
   background: #9aa7b8;
+}
+
+/* =========================================================================
+   LIGHT THEME — text-white / hover:text-white
+   In the dark-first design, `text-white` and `hover:text-white` mean "primary
+   text on a dark surface". In light mode those surfaces become light, so the
+   text MUST turn dark or it disappears (this is the "white text is unreadable"
+   / "hover makes text vanish" bug). We flip them dark by default, then re-assert
+   white ONLY where the background is a saturated accent colour that stays dark.
+   ========================================================================= */
+:root[data-theme='light'] .text-white,
+:root[data-theme='light'] .hover\:text-white:hover {
+  color: #1e293b;
+}
+
+/* Saturated accent backgrounds keep their dark colour in light mode, so white
+   text on them (solid buttons, active toggles, badges, gradients) stays white.
+   IMPORTANT: match the real `bg-*` utility only — a class token that STARTS with
+   "bg-…" (either at the start of the attribute or right after a space). Plain
+   [class*="bg-blue-500"] would also match variant-prefixed tokens like
+   `selection:bg-blue-500`, `hover:bg-blue-600`, `dark:bg-…`; the App root carries
+   `selection:bg-blue-500`, so that looser form wrongly forced EVERY text-white on
+   the page back to white. The start/space anchors exclude those variants. */
+:root[data-theme='light'] :is(
+  [class^="bg-blue-500"],[class*=" bg-blue-500"],[class^="bg-blue-600"],[class*=" bg-blue-600"],[class^="bg-blue-700"],[class*=" bg-blue-700"],
+  [class^="bg-indigo-500"],[class*=" bg-indigo-500"],[class^="bg-indigo-600"],[class*=" bg-indigo-600"],[class^="bg-indigo-700"],[class*=" bg-indigo-700"],
+  [class^="bg-sky-500"],[class*=" bg-sky-500"],[class^="bg-sky-600"],[class*=" bg-sky-600"],
+  [class^="bg-cyan-500"],[class*=" bg-cyan-500"],[class^="bg-cyan-600"],[class*=" bg-cyan-600"],
+  [class^="bg-emerald-500"],[class*=" bg-emerald-500"],[class^="bg-emerald-600"],[class*=" bg-emerald-600"],[class^="bg-emerald-700"],[class*=" bg-emerald-700"],
+  [class^="bg-teal-600"],[class*=" bg-teal-600"],[class^="bg-green-600"],[class*=" bg-green-600"],
+  [class^="bg-amber-500"],[class*=" bg-amber-500"],[class^="bg-amber-600"],[class*=" bg-amber-600"],
+  [class^="bg-orange-500"],[class*=" bg-orange-500"],[class^="bg-orange-600"],[class*=" bg-orange-600"],
+  [class^="bg-red-500"],[class*=" bg-red-500"],[class^="bg-red-600"],[class*=" bg-red-600"],[class^="bg-red-700"],[class*=" bg-red-700"],
+  [class^="bg-rose-500"],[class*=" bg-rose-500"],[class^="bg-rose-600"],[class*=" bg-rose-600"],[class^="bg-rose-700"],[class*=" bg-rose-700"],
+  [class^="bg-pink-600"],[class*=" bg-pink-600"],[class^="bg-fuchsia-600"],[class*=" bg-fuchsia-600"],
+  [class^="bg-purple-500"],[class*=" bg-purple-500"],[class^="bg-purple-600"],[class*=" bg-purple-600"],[class^="bg-purple-700"],[class*=" bg-purple-700"],
+  [class^="bg-violet-500"],[class*=" bg-violet-500"],[class^="bg-violet-600"],[class*=" bg-violet-600"],
+  [class^="bg-gradient"],[class*=" bg-gradient"]
+) :is(.text-white, .hover\:text-white:hover),
+:root[data-theme='light'] :is(
+  [class^="bg-blue-500"],[class*=" bg-blue-500"],[class^="bg-blue-600"],[class*=" bg-blue-600"],[class^="bg-blue-700"],[class*=" bg-blue-700"],
+  [class^="bg-indigo-500"],[class*=" bg-indigo-500"],[class^="bg-indigo-600"],[class*=" bg-indigo-600"],[class^="bg-indigo-700"],[class*=" bg-indigo-700"],
+  [class^="bg-sky-500"],[class*=" bg-sky-500"],[class^="bg-sky-600"],[class*=" bg-sky-600"],
+  [class^="bg-cyan-500"],[class*=" bg-cyan-500"],[class^="bg-cyan-600"],[class*=" bg-cyan-600"],
+  [class^="bg-emerald-500"],[class*=" bg-emerald-500"],[class^="bg-emerald-600"],[class*=" bg-emerald-600"],[class^="bg-emerald-700"],[class*=" bg-emerald-700"],
+  [class^="bg-teal-600"],[class*=" bg-teal-600"],[class^="bg-green-600"],[class*=" bg-green-600"],
+  [class^="bg-amber-500"],[class*=" bg-amber-500"],[class^="bg-amber-600"],[class*=" bg-amber-600"],
+  [class^="bg-orange-500"],[class*=" bg-orange-500"],[class^="bg-orange-600"],[class*=" bg-orange-600"],
+  [class^="bg-red-500"],[class*=" bg-red-500"],[class^="bg-red-600"],[class*=" bg-red-600"],[class^="bg-red-700"],[class*=" bg-red-700"],
+  [class^="bg-rose-500"],[class*=" bg-rose-500"],[class^="bg-rose-600"],[class*=" bg-rose-600"],[class^="bg-rose-700"],[class*=" bg-rose-700"],
+  [class^="bg-pink-600"],[class*=" bg-pink-600"],[class^="bg-fuchsia-600"],[class*=" bg-fuchsia-600"],
+  [class^="bg-purple-500"],[class*=" bg-purple-500"],[class^="bg-purple-600"],[class*=" bg-purple-600"],[class^="bg-purple-700"],[class*=" bg-purple-700"],
+  [class^="bg-violet-500"],[class*=" bg-violet-500"],[class^="bg-violet-600"],[class*=" bg-violet-600"],
+  [class^="bg-gradient"],[class*=" bg-gradient"]
+).text-white {
+  color: #ffffff;
+}
+
+/* Selection outline on stat/KPI cards. The light .glass-panel border override
+   (a faint neutral) has higher specificity than the `border-{accent}-500`
+   utility, which hid the "selected" ring. Re-assert the accent border so the
+   active card is clearly outlined in light mode too. */
+:root[data-theme='light'] .glass-panel.border-blue-500 { border-color: #3b82f6; }
+:root[data-theme='light'] .glass-panel.border-indigo-500 { border-color: #6366f1; }
+:root[data-theme='light'] .glass-panel.border-emerald-500 { border-color: #10b981; }
+:root[data-theme='light'] .glass-panel.border-amber-500 { border-color: #f59e0b; }
+:root[data-theme='light'] .glass-panel.border-rose-500 { border-color: #f43f5e; }
+:root[data-theme='light'] .glass-panel.border-purple-500 { border-color: #a855f7; }
+:root[data-theme='light'] .glass-panel.border-slate-500 { border-color: #64748b; }
+
+/* =========================================================================
+   theme-native — opt a subtree OUT of the light-theme token inversion.
+   Components authored the modern way (light base classes + `dark:` variants,
+   e.g. ReportDashboard) theme themselves via the toggle-wired `dark:` variant
+   and must NOT also be inverted, or their light-mode surfaces turn black and
+   text turns light. Reset the inverted tokens back to Tailwind defaults here so
+   standard utility semantics apply; the `dark:` variant handles dark mode.
+   ========================================================================= */
+:root[data-theme='light'] .theme-native {
+  --color-white: #fff;
+  --color-slate-50: oklch(98.4% 0.003 247.858);
+  --color-slate-100: oklch(96.8% 0.007 247.896);
+  --color-slate-200: oklch(92.9% 0.013 255.508);
+  --color-slate-300: oklch(86.9% 0.022 252.894);
+  --color-slate-400: oklch(70.4% 0.04 256.788);
+  --color-slate-500: oklch(55.4% 0.046 257.417);
+  --color-slate-600: oklch(44.6% 0.043 257.281);
+  --color-slate-700: oklch(37.2% 0.044 257.287);
+  --color-slate-800: oklch(27.9% 0.041 260.031);
+  --color-slate-900: oklch(20.8% 0.042 265.755);
+  --color-slate-950: oklch(12.9% 0.042 264.695);
+  --color-blue-200: oklch(88.2% 0.059 254.128);
+  --color-blue-300: oklch(80.9% 0.105 251.813);
+  --color-blue-400: oklch(70.7% 0.165 254.624);
+  --color-blue-900: oklch(37.9% 0.146 265.522);
+  --color-blue-950: oklch(28.2% 0.091 267.935);
+  --color-sky-300: oklch(82.8% 0.111 230.318);
+  --color-sky-400: oklch(74.6% 0.16 232.661);
+  --color-cyan-300: oklch(86.5% 0.127 207.078);
+  --color-cyan-400: oklch(78.9% 0.154 211.53);
+  --color-cyan-950: oklch(30.2% 0.056 229.695);
+  --color-indigo-200: oklch(87% 0.065 274.039);
+  --color-indigo-300: oklch(78.5% 0.115 274.713);
+  --color-indigo-400: oklch(67.3% 0.182 276.935);
+  --color-indigo-900: oklch(35.9% 0.144 278.697);
+  --color-indigo-950: oklch(25.7% 0.09 281.288);
+  --color-violet-300: oklch(81.1% 0.111 293.571);
+  --color-purple-200: oklch(90.2% 0.063 306.703);
+  --color-purple-300: oklch(82.7% 0.119 306.383);
+  --color-purple-400: oklch(71.4% 0.203 305.504);
+  --color-emerald-200: oklch(90.5% 0.093 164.15);
+  --color-emerald-300: oklch(84.5% 0.143 164.978);
+  --color-emerald-400: oklch(76.5% 0.177 163.223);
+  --color-emerald-950: oklch(26.2% 0.051 172.552);
+  --color-amber-200: oklch(92.4% 0.12 95.746);
+  --color-amber-300: oklch(87.9% 0.169 91.605);
+  --color-amber-400: oklch(82.8% 0.189 84.429);
+  --color-amber-950: oklch(27.9% 0.077 45.635);
+  --color-rose-200: oklch(89.2% 0.058 10.001);
+  --color-rose-300: oklch(81% 0.117 11.638);
+  --color-rose-400: oklch(71.2% 0.194 13.428);
+  --color-rose-950: oklch(27.1% 0.105 12.094);
+  --color-red-300: oklch(80.8% 0.114 19.571);
+  --color-red-400: oklch(70.4% 0.191 22.216);
+  --color-red-900: oklch(39.6% 0.141 25.723);
+  --color-red-950: oklch(25.8% 0.092 26.042);
+}
+
+/* Inside a theme-native subtree, `text-white` keeps its literal meaning (the
+   component only uses it on accent/dark surfaces, never on its light cards), so
+   opt back out of the global light-mode darkening above. The white .glass-panel
+   repaint is intentionally kept — it gives the component its light cards. */
+:root[data-theme='light'] .theme-native .text-white {
+  color: #ffffff;
 }

@@ -69,6 +69,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     let unsub: (() => void) | undefined;
 
     (async () => {
+      // 0. Local dev bypass — skip real auth on localhost so the UI can be
+      //    developed/previewed without a Google login. Never runs in production
+      //    (guarded by isLocalDev()); opt out with VITE_DISABLE_DEV_LOGIN=1.
+      if (isLocalDev() && (import.meta as any).env?.VITE_DISABLE_DEV_LOGIN !== '1') {
+        const devEmail =
+          (import.meta as any).env?.VITE_DEV_EMAIL ||
+          localStorage.getItem(MANUAL_EMAIL_KEY) ||
+          'tummarat@gmail.com';
+        await apply(devEmail, 'manual');
+        setLoading(false);
+        return;
+      }
+
       // 1. Cloudflare Access
       const cfEmail = await fetchCloudflareEmail();
       if (cancelled) return;

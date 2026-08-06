@@ -327,20 +327,22 @@ export const ReportDashboard: React.FC<ReportDashboardProps> = ({ searchQuery: _
   };
 
   return (
-    <div className="space-y-6">
+    // theme-native: this component themes via `dark:` variants (wired to the app
+    // toggle), so it opts out of the app-wide light-theme token inversion.
+    <div className="theme-native space-y-6">
       {/* Toast */}
       <div className={`fixed bottom-6 left-1/2 -translate-x-1/2 bg-emerald-600 text-white px-5 py-2.5 rounded-xl font-bold shadow-xl transition-all duration-300 z-50 flex items-center gap-2 ${toastMsg ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8 pointer-events-none'}`}>
         <CheckCircle2 className="w-5 h-5" />
         {toastMsg}
       </div>
 
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 glass-panel bg-white dark:bg-slate-900/60 p-5 rounded-2xl border border-slate-200 dark:border-slate-700/60 shadow-sm">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 glass-panel bg-white/90 dark:bg-slate-900/60 p-5 rounded-2xl border border-slate-200 dark:border-slate-700/60 shadow-sm">
         <div>
-          <div className="text-xs font-bold text-blue-600 dark:text-blue-400 mb-1 tracking-wider uppercase">สภ.สะท้อน · งานสื่อสาร</div>
-          <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-1 flex items-center gap-2">
-            <BarChart2 className="w-5 h-5 text-blue-600 dark:text-blue-400" /> รายงานผลการปฏิบัติ จุดตรวจ/จุดสกัด
+          <div className="text-xs font-bold text-blue-400 mb-1 tracking-wider uppercase">สภ.สะท้อน · งานสื่อสาร</div>
+          <h2 className="text-xl font-bold text-slate-800 dark:text-white mb-1 flex items-center gap-2">
+            <BarChart2 className="w-5 h-5 text-blue-400" /> รายงานผลการปฏิบัติ จุดตรวจ/จุดสกัด
           </h2>
-          <div className="text-xs text-slate-600 dark:text-slate-400 font-medium">{rangeLabel}</div>
+          <div className="text-xs text-slate-400 font-medium">{rangeLabel}</div>
         </div>
         
         <div className="flex flex-wrap items-center gap-2.5">
@@ -367,14 +369,14 @@ export const ReportDashboard: React.FC<ReportDashboardProps> = ({ searchQuery: _
           </button>
           <button
             onClick={() => setShowSettings(!showSettings)}
-            className="flex items-center gap-2 px-3.5 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 rounded-xl text-xs font-medium transition-all"
+            className="flex items-center gap-2 px-3.5 py-2 bg-slate-200 hover:bg-slate-300 dark:bg-slate-800 dark:hover:bg-slate-700 border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-200 rounded-xl text-xs font-medium transition-all"
           >
             <Settings2 className="w-4 h-4" /> ตั้งค่าข้อมูล
           </button>
           <button
             onClick={syncFromSheet}
             disabled={isSyncing}
-            className="flex items-center gap-2 px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-xs font-bold border border-slate-700 transition-all"
+            className="flex items-center gap-2 px-4 py-2 bg-slate-200 hover:bg-slate-300 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-white rounded-xl text-xs font-bold border border-slate-300 dark:border-slate-700 transition-all"
           >
             <RefreshCw className={`w-4 h-4 ${isSyncing ? 'animate-spin' : ''}`} /> ซิงก์ล่าสุด
           </button>
@@ -382,8 +384,8 @@ export const ReportDashboard: React.FC<ReportDashboardProps> = ({ searchQuery: _
       </div>
 
       {showSettings && (
-        <div className="glass-panel bg-slate-800/80 p-5 rounded-2xl border border-slate-700/60 animate-in fade-in slide-in-from-top-4">
-          <h3 className="text-sm font-bold text-white mb-2 flex items-center gap-2">
+        <div className="glass-panel bg-slate-100 dark:bg-slate-800/80 p-5 rounded-2xl border border-slate-200 dark:border-slate-700/60 animate-in fade-in slide-in-from-top-4">
+          <h3 className="text-sm font-bold text-slate-800 dark:text-white mb-2 flex items-center gap-2">
             <LinkIcon className="w-4 h-4 text-blue-400" /> เชื่อมต่อแหล่งข้อมูล (Google Sheet)
           </h3>
           <p className="text-xs text-slate-400 mb-3">
@@ -395,23 +397,23 @@ export const ReportDashboard: React.FC<ReportDashboardProps> = ({ searchQuery: _
               value={apiUrl}
               onChange={(e) => saveUrl(e.target.value)}
               placeholder="https://docs.google.com/spreadsheets/d/.../edit"
-              className="flex-1 bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-blue-500"
+              className="flex-1 bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-800 dark:text-white focus:outline-none focus:border-blue-500"
             />
             <button onClick={syncFromSheet} className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-bold hover:bg-blue-500 shrink-0">
               บันทึกและซิงก์
             </button>
           </div>
-          <div className="mt-2 text-[11px] text-amber-400/80 flex items-center gap-1">
+          <div className="mt-2 text-[11px] text-amber-400 flex items-center gap-1">
             <AlertCircle className="w-3.5 h-3.5" /> หากไม่มีข้อมูลจะแสดงข้อมูลจำลองเพื่อการทดสอบ
           </div>
         </div>
       )}
 
       {/* Filter Presets */}
-      <div className="glass-panel bg-white/90 p-4 rounded-2xl border border-slate-200 flex flex-col md:flex-row md:items-center gap-4 overflow-x-auto shadow-sm">
+      <div className="glass-panel bg-white/90 dark:bg-slate-900/60 p-4 rounded-2xl border border-slate-200 dark:border-slate-700/60 flex flex-col md:flex-row md:items-center gap-4 overflow-x-auto shadow-sm">
         <div className="flex items-center gap-2 shrink-0">
-          <ListFilter className="w-4 h-4 text-slate-500" />
-          <span className="text-sm font-semibold text-slate-700">ช่วงเวลา:</span>
+          <ListFilter className="w-4 h-4 text-slate-400" />
+          <span className="text-sm font-semibold text-slate-700 dark:text-slate-200">ช่วงเวลา:</span>
         </div>
         <div className="flex gap-2 shrink-0">
           {[
@@ -425,34 +427,34 @@ export const ReportDashboard: React.FC<ReportDashboardProps> = ({ searchQuery: _
               key={p.id}
               onClick={() => applyPreset(p.id as any)}
               style={{
-                backgroundColor: preset === p.id ? '#2563eb' : '#ffffff',
-                color: preset === p.id ? '#ffffff' : '#1e293b',
-                borderColor: preset === p.id ? '#2563eb' : '#cbd5e1',
+                backgroundColor: preset === p.id ? '#2563eb' : undefined,
+                color: preset === p.id ? '#ffffff' : undefined,
+                borderColor: preset === p.id ? '#2563eb' : undefined,
               }}
               className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all whitespace-nowrap border shadow-sm ${
-                preset === p.id ? 'shadow-blue-500/20' : 'hover:bg-slate-100'
+                preset === p.id 
+                  ? 'shadow-blue-500/20' 
+                  : 'bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 border-slate-300 dark:border-slate-700'
               }`}
             >
               {p.label}
             </button>
           ))}
         </div>
-        <div className="w-px h-6 bg-slate-300 hidden md:block shrink-0"></div>
+        <div className="w-px h-6 bg-slate-300 dark:bg-slate-700 hidden md:block shrink-0"></div>
         <div className="flex items-center gap-2 text-sm shrink-0">
           <input 
             type="date" 
             value={fromDate}
             onChange={e => { setFromDate(e.target.value); setPreset('all' as any); }}
-            style={{ backgroundColor: '#ffffff', color: '#1e293b', borderColor: '#cbd5e1' }}
-            className="border rounded-lg px-2.5 py-1 text-xs focus:outline-none focus:border-blue-500 shadow-sm font-medium"
+            className="border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 rounded-lg px-2.5 py-1 text-xs focus:outline-none focus:border-blue-500 shadow-sm font-medium"
           />
           <span className="text-slate-400 font-bold">-</span>
           <input 
             type="date" 
             value={toDate}
             onChange={e => { setToDate(e.target.value); setPreset('all' as any); }}
-            style={{ backgroundColor: '#ffffff', color: '#1e293b', borderColor: '#cbd5e1' }}
-            className="border rounded-lg px-2.5 py-1 text-xs focus:outline-none focus:border-blue-500 shadow-sm font-medium"
+            className="border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 rounded-lg px-2.5 py-1 text-xs focus:outline-none focus:border-blue-500 shadow-sm font-medium"
           />
         </div>
       </div>
@@ -472,14 +474,14 @@ export const ReportDashboard: React.FC<ReportDashboardProps> = ({ searchQuery: _
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Time Series Chart */}
-        <div className="glass-panel bg-slate-900/60 p-5 rounded-2xl border border-slate-700/60 flex flex-col">
-          <div className="text-sm font-bold text-white mb-1">แนวโน้มการตั้งจุดตรวจ/จุดสกัด</div>
+        <div className="glass-panel bg-white/90 dark:bg-slate-900/60 p-5 rounded-2xl border border-slate-200 dark:border-slate-700/60 flex flex-col shadow-sm">
+          <div className="text-sm font-bold text-slate-800 dark:text-white mb-1">แนวโน้มการตั้งจุดตรวจ/จุดสกัด</div>
           <div className="text-[11px] text-slate-400 mb-6">ครั้ง/วัน (สูงสุด 30 วันล่าสุด)</div>
           
-          <div className="relative flex-1 min-h-[220px] flex items-end gap-1 border-b border-slate-700 pb-6 mt-4">
-            <div className="absolute top-0 right-0 text-[10px] text-slate-500">สูงสุด {vmax} ครั้ง</div>
+          <div className="relative flex-1 min-h-[220px] flex items-end gap-1 border-b border-slate-200 dark:border-slate-700 pb-6 mt-4">
+            <div className="absolute top-0 right-0 text-[10px] text-slate-400">สูงสุด {vmax} ครั้ง</div>
             {/* Background grid lines */}
-            <div className="absolute inset-0 bottom-6 border-b border-slate-700/50" style={{ background: 'linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px)', backgroundSize: '100% 33.34%' }}></div>
+            <div className="absolute inset-0 bottom-6 border-b border-slate-200/50 dark:border-slate-700/50" style={{ background: 'linear-gradient(rgba(100, 116, 139, 0.1) 1px, transparent 1px)', backgroundSize: '100% 33.34%' }}></div>
             
             {tsRows.length > 0 ? tsRows.map((r, i) => {
               const v = (r.relcp || 0) + (r.popup || 0);
@@ -493,11 +495,11 @@ export const ReportDashboard: React.FC<ReportDashboardProps> = ({ searchQuery: _
                     style={{ height: `${Math.max(1, pct)}%` }}
                   ></div>
                   {/* Tooltip */}
-                  <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 bg-slate-800 text-white text-[10px] py-1 px-2 rounded opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-20 shadow-lg border border-slate-700">
+                  <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 bg-slate-900 text-white text-[10px] py-1 px-2 rounded opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-20 shadow-lg border border-slate-700">
                     {thDate(r.date)}<br/>{v} ครั้ง
                   </div>
                   {showLabel && (
-                    <div className="absolute -bottom-5 left-1/2 -translate-x-1/2 text-[9px] text-slate-500 whitespace-nowrap">
+                    <div className="absolute -bottom-5 left-1/2 -translate-x-1/2 text-[9px] text-slate-400 whitespace-nowrap">
                       {d.getDate()}/{d.getMonth()+1}
                     </div>
                   )}
@@ -510,21 +512,21 @@ export const ReportDashboard: React.FC<ReportDashboardProps> = ({ searchQuery: _
         </div>
 
         {/* Categories Chart */}
-        <div className="glass-panel bg-slate-900/60 p-5 rounded-2xl border border-slate-700/60">
-          <div className="text-sm font-bold text-white mb-1">ผลการปฏิบัติแยกประเภท</div>
+        <div className="glass-panel bg-white/90 dark:bg-slate-900/60 p-5 rounded-2xl border border-slate-200 dark:border-slate-700/60 shadow-sm">
+          <div className="text-sm font-bold text-slate-800 dark:text-white mb-1">ผลการปฏิบัติแยกประเภท</div>
           <div className="text-[11px] text-slate-400 mb-6">รวมทั้งช่วง</div>
           
           <div className="flex flex-col gap-3">
             {cats.map(c => (
               <div key={c.label} className="grid grid-cols-[100px_1fr_40px] items-center gap-3">
-                <div className="text-xs text-slate-300 truncate" title={c.label}>{c.label}</div>
-                <div className="h-5 bg-slate-800/80 rounded-md overflow-hidden relative">
+                <div className="text-xs text-slate-700 dark:text-slate-300 font-semibold truncate" title={c.label}>{c.label}</div>
+                <div className="h-5 bg-slate-200/80 dark:bg-slate-800/80 rounded-md overflow-hidden relative">
                   <div 
-                    className="absolute top-0 left-0 h-full bg-gradient-to-r from-blue-700 to-blue-400 rounded-md transition-all duration-700 ease-out"
+                    className="absolute top-0 left-0 h-full bg-gradient-to-r from-blue-600 to-blue-400 rounded-md transition-all duration-700 ease-out"
                     style={{ width: `${hmax > 0 ? (c.val / hmax) * 100 : 0}%` }}
                   ></div>
                 </div>
-                <div className="text-xs font-bold text-white text-right font-mono">{c.val}</div>
+                <div className="text-xs font-bold text-slate-800 dark:text-white text-right font-mono">{c.val}</div>
               </div>
             ))}
           </div>
@@ -534,21 +536,21 @@ export const ReportDashboard: React.FC<ReportDashboardProps> = ({ searchQuery: _
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Arrests Breakdown */}
         {aitems.length > 0 && (
-          <div className="glass-panel bg-slate-900/60 p-5 rounded-2xl border border-slate-700/60">
-            <div className="text-sm font-bold text-white mb-1">การจับกุมแยกประเภท</div>
+          <div className="glass-panel bg-white/90 dark:bg-slate-900/60 p-5 rounded-2xl border border-slate-200 dark:border-slate-700/60 shadow-sm">
+            <div className="text-sm font-bold text-slate-800 dark:text-white mb-1">การจับกุมแยกประเภท</div>
             <div className="text-[11px] text-slate-400 mb-6">รวมทั้งช่วง</div>
             
             <div className="flex flex-col gap-3">
               {aitems.map(a => (
                 <div key={a.label} className="grid grid-cols-[100px_1fr_40px] items-center gap-3">
-                  <div className="text-xs text-slate-300 truncate" title={a.label}>{a.label}</div>
-                  <div className="h-5 bg-slate-800/80 rounded-md overflow-hidden relative">
+                  <div className="text-xs text-slate-700 dark:text-slate-300 font-semibold truncate" title={a.label}>{a.label}</div>
+                  <div className="h-5 bg-slate-200/80 dark:bg-slate-800/80 rounded-md overflow-hidden relative">
                     <div 
-                      className="absolute top-0 left-0 h-full bg-gradient-to-r from-amber-600 to-amber-400 rounded-md transition-all duration-700 ease-out"
+                      className="absolute top-0 left-0 h-full bg-gradient-to-r from-amber-500 to-amber-400 rounded-md transition-all duration-700 ease-out"
                       style={{ width: `${amax > 0 ? (a.val / amax) * 100 : 0}%` }}
                     ></div>
                   </div>
-                  <div className="text-xs font-bold text-white text-right font-mono">{a.val}</div>
+                  <div className="text-xs font-bold text-slate-800 dark:text-white text-right font-mono">{a.val}</div>
                 </div>
               ))}
             </div>
@@ -556,12 +558,12 @@ export const ReportDashboard: React.FC<ReportDashboardProps> = ({ searchQuery: _
         )}
 
         {/* Data Table */}
-        <div className={`glass-panel bg-slate-900/60 p-5 rounded-2xl border border-slate-700/60 ${aitems.length === 0 ? 'lg:col-span-2' : ''}`}>
+        <div className={`glass-panel bg-white/90 dark:bg-slate-900/60 p-5 rounded-2xl border border-slate-200 dark:border-slate-700/60 shadow-sm ${aitems.length === 0 ? 'lg:col-span-2' : ''}`}>
           <div className="flex items-center justify-between mb-4">
-            <div className="text-sm font-bold text-white">ตารางข้อมูลรายวัน</div>
+            <div className="text-sm font-bold text-slate-800 dark:text-white">ตารางข้อมูลรายวัน</div>
             <button
               onClick={() => setSelectedRow(summaryRow)}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-600/20 hover:bg-blue-600/30 text-blue-400 hover:text-white rounded-lg text-xs font-bold border border-blue-500/30 transition-all"
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 dark:bg-blue-600/20 hover:bg-blue-100 dark:hover:bg-blue-600/30 text-blue-400 rounded-lg text-xs font-bold border border-blue-200 dark:border-blue-500/30 transition-all"
               title="ดูสรุปรายละเอียดรวมตามฟิลด์ทั้งหมดของช่วงเวลาที่เลือก"
             >
               <Eye className="w-3.5 h-3.5" /> สรุปภาพรวมช่วงเวลา
@@ -570,7 +572,7 @@ export const ReportDashboard: React.FC<ReportDashboardProps> = ({ searchQuery: _
           <div className="overflow-x-auto">
             <table className="w-full text-xs text-right whitespace-nowrap">
               <thead>
-                <tr className="border-b border-slate-700 text-slate-400 bg-slate-800/50">
+                <tr className="border-b border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-400 bg-slate-200/60 dark:bg-slate-800/50">
                   <th className="p-2 text-left rounded-tl-lg font-medium">วันที่</th>
                   <th className="p-2 font-medium">จุดตรวจ</th>
                   <th className="p-2 font-medium">รถยนต์</th>
@@ -582,7 +584,7 @@ export const ReportDashboard: React.FC<ReportDashboardProps> = ({ searchQuery: _
                   <th className="p-2 rounded-tr-lg font-medium w-10"></th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-800/80">
+              <tbody className="divide-y divide-slate-200 dark:divide-slate-800/80">
                 {rows.length > 0 ? rows.slice().reverse().map(r => {
                   const tCp = (r.relcp || 0) + (r.popup || 0);
                   const tCar = (r.car || 0) + (r.ccar || 0);
@@ -594,17 +596,17 @@ export const ReportDashboard: React.FC<ReportDashboardProps> = ({ searchQuery: _
                   return (
                     <tr key={r.date} className="hover:bg-slate-100 dark:hover:bg-slate-800/40 transition-colors">
                       <td className="p-2 text-left font-semibold text-slate-800 dark:text-slate-200">{thDate(r.date)}</td>
-                      <td className={`p-2 font-mono ${tCp > 0 ? 'text-slate-900 dark:text-white font-bold' : 'text-slate-400 dark:text-slate-600'}`}>{tCp || '-'}</td>
-                      <td className={`p-2 font-mono ${tCar > 0 ? 'text-slate-900 dark:text-white font-bold' : 'text-slate-400 dark:text-slate-600'}`}>{tCar || '-'}</td>
-                      <td className={`p-2 font-mono ${tMc > 0 ? 'text-slate-900 dark:text-white font-bold' : 'text-slate-400 dark:text-slate-600'}`}>{tMc || '-'}</td>
-                      <td className={`p-2 font-mono ${tPpl > 0 ? 'text-slate-900 dark:text-white font-bold' : 'text-slate-400 dark:text-slate-600'}`}>{tPpl || '-'}</td>
-                      <td className={`p-2 font-mono ${(r.rent || 0) > 0 ? 'text-emerald-600 dark:text-emerald-400 font-bold' : 'text-slate-400 dark:text-slate-600'}`}>{r.rent || '-'}</td>
-                      <td className={`p-2 font-mono ${tArr > 0 ? 'text-amber-600 dark:text-amber-400 font-bold' : 'text-slate-400 dark:text-slate-600'}`}>{tArr || '-'}</td>
-                      <td className={`p-2 font-mono ${tSeiz > 0 ? 'text-slate-900 dark:text-white font-bold' : 'text-slate-400 dark:text-slate-600'}`}>{tSeiz || '-'}</td>
+                      <td className={`p-2 font-mono ${tCp > 0 ? 'text-slate-800 dark:text-white font-bold' : 'text-slate-400 dark:text-slate-600'}`}>{tCp || '-'}</td>
+                      <td className={`p-2 font-mono ${tCar > 0 ? 'text-slate-800 dark:text-white font-bold' : 'text-slate-400 dark:text-slate-600'}`}>{tCar || '-'}</td>
+                      <td className={`p-2 font-mono ${tMc > 0 ? 'text-slate-800 dark:text-white font-bold' : 'text-slate-400 dark:text-slate-600'}`}>{tMc || '-'}</td>
+                      <td className={`p-2 font-mono ${tPpl > 0 ? 'text-slate-800 dark:text-white font-bold' : 'text-slate-400 dark:text-slate-600'}`}>{tPpl || '-'}</td>
+                      <td className={`p-2 font-mono ${(r.rent || 0) > 0 ? 'text-emerald-400 font-bold' : 'text-slate-400 dark:text-slate-600'}`}>{r.rent || '-'}</td>
+                      <td className={`p-2 font-mono ${tArr > 0 ? 'text-amber-400 font-bold' : 'text-slate-400 dark:text-slate-600'}`}>{tArr || '-'}</td>
+                      <td className={`p-2 font-mono ${tSeiz > 0 ? 'text-slate-800 dark:text-white font-bold' : 'text-slate-400 dark:text-slate-600'}`}>{tSeiz || '-'}</td>
                       <td className="p-2 text-center">
                         <button 
                           onClick={() => setSelectedRow(r)}
-                          className="p-1.5 text-blue-400 hover:text-white hover:bg-blue-600/30 rounded-lg transition-colors"
+                          className="p-1.5 text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-600/30 rounded-lg transition-colors"
                           title="ดูรายละเอียด"
                         >
                           <Eye className="w-4 h-4" />
@@ -614,7 +616,7 @@ export const ReportDashboard: React.FC<ReportDashboardProps> = ({ searchQuery: _
                   );
                 }) : (
                   <tr>
-                    <td colSpan={8} className="p-6 text-center text-slate-500">ไม่มีข้อมูล</td>
+                    <td colSpan={9} className="p-6 text-center text-slate-500">ไม่มีข้อมูล</td>
                   </tr>
                 )}
               </tbody>
@@ -625,11 +627,11 @@ export const ReportDashboard: React.FC<ReportDashboardProps> = ({ searchQuery: _
 
       {/* Details Modal */}
       {selectedRow && (
-        <div className="fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-slate-950/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="glass-panel bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
-            <div className="flex items-center justify-between p-5 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/90">
-              <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                <BarChart2 className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+            <div className="flex items-center justify-between p-5 border-b border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-900/90">
+              <h3 className="text-lg font-bold text-slate-800 dark:text-white flex items-center gap-2">
+                <BarChart2 className="w-5 h-5 text-blue-400" />
                 {selectedRow.date.startsWith('20') ? (
                   `รายละเอียดวันที่ ${thDate(selectedRow.date)}`
                 ) : (
@@ -638,7 +640,7 @@ export const ReportDashboard: React.FC<ReportDashboardProps> = ({ searchQuery: _
               </h3>
               <button 
                 onClick={() => setSelectedRow(null)}
-                className="text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white p-1 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors"
+                className="text-slate-400 hover:text-slate-700 dark:text-slate-400 dark:hover:text-white p-1 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -647,93 +649,93 @@ export const ReportDashboard: React.FC<ReportDashboardProps> = ({ searchQuery: _
             <div className="p-5 overflow-y-auto space-y-6">
               {/* จุดตรวจ */}
               <div>
-                <div className="text-sm font-bold text-slate-800 dark:text-slate-200 mb-2 border-b border-slate-200 dark:border-slate-800 pb-1">🚧 ตั้งจุดตรวจ/จุดสกัด</div>
+                <div className="text-sm font-bold text-slate-800 dark:text-white mb-2 border-b border-slate-200 dark:border-slate-800 pb-1">🚧 ตั้งจุดตรวจ/จุดสกัด</div>
                 <div className="grid grid-cols-2 gap-2 text-sm">
                   <div className="flex justify-between items-center bg-slate-100 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/50 p-2.5 rounded-lg">
-                    <span className="text-slate-700 dark:text-slate-300 font-medium">จุดตรวจ ว.43:</span>
-                    <span className="text-slate-900 dark:text-white font-bold font-mono text-base">{selectedRow.relcp || 0}</span>
+                    <span className="text-slate-700 dark:text-slate-300 font-semibold">จุดตรวจ ว.43:</span>
+                    <span className="text-slate-800 dark:text-white font-bold font-mono text-base">{selectedRow.relcp || 0}</span>
                   </div>
                   <div className="flex justify-between items-center bg-slate-100 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/50 p-2.5 rounded-lg">
-                    <span className="text-slate-700 dark:text-slate-300 font-medium">จุดสกัด (Popup):</span>
-                    <span className="text-slate-900 dark:text-white font-bold font-mono text-base">{selectedRow.popup || 0}</span>
+                    <span className="text-slate-700 dark:text-slate-300 font-semibold">จุดสกัด (Popup):</span>
+                    <span className="text-slate-800 dark:text-white font-bold font-mono text-base">{selectedRow.popup || 0}</span>
                   </div>
                 </div>
               </div>
 
               {/* ยานพาหนะ */}
               <div>
-                <div className="text-sm font-bold text-slate-800 dark:text-slate-200 mb-2 border-b border-slate-200 dark:border-slate-800 pb-1">🚗 ตรวจยานพาหนะ</div>
+                <div className="text-sm font-bold text-slate-800 dark:text-white mb-2 border-b border-slate-200 dark:border-slate-800 pb-1">🚗 ตรวจยานพาหนะ</div>
                 <div className="grid grid-cols-2 gap-2 text-sm">
                   <div className="flex justify-between items-center bg-slate-100 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/50 p-2.5 rounded-lg">
-                    <span className="text-slate-700 dark:text-slate-300 font-medium">รถยนต์:</span>
-                    <span className="text-slate-900 dark:text-white font-bold font-mono text-base">{selectedRow.car || 0}</span>
+                    <span className="text-slate-700 dark:text-slate-300 font-semibold">รถยนต์:</span>
+                    <span className="text-slate-800 dark:text-white font-bold font-mono text-base">{selectedRow.car || 0}</span>
                   </div>
                   <div className="flex justify-between items-center bg-slate-100 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/50 p-2.5 rounded-lg">
-                    <span className="text-slate-700 dark:text-slate-300 font-medium">รถ จยย.:</span>
-                    <span className="text-slate-900 dark:text-white font-bold font-mono text-base">{selectedRow.mc || 0}</span>
+                    <span className="text-slate-700 dark:text-slate-300 font-semibold">รถ จยย.:</span>
+                    <span className="text-slate-800 dark:text-white font-bold font-mono text-base">{selectedRow.mc || 0}</span>
                   </div>
                   <div className="flex justify-between items-center bg-slate-100 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/50 p-2.5 rounded-lg">
-                    <span className="text-slate-700 dark:text-slate-300 font-medium">รถยนต์ (ประวัติ):</span>
-                    <span className="text-slate-900 dark:text-white font-bold font-mono text-base">{selectedRow.ccar || 0}</span>
+                    <span className="text-slate-700 dark:text-slate-300 font-semibold">รถยนต์ (ประวัติ):</span>
+                    <span className="text-slate-800 dark:text-white font-bold font-mono text-base">{selectedRow.ccar || 0}</span>
                   </div>
                   <div className="flex justify-between items-center bg-slate-100 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/50 p-2.5 rounded-lg">
-                    <span className="text-slate-700 dark:text-slate-300 font-medium">รถ จยย. (ประวัติ):</span>
-                    <span className="text-slate-900 dark:text-white font-bold font-mono text-base">{selectedRow.cmc || 0}</span>
+                    <span className="text-slate-700 dark:text-slate-300 font-semibold">รถ จยย. (ประวัติ):</span>
+                    <span className="text-slate-800 dark:text-white font-bold font-mono text-base">{selectedRow.cmc || 0}</span>
                   </div>
                 </div>
               </div>
 
               {/* บุคคล */}
               <div>
-                <div className="text-sm font-bold text-slate-800 dark:text-slate-200 mb-2 border-b border-slate-200 dark:border-slate-800 pb-1">👤 ตรวจบุคคล</div>
+                <div className="text-sm font-bold text-slate-800 dark:text-white mb-2 border-b border-slate-200 dark:border-slate-800 pb-1">👤 ตรวจบุคคล</div>
                 <div className="grid grid-cols-2 gap-2 text-sm">
                   <div className="flex justify-between items-center bg-slate-100 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/50 p-2.5 rounded-lg">
-                    <span className="text-slate-700 dark:text-slate-300 font-medium">บุคคลทั่วไป:</span>
-                    <span className="text-slate-900 dark:text-white font-bold font-mono text-base">{selectedRow.person || 0}</span>
+                    <span className="text-slate-700 dark:text-slate-300 font-semibold">บุคคลทั่วไป:</span>
+                    <span className="text-slate-800 dark:text-white font-bold font-mono text-base">{selectedRow.person || 0}</span>
                   </div>
                   <div className="flex justify-between items-center bg-slate-100 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/50 p-2.5 rounded-lg">
-                    <span className="text-slate-700 dark:text-slate-300 font-medium">บุคคล (ประวัติ):</span>
-                    <span className="text-slate-900 dark:text-white font-bold font-mono text-base">{selectedRow.cperson || 0}</span>
+                    <span className="text-slate-700 dark:text-slate-300 font-semibold">บุคคล (ประวัติ):</span>
+                    <span className="text-slate-800 dark:text-white font-bold font-mono text-base">{selectedRow.cperson || 0}</span>
                   </div>
                   <div className="flex justify-between items-center bg-slate-100 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/50 p-2.5 rounded-lg">
-                    <span className="text-slate-700 dark:text-slate-300 font-medium">เก็บ DNA:</span>
-                    <span className="text-pink-600 dark:text-pink-400 font-bold font-mono text-base">{selectedRow.dna || 0}</span>
+                    <span className="text-slate-700 dark:text-slate-300 font-semibold">เก็บ DNA:</span>
+                    <span className="text-pink-400 font-bold font-mono text-base">{selectedRow.dna || 0}</span>
                   </div>
                   <div className="flex justify-between items-center bg-slate-100 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/50 p-2.5 rounded-lg">
-                    <span className="text-slate-700 dark:text-slate-300 font-medium">ทำประวัติเสี่ยง:</span>
-                    <span className="text-slate-900 dark:text-white font-bold font-mono text-base">{selectedRow.profile || 0}</span>
+                    <span className="text-slate-700 dark:text-slate-300 font-semibold">ทำประวัติเสี่ยง:</span>
+                    <span className="text-slate-800 dark:text-white font-bold font-mono text-base">{selectedRow.profile || 0}</span>
                   </div>
                 </div>
               </div>
 
               {/* ตรวจบ้านเช่า */}
               <div>
-                <div className="text-sm font-bold text-slate-800 dark:text-slate-200 mb-2 border-b border-slate-200 dark:border-slate-800 pb-1">🏠 ตรวจบ้านเช่า/Support site</div>
+                <div className="text-sm font-bold text-slate-800 dark:text-white mb-2 border-b border-slate-200 dark:border-slate-800 pb-1">🏠 ตรวจบ้านเช่า/Support site</div>
                 <div className="bg-slate-100 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/50 p-2.5 rounded-lg text-sm flex justify-between items-center">
-                  <span className="text-slate-700 dark:text-slate-300 font-medium">ตรวจบ้านเช่า/Support site:</span>
-                  <span className="text-emerald-600 dark:text-emerald-400 font-bold font-mono text-base">{selectedRow.rent || 0} แห่ง</span>
+                  <span className="text-slate-700 dark:text-slate-300 font-semibold">ตรวจบ้านเช่า/Support site:</span>
+                  <span className="text-emerald-400 font-bold font-mono text-base">{selectedRow.rent || 0} แห่ง</span>
                 </div>
               </div>
 
               {/* ตรวจยึด */}
               <div>
-                <div className="text-sm font-bold text-slate-800 dark:text-slate-200 mb-2 border-b border-slate-200 dark:border-slate-800 pb-1">🔒 ตรวจยึด</div>
+                <div className="text-sm font-bold text-slate-800 dark:text-white mb-2 border-b border-slate-200 dark:border-slate-800 pb-1">🔒 ตรวจยึด</div>
                 <div className="grid grid-cols-2 gap-2 text-sm">
                   <div className="flex justify-between items-center bg-slate-100 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/50 p-2.5 rounded-lg">
-                    <span className="text-slate-700 dark:text-slate-300 font-medium">รถยนต์ (มาตรา 44):</span>
-                    <span className="text-slate-900 dark:text-white font-bold font-mono text-base">{selectedRow.s1car || 0}</span>
+                    <span className="text-slate-700 dark:text-slate-300 font-semibold">รถยนต์ (มาตรา 44):</span>
+                    <span className="text-slate-800 dark:text-white font-bold font-mono text-base">{selectedRow.s1car || 0}</span>
                   </div>
                   <div className="flex justify-between items-center bg-slate-100 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/50 p-2.5 rounded-lg">
-                    <span className="text-slate-700 dark:text-slate-300 font-medium">รถ จยย. (มาตรา 44):</span>
-                    <span className="text-slate-900 dark:text-white font-bold font-mono text-base">{selectedRow.s1mc || 0}</span>
+                    <span className="text-slate-700 dark:text-slate-300 font-semibold">รถ จยย. (มาตรา 44):</span>
+                    <span className="text-slate-800 dark:text-white font-bold font-mono text-base">{selectedRow.s1mc || 0}</span>
                   </div>
                   <div className="flex justify-between items-center bg-slate-100 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/50 p-2.5 rounded-lg">
-                    <span className="text-slate-700 dark:text-slate-300 font-medium">รถยนต์ (ตรวจสอบ):</span>
-                    <span className="text-slate-900 dark:text-white font-bold font-mono text-base">{selectedRow.s2car || 0}</span>
+                    <span className="text-slate-700 dark:text-slate-300 font-semibold">รถยนต์ (ตรวจสอบ):</span>
+                    <span className="text-slate-800 dark:text-white font-bold font-mono text-base">{selectedRow.s2car || 0}</span>
                   </div>
                   <div className="flex justify-between items-center bg-slate-100 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/50 p-2.5 rounded-lg">
-                    <span className="text-slate-700 dark:text-slate-300 font-medium">รถ จยย. (ตรวจสอบ):</span>
-                    <span className="text-slate-900 dark:text-white font-bold font-mono text-base">{selectedRow.s2mc || 0}</span>
+                    <span className="text-slate-700 dark:text-slate-300 font-semibold">รถ จยย. (ตรวจสอบ):</span>
+                    <span className="text-slate-800 dark:text-white font-bold font-mono text-base">{selectedRow.s2mc || 0}</span>
                   </div>
                 </div>
               </div>
@@ -744,8 +746,8 @@ export const ReportDashboard: React.FC<ReportDashboardProps> = ({ searchQuery: _
                 {selectedRow.arrests && selectedRow.arrests.length > 0 ? (
                   <div className="space-y-2">
                     {selectedRow.arrests.filter(a => a.count > 0).map((a, i) => (
-                      <div key={i} className="flex justify-between bg-amber-500/10 border border-amber-500/30 p-2.5 rounded-lg text-sm">
-                        <span className="text-amber-900 dark:text-amber-200 font-semibold">{a.name}</span>
+                      <div key={i} className="flex justify-between bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/30 p-2.5 rounded-lg text-sm">
+                        <span className="text-amber-800 dark:text-amber-200 font-semibold">{a.name}</span>
                         <span className="text-amber-600 dark:text-amber-400 font-bold font-mono text-base">{a.count} ราย</span>
                       </div>
                     ))}
@@ -758,8 +760,8 @@ export const ReportDashboard: React.FC<ReportDashboardProps> = ({ searchQuery: _
               {/* เจ้าหน้าที่ */}
               {(selectedRow.officer || selectedRow.role) && (
                 <div className="mt-4 pt-4 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between text-xs text-slate-600 dark:text-slate-400">
-                  <div>ผู้รายงาน: <span className="text-slate-900 dark:text-slate-200 font-semibold">{selectedRow.officer || '-'}</span></div>
-                  <div>หน้าที่: <span className="text-slate-900 dark:text-slate-200 font-semibold">{selectedRow.role || '-'}</span></div>
+                  <div>ผู้รายงาน: <span className="text-slate-800 dark:text-slate-200 font-semibold">{selectedRow.officer || '-'}</span></div>
+                  <div>หน้าที่: <span className="text-slate-800 dark:text-slate-200 font-semibold">{selectedRow.role || '-'}</span></div>
                 </div>
               )}
             </div>
@@ -767,7 +769,7 @@ export const ReportDashboard: React.FC<ReportDashboardProps> = ({ searchQuery: _
             <div className="p-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50">
               <button 
                 onClick={() => setSelectedRow(null)}
-                className="w-full py-2.5 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-sm font-bold transition-all shadow-md"
+                className="w-full py-2.5 bg-slate-900 hover:bg-slate-800 dark:bg-slate-800 dark:hover:bg-slate-700 text-white rounded-xl text-sm font-bold transition-all shadow-md"
               >
                 ปิด
               </button>
@@ -785,7 +787,7 @@ const KpiCard = ({ icon, val, label, color }: { icon: string, val: number, label
   <div className="glass-panel bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700/60 rounded-2xl p-4 transition-all hover:border-blue-500/50 shadow-sm">
     <div className="flex items-center gap-3 mb-2">
       <div className="w-8 h-8 rounded-xl bg-slate-100 dark:bg-slate-800/80 flex items-center justify-center text-lg shadow-inner">{icon}</div>
-      <div className="text-xs text-slate-800 dark:text-slate-200 flex-1 leading-tight font-semibold">{label}</div>
+      <div className="text-xs text-slate-700 dark:text-slate-300 flex-1 leading-tight font-semibold">{label}</div>
     </div>
     <div className={`text-2xl font-bold tracking-tight font-mono ${color}`}>
       {val.toLocaleString()}
