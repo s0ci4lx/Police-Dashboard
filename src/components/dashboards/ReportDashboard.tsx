@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { RefreshCw, Link as LinkIcon, AlertCircle, Settings2, BarChart2, CheckCircle2, ListFilter, Eye, X } from 'lucide-react';
+import { RefreshCw, Link as LinkIcon, AlertCircle, Settings2, BarChart2, CheckCircle2, ListFilter, Eye, X, Download } from 'lucide-react';
 import { fetchSheetData } from '../../services/googleSheetService';
 
 interface ArrestItem {
@@ -23,7 +23,11 @@ interface ReportRow {
   s1car: number;
   s2mc: number;
   s2car: number;
+  rent: number;
   arrests: ArrestItem[];
+  officer?: string;
+  role?: string;
+  updatedAt?: string;
 }
 
 interface ReportDashboardProps {
@@ -48,7 +52,7 @@ function getLocalYMD(d: Date = new Date()) {
 const STORE_KEY = "sathon_reports";
 const URL_KEY = "sathon_apiurl";
 
-export const ReportDashboard: React.FC<ReportDashboardProps> = ({ searchQuery }) => {
+export const ReportDashboard: React.FC<ReportDashboardProps> = ({ searchQuery: _searchQuery }) => {
   const [dataMap, setDataMap] = useState<Record<string, ReportRow>>({});
   const [preset, setPreset] = useState<'today' | '7' | '30' | 'month' | 'all'>('30');
   const [fromDate, setFromDate] = useState<string>('');
@@ -77,8 +81,8 @@ export const ReportDashboard: React.FC<ReportDashboardProps> = ({ searchQuery })
           [todayStr]: {
             date: todayStr,
             relcp: 2, popup: 1, car: 12, mc: 24, person: 36, ccar: 0, cmc: 0, cperson: 0,
-            dna: 2, profile: 1, s1mc: 1, s1car: 0, s2mc: 0, s2car: 0,
-            arrests: [{ name: 'ยาเสพติด', count: 1 }]
+            dna: 2, profile: 1, s1mc: 1, s1car: 0, s2mc: 0, s2car: 0, rent: 2,
+            arrests: [{ name: 'ยาเสพติด', count: 1 }, { name: 'ตามหมายจับ', count: 1 }]
           }
         };
         setDataMap(mock);
@@ -128,8 +132,8 @@ export const ReportDashboard: React.FC<ReportDashboardProps> = ({ searchQuery })
         const d: Record<string, ReportRow> = {};
         rowsData.forEach((r: any) => {
           const row: ReportRow = { ...r };
-          ['relcp','popup','car','mc','person','ccar','cmc','cperson','dna','profile','s1mc','s1car','s2mc','s2car'].forEach(f => {
-            row[f as keyof ReportRow] = parseInt(r[f] || '0', 10) || 0;
+          ['relcp','popup','car','mc','person','ccar','cmc','cperson','dna','profile','s1mc','s1car','s2mc','s2car','rent'].forEach(f => {
+            (row as any)[f] = parseInt(r[f] || '0', 10) || 0;
           });
           try {
             row.arrests = typeof r.arrests === "string" ? JSON.parse(r.arrests || "[]") : (Array.isArray(r.arrests) ? r.arrests : []);
@@ -209,6 +213,7 @@ export const ReportDashboard: React.FC<ReportDashboardProps> = ({ searchQuery })
     { label: "ตรวจรถยนต์", val: sum("car") + sum("ccar") },
     { label: "ตรวจรถ จยย.", val: sum("mc") + sum("cmc") },
     { label: "ตรวจค้นบุคคล", val: ppl },
+    { label: "ตรวจบ้านเช่า", val: sum("rent") },
     { label: "ตรวจยึด", val: seiz },
     { label: "ทำประวัติเสี่ยง", val: sum("profile") },
     { label: "เก็บ DNA", val: sum("dna") },
@@ -227,6 +232,43 @@ export const ReportDashboard: React.FC<ReportDashboardProps> = ({ searchQuery })
   const tsRows = rows.slice(-30);
   const vmax = Math.max(1, ...tsRows.map(r => (r.relcp || 0) + (r.popup || 0)));
 
+  const exportCSV = () => {
+    if (rows.length === 0) {
+      showToast("⚠️ ไม่มีข้อมูลส่งออก");
+      return;
+    }
+    const FIELDS = ["relcp", "popup", "car", "mc", "person", "ccar", "cmc", "cperson", "dna", "profile", "s1mc", "s1car", "s2mc", "s2car", "rent"];
+    const head = ["date", ...FIELDS, "arrests_total", "arrests_detail", "officer", "role", "updatedAt"];
+    const cell = (v: any) => {
+      const str = String(v ?? "");
+      return /[",\n]/.test(str) ? '"' + str.replace(/"/g, '""') + '"' : str;
+    };
+    const csv = ["\uFEFF" + head.map(cell).join(",")].concat(rows.map(r => {
+      const detail = (r.arrests || []).filter(a => a.count > 0).map(a => `${a.name}=${a.count}`).join(", ");
+      return [r.date, ...FIELDS.map(f => (r as any)[f] ?? 0), arrestTotal(r), detail, r.officer || "", r.role || "", r.updatedAt || ""].map(cell).join(",");
+    })).join("\n");
+    
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = `รายงานจุดตรวจ_${fromDate || 'ทั้งหมด'}_ถึง_${toDate || 'ทั้งหมด'}.csv`;
+    link.click();
+    showToast("ส่งออก CSV สำเร็จ");
+  };
+
+  const exportJSON = () => {
+    if (rows.length === 0) {
+      showToast("⚠️ ไม่มีข้อมูลส่งออก");
+      return;
+    }
+    const blob = new Blob([JSON.stringify(rows, null, 2)], { type: "application/json;charset=utf-8" });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = `รายงานจุดตรวจ_${fromDate || 'ทั้งหมด'}_ถึง_${toDate || 'ทั้งหมด'}.json`;
+    link.click();
+    showToast("ส่งออก JSON สำเร็จ");
+  };
+
   return (
     <div className="space-y-6">
       {/* Toast */}
@@ -244,17 +286,31 @@ export const ReportDashboard: React.FC<ReportDashboardProps> = ({ searchQuery })
           <div className="text-xs text-slate-400">{rangeLabel}</div>
         </div>
         
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-2.5">
+          <button
+            onClick={exportCSV}
+            className="flex items-center gap-1.5 px-3.5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold transition-all shadow-md"
+            title="ส่งออกไฟล์ CSV"
+          >
+            <Download className="w-4 h-4" /> CSV
+          </button>
+          <button
+            onClick={exportJSON}
+            className="flex items-center gap-1.5 px-3.5 py-2 bg-purple-600 hover:bg-purple-500 text-white rounded-xl text-xs font-bold transition-all shadow-md"
+            title="ส่งออกไฟล์ JSON"
+          >
+            <Download className="w-4 h-4" /> JSON
+          </button>
           <button
             onClick={() => setShowSettings(!showSettings)}
-            className="flex items-center gap-2 px-4 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 rounded-xl text-sm font-medium transition-all"
+            className="flex items-center gap-2 px-3.5 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 rounded-xl text-xs font-medium transition-all"
           >
             <Settings2 className="w-4 h-4" /> ตั้งค่าข้อมูล
           </button>
           <button
             onClick={syncFromSheet}
             disabled={isSyncing}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-sm font-bold transition-all shadow-lg shadow-blue-900/20"
+            className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-bold transition-all shadow-lg shadow-blue-900/20"
           >
             <RefreshCw className={`w-4 h-4 ${isSyncing ? 'animate-spin' : ''}`} /> ซิงก์ล่าสุด
           </button>
@@ -333,11 +389,12 @@ export const ReportDashboard: React.FC<ReportDashboardProps> = ({ searchQuery })
       </div>
 
       {/* KPIs */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-9 gap-3">
         <KpiCard icon="🚧" val={cp} label="ครั้ง · ตั้งจุดตรวจ/สกัด" color="text-blue-400" />
         <KpiCard icon="🚗" val={veh} label="คัน · ตรวจยานพาหนะ" color="text-emerald-400" />
         <KpiCard icon="👤" val={ppl} label="คน · ตรวจค้นบุคคล" color="text-indigo-400" />
         <KpiCard icon="🚔" val={arrAll} label="ราย · จับกุม" color="text-amber-400" />
+        <KpiCard icon="🏠" val={sum("rent")} label="แห่ง · ตรวจบ้านเช่า" color="text-emerald-400" />
         <KpiCard icon="🧬" val={sum("dna")} label="ราย · เก็บ DNA" color="text-pink-400" />
         <KpiCard icon="📋" val={sum("profile")} label="ราย · ทำประวัติกลุ่มเสี่ยง" color="text-blue-400" />
         <KpiCard icon="🔒" val={seiz} label="คัน · ตรวจยึด" color="text-orange-400" />
@@ -441,6 +498,7 @@ export const ReportDashboard: React.FC<ReportDashboardProps> = ({ searchQuery })
                   <th className="p-2 font-medium">รถยนต์</th>
                   <th className="p-2 font-medium">จยย.</th>
                   <th className="p-2 font-medium">บุคคล</th>
+                  <th className="p-2 font-medium text-emerald-400">บ้านเช่า</th>
                   <th className="p-2 font-medium text-amber-400">จับกุม</th>
                   <th className="p-2 font-medium">ตรวจยึด</th>
                   <th className="p-2 rounded-tr-lg font-medium w-10"></th>
@@ -462,6 +520,7 @@ export const ReportDashboard: React.FC<ReportDashboardProps> = ({ searchQuery })
                       <td className={`p-2 font-mono ${tCar > 0 ? 'text-white' : 'text-slate-600'}`}>{tCar || '-'}</td>
                       <td className={`p-2 font-mono ${tMc > 0 ? 'text-white' : 'text-slate-600'}`}>{tMc || '-'}</td>
                       <td className={`p-2 font-mono ${tPpl > 0 ? 'text-white' : 'text-slate-600'}`}>{tPpl || '-'}</td>
+                      <td className={`p-2 font-mono ${(r.rent || 0) > 0 ? 'text-emerald-400 font-bold' : 'text-slate-600'}`}>{r.rent || '-'}</td>
                       <td className={`p-2 font-mono ${tArr > 0 ? 'text-amber-400 font-bold' : 'text-slate-600'}`}>{tArr || '-'}</td>
                       <td className={`p-2 font-mono ${tSeiz > 0 ? 'text-white' : 'text-slate-600'}`}>{tSeiz || '-'}</td>
                       <td className="p-2 text-center">
@@ -562,6 +621,15 @@ export const ReportDashboard: React.FC<ReportDashboardProps> = ({ searchQuery })
                     <span className="text-slate-400">ทำประวัติเสี่ยง:</span>
                     <span className="text-white font-mono">{selectedRow.profile || 0}</span>
                   </div>
+                </div>
+              </div>
+
+              {/* ตรวจบ้านเช่า */}
+              <div>
+                <div className="text-sm font-bold text-slate-300 mb-2 border-b border-slate-800 pb-1">🏠 ตรวจบ้านเช่า/Support site</div>
+                <div className="bg-slate-800/50 p-2.5 rounded-lg text-sm flex justify-between items-center">
+                  <span className="text-slate-400">ตรวจบ้านเช่า/Support site:</span>
+                  <span className="text-emerald-400 font-bold font-mono">{selectedRow.rent || 0} แห่ง</span>
                 </div>
               </div>
 
