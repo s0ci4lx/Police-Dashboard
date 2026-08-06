@@ -522,7 +522,7 @@ export const CctvDashboard: React.FC<CctvDashboardProps> = ({ searchQuery }) => 
               isActive={selectedTypeFilter === 'ทั้งหมด'}
               onClick={() => setSelectedTypeFilter('ทั้งหมด')}
             />
-            {typeBreakdown.slice(0, 5).map(([name, count], i) => {
+            {typeBreakdown.slice(0, 3).map(([name, count], i) => {
               const pct = agencyCounts.total > 0 ? ((count / agencyCounts.total) * 100).toFixed(1) : '0';
               const themes: Array<'blue' | 'emerald' | 'amber' | 'purple' | 'rose' | 'slate'> = ['blue', 'emerald', 'amber', 'purple', 'rose', 'slate'];
               return (
@@ -538,6 +538,24 @@ export const CctvDashboard: React.FC<CctvDashboardProps> = ({ searchQuery }) => 
                 />
               );
             })}
+            <KpiCard
+              title="สถานะออนไลน์"
+              value={`${agencyCounts.onlineRate}%`}
+              subtext={`ปกติ ${agencyCounts.onlineCount} จาก ${agencyCounts.total} จุด`}
+              icon={CheckCircle2}
+              colorTheme="emerald"
+              isActive={selectedStatusFilter === 'online'}
+              onClick={() => setSelectedStatusFilter(selectedStatusFilter === 'online' ? 'ทั้งหมด' : 'online')}
+            />
+            <KpiCard
+              title="ขัดข้อง / ออฟไลน์"
+              value={agencyCounts.offlineCount}
+              subtext="พร้อมใช้งาน 100%"
+              icon={AlertTriangle}
+              colorTheme={agencyCounts.offlineCount > 0 ? 'rose' : 'slate'}
+              isActive={selectedStatusFilter === 'offline'}
+              onClick={() => setSelectedStatusFilter(selectedStatusFilter === 'offline' ? 'ทั้งหมด' : 'offline')}
+            />
           </div>
         </div>
 
@@ -566,7 +584,7 @@ export const CctvDashboard: React.FC<CctvDashboardProps> = ({ searchQuery }) => 
               isActive={selectedAgencyFilter === 'ทั้งหมด'}
               onClick={() => setSelectedAgencyFilter('ทั้งหมด')}
             />
-            {agencyBreakdown.slice(0, 5).map(([name, count], i) => {
+            {agencyBreakdown.slice(0, 3).map(([name, count], i) => {
               const pct = agencyCounts.total > 0 ? ((count / agencyCounts.total) * 100).toFixed(1) : '0';
               return (
                 <KpiCard
@@ -581,6 +599,20 @@ export const CctvDashboard: React.FC<CctvDashboardProps> = ({ searchQuery }) => 
                 />
               );
             })}
+            <KpiCard
+              title="พื้นที่รับผิดชอบ"
+              value="3 ตำบล"
+              subtext="สะท้อน, ทับช้าง, ประกอบ"
+              icon={MapIcon}
+              colorTheme="amber"
+            />
+            <KpiCard
+              title="สถานีหลัก / สภ."
+              value="สภ.สะท้อน"
+              subtext="ศูนย์ควบคุม GIS CCTV"
+              icon={Radio}
+              colorTheme="blue"
+            />
           </div>
         </div>
       </div>
