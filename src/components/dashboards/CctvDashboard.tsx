@@ -41,6 +41,17 @@ const TYPE_STYLE: Record<string, { color: string; short: string }> = {
   'PTZ Camera': { color: '#8b5cf6', short: 'PTZ' },
   'LPR/AI Camera': { color: '#10b981', short: 'LPR/AI' },
   'Speed Cam': { color: '#f59e0b', short: 'SPEED' },
+  'WIFI': { color: '#3b82f6', short: 'WIFI' },
+  '4G': { color: '#ec4899', short: '4G' },
+  '4g': { color: '#ec4899', short: '4G' },
+  'ยุทธวิธี': { color: '#8b5cf6', short: 'TACTICAL' },
+};
+
+const STATUS_COLORS: Record<string, string> = {
+  'ออนไลน์ (ปกติ)': '#10b981', 
+  'ออฟไลน์ (ขัดข้อง)': '#ef4444', 
+  'กำลังซ่อมบำรุง': '#f59e0b', 
+  'ไม่ระบุ': '#64748b', 
 };
 
 // A single honest "installation point" card — shows only what the source data actually contains
@@ -181,10 +192,13 @@ export const CctvDashboard: React.FC<CctvDashboardProps> = ({ searchQuery }) => 
   const wallStats = useMemo(() => {
     const agencyCount: Record<string, number> = {};
     const typeCount: Record<string, number> = {};
+    const statusCount: Record<string, number> = {};
     let withCoords = 0;
     cctvData.forEach((c) => {
       agencyCount[c.agency] = (agencyCount[c.agency] || 0) + 1;
       typeCount[c.type] = (typeCount[c.type] || 0) + 1;
+      const statusStr = c.status || 'ไม่ระบุ';
+      statusCount[statusStr] = (statusCount[statusStr] || 0) + 1;
       if (Number.isFinite(c.lat) && Number.isFinite(c.lng)) withCoords++;
     });
     const total = cctvData.length;
@@ -193,6 +207,7 @@ export const CctvDashboard: React.FC<CctvDashboardProps> = ({ searchQuery }) => 
       total,
       agencyCount,
       typeCount,
+      statusCount,
       agencies: Object.keys(agencyCount).length,
       types: Object.keys(typeCount).length,
       smart,
@@ -257,6 +272,16 @@ export const CctvDashboard: React.FC<CctvDashboardProps> = ({ searchQuery }) => 
     cctvData.forEach((c) => {
       const name = (c.agency || 'ส่วนกลาง').trim();
       counts[name] = (counts[name] || 0) + 1;
+    });
+    return Object.entries(counts).sort((a, b) => b[1] - a[1]);
+  }, [cctvData]);
+
+
+  const typeBreakdown = useMemo(() => {
+    const counts: Record<string, number> = {};
+    cctvData.forEach((c) => {
+      const typeStr = c.type || 'ไม่ระบุ';
+      counts[typeStr] = (counts[typeStr] || 0) + 1;
     });
     return Object.entries(counts).sort((a, b) => b[1] - a[1]);
   }, [cctvData]);
@@ -549,11 +574,11 @@ export const CctvDashboard: React.FC<CctvDashboardProps> = ({ searchQuery }) => 
 
             <div className="lg:col-span-4">
               <StatChart
-                title="สัดส่วนกล้องวงจรปิดแยกตามหน่วยงาน/พื้นที่"
+                title="สัดส่วนกล้องวงจรปิดแยกตามประเภทอุปกรณ์"
                 type="pie"
-                labels={agencyBreakdown.map(([name]) => name)}
-                dataValues={agencyBreakdown.map(([, count]) => count)}
-                customColors={agencyBreakdown.map(([name]) => getCategoryColor(name))}
+                labels={typeBreakdown.map(([name]) => name)}
+                dataValues={typeBreakdown.map(([, count]) => count)}
+                customColors={typeBreakdown.map(([name]) => TYPE_STYLE[name]?.color || TYPE_COLORS[name] || '#64748b')}
               />
             </div>
           </div>
@@ -787,11 +812,11 @@ export const CctvDashboard: React.FC<CctvDashboardProps> = ({ searchQuery }) => 
         {/* Analytics */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
           <StatChart
-            title="สัดส่วนจุดติดตั้งแยกตามหน่วยงาน/พื้นที่"
+            title="สัดส่วนจุดติดตั้งแยกตามสถานะระบบ"
             type="doughnut"
-            labels={Object.keys(wallStats.agencyCount)}
-            dataValues={Object.values(wallStats.agencyCount)}
-            customColors={Object.keys(wallStats.agencyCount).map((a) => getCategoryColor(a))}
+            labels={Object.keys(wallStats.statusCount)}
+            dataValues={Object.values(wallStats.statusCount)}
+            customColors={Object.keys(wallStats.statusCount).map((s) => STATUS_COLORS[s] || '#64748b')}
           />
           <StatChart
             title="จำนวนกล้องแยกตามประเภทอุปกรณ์"

@@ -32,17 +32,30 @@ interface LocalPoiDashboardProps {
 
 const CATEGORY_META: Record<string, { icon: any; theme: 'blue' | 'indigo' | 'emerald' | 'amber' | 'rose' | 'purple' | 'slate'; label: string }> = {
   'ธนาคาร': { icon: Building2, theme: 'emerald', label: 'จุดเสี่ยงการเงิน' },
+  'ตู้ ATM': { icon: Building2, theme: 'emerald', label: 'จุดเสี่ยงการเงิน' },
+  'ร้านทอง': { icon: ShoppingBag, theme: 'amber', label: 'จุดเสี่ยงทรัพย์สิน' },
   'ร้านสะดวกซื้อ': { icon: ShoppingBag, theme: 'rose', label: 'ร้านค้า 24 ชั่วโมง' },
   '7-11': { icon: ShoppingBag, theme: 'rose', label: 'ร้านค้า 24 ชั่วโมง' },
   'ปั๊มน้ำมัน': { icon: Fuel, theme: 'amber', label: 'จุดตรวจสายตรวจ' },
-  'วัด / มัสยิด': { icon: Landmark, theme: 'purple', label: 'ศาสนสถานสำคัญ' },
+  'ศาสนสถาน': { icon: Landmark, theme: 'purple', label: 'สถานที่ทางศาสนา' },
+  'วัด / มัสยิด': { icon: Landmark, theme: 'purple', label: 'สถานที่ทางศาสนา' },
+  'สถานศึกษา': { icon: School, theme: 'blue', label: 'สถานศึกษา' },
   'โรงเรียน': { icon: School, theme: 'blue', label: 'สถานศึกษา' },
-  'โรงพยาบาล': { icon: Hospital, theme: 'indigo', label: 'การแพทย์/ฉุกเฉิน' },
+  'สถานพยาบาล': { icon: Hospital, theme: 'rose', label: 'การแพทย์/ฉุกเฉิน' },
+  'โรงพยาบาล': { icon: Hospital, theme: 'rose', label: 'การแพทย์/ฉุกเฉิน' },
+  'จุดตรวจ': { icon: Shield, theme: 'blue', label: 'จุดตรวจความมั่นคง' },
+  'สะพาน': { icon: MapPin, theme: 'indigo', label: 'โครงสร้างพื้นฐาน' },
+  'ท่อลอด': { icon: Layers, theme: 'slate', label: 'โครงสร้างพื้นฐาน' },
+  'อื่นๆ': { icon: MapPin, theme: 'slate', label: 'สถานที่อื่นๆ' },
 };
+
+const FALLBACK_THEMES: ('blue' | 'indigo' | 'emerald' | 'amber' | 'rose' | 'purple' | 'slate')[] = [
+  'indigo', 'purple', 'emerald', 'blue', 'amber', 'rose', 'slate'
+];
 
 export const LocalPoiDashboard: React.FC<LocalPoiDashboardProps> = ({ searchQuery }) => {
   const [poiData, setPoiData] = useState<PoiItem[]>(getDataSource('poi') ? [] : SAMPLE_POI_DATA);
-  const [selectedCategory, setSelectedCategory] = useState<string>('ทั้งหมด');
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [selectedZone, setSelectedZone] = useState<string>('ทั้งหมด');
   const [mapCenter, setMapCenter] = useState(HAT_YAI_STATION_COORDS);
   const [selectedMarkerId, setSelectedMarkerId] = useState<string | null>(null);
@@ -134,9 +147,11 @@ export const LocalPoiDashboard: React.FC<LocalPoiDashboardProps> = ({ searchQuer
   // Filter POI items based on selected category, zone & global search
   const filteredData = useMemo(() => {
     return poiData.filter((item) => {
-      if (selectedCategory !== 'ทั้งหมด' && item.category !== selectedCategory) {
+      // Category filter
+      if (selectedCategories.length > 0 && !selectedCategories.includes(item.category)) {
         return false;
       }
+      // Zone filter
       if (selectedZone !== 'ทั้งหมด' && item.policeSubstation !== selectedZone) {
         return false;
       }
@@ -149,7 +164,7 @@ export const LocalPoiDashboard: React.FC<LocalPoiDashboardProps> = ({ searchQuer
         (item.policeSubstation && item.policeSubstation.toLowerCase().includes(q))
       );
     });
-  }, [poiData, selectedCategory, selectedZone, searchQuery]);
+  }, [poiData, selectedCategories, selectedZone, searchQuery]);
 
   // Center the map on the middle of the actual pins whenever the filtered data changes
   useEffect(() => {
@@ -168,8 +183,12 @@ export const LocalPoiDashboard: React.FC<LocalPoiDashboardProps> = ({ searchQuer
     return Object.entries(map)
       .filter(([_, count]) => count > 0)
       .sort((a, b) => b[1] - a[1])
-      .map(([catName, count]) => {
-        const meta = CATEGORY_META[catName] || { icon: MapPin, theme: 'indigo', label: 'สถานที่สำคัญ' };
+      .map(([catName, count], idx) => {
+        const meta = CATEGORY_META[catName] || { 
+          icon: MapPin, 
+          theme: FALLBACK_THEMES[idx % FALLBACK_THEMES.length], 
+          label: 'สถานที่สำคัญ' 
+        };
         return {
           name: catName,
           count,
@@ -305,18 +324,6 @@ export const LocalPoiDashboard: React.FC<LocalPoiDashboardProps> = ({ searchQuer
           </div>
 
           <div className="flex items-center gap-3">
-            <select
-              value={selectedCategory}
-              onChange={(e) => setSelectedCategory(e.target.value)}
-              className="px-3.5 py-2 bg-slate-800 border border-slate-700 rounded-xl text-xs font-bold text-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="ทั้งหมด">หมวดหมู่ทั้งหมด ({poiData.length})</option>
-              {activeCategoryCards.map((cat) => (
-                <option key={cat.name} value={cat.name}>
-                  {cat.name} ({cat.count})
-                </option>
-              ))}
-            </select>
 
             <button
               onClick={loadLivePoiSheetData}
@@ -382,8 +389,8 @@ export const LocalPoiDashboard: React.FC<LocalPoiDashboardProps> = ({ searchQuer
           subtext="รวมทุกหมวดในชีท"
           icon={Layers}
           colorTheme="blue"
-          isActive={selectedCategory === 'ทั้งหมด'}
-          onClick={() => setSelectedCategory('ทั้งหมด')}
+          isActive={selectedCategories.length === 0}
+          onClick={() => setSelectedCategories([])}
         />
 
         {activeCategoryCards.map((cat) => (
@@ -394,8 +401,12 @@ export const LocalPoiDashboard: React.FC<LocalPoiDashboardProps> = ({ searchQuer
             subtext={cat.label}
             icon={cat.icon}
             colorTheme={cat.theme}
-            isActive={selectedCategory === cat.name}
-            onClick={() => setSelectedCategory(cat.name)}
+            isActive={selectedCategories.includes(cat.name)}
+            onClick={() => {
+              setSelectedCategories((prev) =>
+                prev.includes(cat.name) ? prev.filter((c) => c !== cat.name) : [...prev, cat.name]
+              );
+            }}
           />
         ))}
       </div>

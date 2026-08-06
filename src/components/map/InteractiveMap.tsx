@@ -144,8 +144,11 @@ export const TYPE_COLORS: Record<string, string> = {
   'LPR/AI Camera': '#10b981', // Emerald
   'Speed Cam': '#f59e0b',    // Amber
   '4G': '#ec4899',           // Pink
+  '4g': '#ec4899',           // Pink
   '5G': '#f43f5e',           // Rose
-  'WiFi': '#3b82f6',         // Indigo
+  'WiFi': '#3b82f6',         // Blue
+  'WIFI': '#3b82f6',         // Blue
+  'ยุทธวิธี': '#8b5cf6',        // Purple
 };
 
 /**
