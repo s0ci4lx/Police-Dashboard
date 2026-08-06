@@ -334,13 +334,13 @@ export const ReportDashboard: React.FC<ReportDashboardProps> = ({ searchQuery: _
         {toastMsg}
       </div>
 
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 glass-panel bg-slate-900/60 p-5 rounded-2xl border border-slate-700/60">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 glass-panel bg-white dark:bg-slate-900/60 p-5 rounded-2xl border border-slate-200 dark:border-slate-700/60 shadow-sm">
         <div>
-          <div className="text-xs font-bold text-blue-400 mb-1 tracking-wider uppercase">สภ.สะท้อน · งานสื่อสาร</div>
-          <h2 className="text-xl font-bold text-white mb-1 flex items-center gap-2">
-            <BarChart2 className="w-5 h-5 text-blue-400" /> รายงานผลการปฏิบัติ จุดตรวจ/จุดสกัด
+          <div className="text-xs font-bold text-blue-600 dark:text-blue-400 mb-1 tracking-wider uppercase">สภ.สะท้อน · งานสื่อสาร</div>
+          <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-1 flex items-center gap-2">
+            <BarChart2 className="w-5 h-5 text-blue-600 dark:text-blue-400" /> รายงานผลการปฏิบัติ จุดตรวจ/จุดสกัด
           </h2>
-          <div className="text-xs text-slate-400">{rangeLabel}</div>
+          <div className="text-xs text-slate-600 dark:text-slate-400 font-medium">{rangeLabel}</div>
         </div>
         
         <div className="flex flex-wrap items-center gap-2.5">
@@ -592,15 +592,15 @@ export const ReportDashboard: React.FC<ReportDashboardProps> = ({ searchQuery: _
                   const tSeiz = (r.s1mc || 0) + (r.s1car || 0) + (r.s2mc || 0) + (r.s2car || 0);
                   
                   return (
-                    <tr key={r.date} className="hover:bg-slate-800/40 transition-colors">
-                      <td className="p-2 text-left font-medium text-slate-300">{thDate(r.date)}</td>
-                      <td className={`p-2 font-mono ${tCp > 0 ? 'text-white' : 'text-slate-600'}`}>{tCp || '-'}</td>
-                      <td className={`p-2 font-mono ${tCar > 0 ? 'text-white' : 'text-slate-600'}`}>{tCar || '-'}</td>
-                      <td className={`p-2 font-mono ${tMc > 0 ? 'text-white' : 'text-slate-600'}`}>{tMc || '-'}</td>
-                      <td className={`p-2 font-mono ${tPpl > 0 ? 'text-white' : 'text-slate-600'}`}>{tPpl || '-'}</td>
-                      <td className={`p-2 font-mono ${(r.rent || 0) > 0 ? 'text-emerald-400 font-bold' : 'text-slate-600'}`}>{r.rent || '-'}</td>
-                      <td className={`p-2 font-mono ${tArr > 0 ? 'text-amber-400 font-bold' : 'text-slate-600'}`}>{tArr || '-'}</td>
-                      <td className={`p-2 font-mono ${tSeiz > 0 ? 'text-white' : 'text-slate-600'}`}>{tSeiz || '-'}</td>
+                    <tr key={r.date} className="hover:bg-slate-100 dark:hover:bg-slate-800/40 transition-colors">
+                      <td className="p-2 text-left font-semibold text-slate-800 dark:text-slate-200">{thDate(r.date)}</td>
+                      <td className={`p-2 font-mono ${tCp > 0 ? 'text-slate-900 dark:text-white font-bold' : 'text-slate-400 dark:text-slate-600'}`}>{tCp || '-'}</td>
+                      <td className={`p-2 font-mono ${tCar > 0 ? 'text-slate-900 dark:text-white font-bold' : 'text-slate-400 dark:text-slate-600'}`}>{tCar || '-'}</td>
+                      <td className={`p-2 font-mono ${tMc > 0 ? 'text-slate-900 dark:text-white font-bold' : 'text-slate-400 dark:text-slate-600'}`}>{tMc || '-'}</td>
+                      <td className={`p-2 font-mono ${tPpl > 0 ? 'text-slate-900 dark:text-white font-bold' : 'text-slate-400 dark:text-slate-600'}`}>{tPpl || '-'}</td>
+                      <td className={`p-2 font-mono ${(r.rent || 0) > 0 ? 'text-emerald-600 dark:text-emerald-400 font-bold' : 'text-slate-400 dark:text-slate-600'}`}>{r.rent || '-'}</td>
+                      <td className={`p-2 font-mono ${tArr > 0 ? 'text-amber-600 dark:text-amber-400 font-bold' : 'text-slate-400 dark:text-slate-600'}`}>{tArr || '-'}</td>
+                      <td className={`p-2 font-mono ${tSeiz > 0 ? 'text-slate-900 dark:text-white font-bold' : 'text-slate-400 dark:text-slate-600'}`}>{tSeiz || '-'}</td>
                       <td className="p-2 text-center">
                         <button 
                           onClick={() => setSelectedRow(r)}
@@ -625,11 +625,11 @@ export const ReportDashboard: React.FC<ReportDashboardProps> = ({ searchQuery: _
 
       {/* Details Modal */}
       {selectedRow && (
-        <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-700 rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
-            <div className="flex items-center justify-between p-5 border-b border-slate-800">
-              <h3 className="text-lg font-bold text-white flex items-center gap-2">
-                <BarChart2 className="w-5 h-5 text-blue-400" />
+        <div className="fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="glass-panel bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+            <div className="flex items-center justify-between p-5 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/90">
+              <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                <BarChart2 className="w-5 h-5 text-blue-600 dark:text-blue-400" />
                 {selectedRow.date.startsWith('20') ? (
                   `รายละเอียดวันที่ ${thDate(selectedRow.date)}`
                 ) : (
@@ -638,7 +638,7 @@ export const ReportDashboard: React.FC<ReportDashboardProps> = ({ searchQuery: _
               </h3>
               <button 
                 onClick={() => setSelectedRow(null)}
-                className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition-colors"
+                className="text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white p-1 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -647,106 +647,106 @@ export const ReportDashboard: React.FC<ReportDashboardProps> = ({ searchQuery: _
             <div className="p-5 overflow-y-auto space-y-6">
               {/* จุดตรวจ */}
               <div>
-                <div className="text-sm font-bold text-slate-300 mb-2 border-b border-slate-800 pb-1">🚧 ตั้งจุดตรวจ/จุดสกัด</div>
+                <div className="text-sm font-bold text-slate-800 dark:text-slate-200 mb-2 border-b border-slate-200 dark:border-slate-800 pb-1">🚧 ตั้งจุดตรวจ/จุดสกัด</div>
                 <div className="grid grid-cols-2 gap-2 text-sm">
-                  <div className="flex justify-between bg-slate-800/50 p-2 rounded-lg">
-                    <span className="text-slate-400">จุดตรวจ ว.43:</span>
-                    <span className="text-white font-mono">{selectedRow.relcp || 0}</span>
+                  <div className="flex justify-between items-center bg-slate-100 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/50 p-2.5 rounded-lg">
+                    <span className="text-slate-700 dark:text-slate-300 font-medium">จุดตรวจ ว.43:</span>
+                    <span className="text-slate-900 dark:text-white font-bold font-mono text-base">{selectedRow.relcp || 0}</span>
                   </div>
-                  <div className="flex justify-between bg-slate-800/50 p-2 rounded-lg">
-                    <span className="text-slate-400">จุดสกัด (Popup):</span>
-                    <span className="text-white font-mono">{selectedRow.popup || 0}</span>
+                  <div className="flex justify-between items-center bg-slate-100 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/50 p-2.5 rounded-lg">
+                    <span className="text-slate-700 dark:text-slate-300 font-medium">จุดสกัด (Popup):</span>
+                    <span className="text-slate-900 dark:text-white font-bold font-mono text-base">{selectedRow.popup || 0}</span>
                   </div>
                 </div>
               </div>
 
               {/* ยานพาหนะ */}
               <div>
-                <div className="text-sm font-bold text-slate-300 mb-2 border-b border-slate-800 pb-1">🚗 ตรวจยานพาหนะ</div>
+                <div className="text-sm font-bold text-slate-800 dark:text-slate-200 mb-2 border-b border-slate-200 dark:border-slate-800 pb-1">🚗 ตรวจยานพาหนะ</div>
                 <div className="grid grid-cols-2 gap-2 text-sm">
-                  <div className="flex justify-between bg-slate-800/50 p-2 rounded-lg">
-                    <span className="text-slate-400">รถยนต์:</span>
-                    <span className="text-white font-mono">{selectedRow.car || 0}</span>
+                  <div className="flex justify-between items-center bg-slate-100 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/50 p-2.5 rounded-lg">
+                    <span className="text-slate-700 dark:text-slate-300 font-medium">รถยนต์:</span>
+                    <span className="text-slate-900 dark:text-white font-bold font-mono text-base">{selectedRow.car || 0}</span>
                   </div>
-                  <div className="flex justify-between bg-slate-800/50 p-2 rounded-lg">
-                    <span className="text-slate-400">รถ จยย.:</span>
-                    <span className="text-white font-mono">{selectedRow.mc || 0}</span>
+                  <div className="flex justify-between items-center bg-slate-100 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/50 p-2.5 rounded-lg">
+                    <span className="text-slate-700 dark:text-slate-300 font-medium">รถ จยย.:</span>
+                    <span className="text-slate-900 dark:text-white font-bold font-mono text-base">{selectedRow.mc || 0}</span>
                   </div>
-                  <div className="flex justify-between bg-slate-800/50 p-2 rounded-lg">
-                    <span className="text-slate-400">รถยนต์ (ประวัติ):</span>
-                    <span className="text-white font-mono">{selectedRow.ccar || 0}</span>
+                  <div className="flex justify-between items-center bg-slate-100 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/50 p-2.5 rounded-lg">
+                    <span className="text-slate-700 dark:text-slate-300 font-medium">รถยนต์ (ประวัติ):</span>
+                    <span className="text-slate-900 dark:text-white font-bold font-mono text-base">{selectedRow.ccar || 0}</span>
                   </div>
-                  <div className="flex justify-between bg-slate-800/50 p-2 rounded-lg">
-                    <span className="text-slate-400">รถ จยย. (ประวัติ):</span>
-                    <span className="text-white font-mono">{selectedRow.cmc || 0}</span>
+                  <div className="flex justify-between items-center bg-slate-100 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/50 p-2.5 rounded-lg">
+                    <span className="text-slate-700 dark:text-slate-300 font-medium">รถ จยย. (ประวัติ):</span>
+                    <span className="text-slate-900 dark:text-white font-bold font-mono text-base">{selectedRow.cmc || 0}</span>
                   </div>
                 </div>
               </div>
 
               {/* บุคคล */}
               <div>
-                <div className="text-sm font-bold text-slate-300 mb-2 border-b border-slate-800 pb-1">👤 ตรวจบุคคล</div>
+                <div className="text-sm font-bold text-slate-800 dark:text-slate-200 mb-2 border-b border-slate-200 dark:border-slate-800 pb-1">👤 ตรวจบุคคล</div>
                 <div className="grid grid-cols-2 gap-2 text-sm">
-                  <div className="flex justify-between bg-slate-800/50 p-2 rounded-lg">
-                    <span className="text-slate-400">บุคคลทั่วไป:</span>
-                    <span className="text-white font-mono">{selectedRow.person || 0}</span>
+                  <div className="flex justify-between items-center bg-slate-100 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/50 p-2.5 rounded-lg">
+                    <span className="text-slate-700 dark:text-slate-300 font-medium">บุคคลทั่วไป:</span>
+                    <span className="text-slate-900 dark:text-white font-bold font-mono text-base">{selectedRow.person || 0}</span>
                   </div>
-                  <div className="flex justify-between bg-slate-800/50 p-2 rounded-lg">
-                    <span className="text-slate-400">บุคคล (ประวัติ):</span>
-                    <span className="text-white font-mono">{selectedRow.cperson || 0}</span>
+                  <div className="flex justify-between items-center bg-slate-100 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/50 p-2.5 rounded-lg">
+                    <span className="text-slate-700 dark:text-slate-300 font-medium">บุคคล (ประวัติ):</span>
+                    <span className="text-slate-900 dark:text-white font-bold font-mono text-base">{selectedRow.cperson || 0}</span>
                   </div>
-                  <div className="flex justify-between bg-slate-800/50 p-2 rounded-lg">
-                    <span className="text-slate-400">เก็บ DNA:</span>
-                    <span className="text-pink-400 font-mono">{selectedRow.dna || 0}</span>
+                  <div className="flex justify-between items-center bg-slate-100 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/50 p-2.5 rounded-lg">
+                    <span className="text-slate-700 dark:text-slate-300 font-medium">เก็บ DNA:</span>
+                    <span className="text-pink-600 dark:text-pink-400 font-bold font-mono text-base">{selectedRow.dna || 0}</span>
                   </div>
-                  <div className="flex justify-between bg-slate-800/50 p-2 rounded-lg">
-                    <span className="text-slate-400">ทำประวัติเสี่ยง:</span>
-                    <span className="text-white font-mono">{selectedRow.profile || 0}</span>
+                  <div className="flex justify-between items-center bg-slate-100 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/50 p-2.5 rounded-lg">
+                    <span className="text-slate-700 dark:text-slate-300 font-medium">ทำประวัติเสี่ยง:</span>
+                    <span className="text-slate-900 dark:text-white font-bold font-mono text-base">{selectedRow.profile || 0}</span>
                   </div>
                 </div>
               </div>
 
               {/* ตรวจบ้านเช่า */}
               <div>
-                <div className="text-sm font-bold text-slate-300 mb-2 border-b border-slate-800 pb-1">🏠 ตรวจบ้านเช่า/Support site</div>
-                <div className="bg-slate-800/50 p-2.5 rounded-lg text-sm flex justify-between items-center">
-                  <span className="text-slate-400">ตรวจบ้านเช่า/Support site:</span>
-                  <span className="text-emerald-400 font-bold font-mono">{selectedRow.rent || 0} แห่ง</span>
+                <div className="text-sm font-bold text-slate-800 dark:text-slate-200 mb-2 border-b border-slate-200 dark:border-slate-800 pb-1">🏠 ตรวจบ้านเช่า/Support site</div>
+                <div className="bg-slate-100 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/50 p-2.5 rounded-lg text-sm flex justify-between items-center">
+                  <span className="text-slate-700 dark:text-slate-300 font-medium">ตรวจบ้านเช่า/Support site:</span>
+                  <span className="text-emerald-600 dark:text-emerald-400 font-bold font-mono text-base">{selectedRow.rent || 0} แห่ง</span>
                 </div>
               </div>
 
               {/* ตรวจยึด */}
               <div>
-                <div className="text-sm font-bold text-slate-300 mb-2 border-b border-slate-800 pb-1">🔒 ตรวจยึด</div>
+                <div className="text-sm font-bold text-slate-800 dark:text-slate-200 mb-2 border-b border-slate-200 dark:border-slate-800 pb-1">🔒 ตรวจยึด</div>
                 <div className="grid grid-cols-2 gap-2 text-sm">
-                  <div className="flex justify-between bg-slate-800/50 p-2 rounded-lg">
-                    <span className="text-slate-400">รถยนต์ (มาตรา 44):</span>
-                    <span className="text-white font-mono">{selectedRow.s1car || 0}</span>
+                  <div className="flex justify-between items-center bg-slate-100 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/50 p-2.5 rounded-lg">
+                    <span className="text-slate-700 dark:text-slate-300 font-medium">รถยนต์ (มาตรา 44):</span>
+                    <span className="text-slate-900 dark:text-white font-bold font-mono text-base">{selectedRow.s1car || 0}</span>
                   </div>
-                  <div className="flex justify-between bg-slate-800/50 p-2 rounded-lg">
-                    <span className="text-slate-400">รถ จยย. (มาตรา 44):</span>
-                    <span className="text-white font-mono">{selectedRow.s1mc || 0}</span>
+                  <div className="flex justify-between items-center bg-slate-100 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/50 p-2.5 rounded-lg">
+                    <span className="text-slate-700 dark:text-slate-300 font-medium">รถ จยย. (มาตรา 44):</span>
+                    <span className="text-slate-900 dark:text-white font-bold font-mono text-base">{selectedRow.s1mc || 0}</span>
                   </div>
-                  <div className="flex justify-between bg-slate-800/50 p-2 rounded-lg">
-                    <span className="text-slate-400">รถยนต์ (ตรวจสอบ):</span>
-                    <span className="text-white font-mono">{selectedRow.s2car || 0}</span>
+                  <div className="flex justify-between items-center bg-slate-100 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/50 p-2.5 rounded-lg">
+                    <span className="text-slate-700 dark:text-slate-300 font-medium">รถยนต์ (ตรวจสอบ):</span>
+                    <span className="text-slate-900 dark:text-white font-bold font-mono text-base">{selectedRow.s2car || 0}</span>
                   </div>
-                  <div className="flex justify-between bg-slate-800/50 p-2 rounded-lg">
-                    <span className="text-slate-400">รถ จยย. (ตรวจสอบ):</span>
-                    <span className="text-white font-mono">{selectedRow.s2mc || 0}</span>
+                  <div className="flex justify-between items-center bg-slate-100 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/50 p-2.5 rounded-lg">
+                    <span className="text-slate-700 dark:text-slate-300 font-medium">รถ จยย. (ตรวจสอบ):</span>
+                    <span className="text-slate-900 dark:text-white font-bold font-mono text-base">{selectedRow.s2mc || 0}</span>
                   </div>
                 </div>
               </div>
 
               {/* จับกุม */}
               <div>
-                <div className="text-sm font-bold text-amber-400 mb-2 border-b border-slate-800 pb-1">🚔 ผลการจับกุม</div>
+                <div className="text-sm font-bold text-amber-600 dark:text-amber-400 mb-2 border-b border-slate-200 dark:border-slate-800 pb-1">🚔 ผลการจับกุม</div>
                 {selectedRow.arrests && selectedRow.arrests.length > 0 ? (
                   <div className="space-y-2">
                     {selectedRow.arrests.filter(a => a.count > 0).map((a, i) => (
-                      <div key={i} className="flex justify-between bg-amber-900/20 border border-amber-900/50 p-2 rounded-lg text-sm">
-                        <span className="text-amber-200">{a.name}</span>
-                        <span className="text-amber-400 font-bold font-mono">{a.count} ราย</span>
+                      <div key={i} className="flex justify-between bg-amber-500/10 border border-amber-500/30 p-2.5 rounded-lg text-sm">
+                        <span className="text-amber-900 dark:text-amber-200 font-semibold">{a.name}</span>
+                        <span className="text-amber-600 dark:text-amber-400 font-bold font-mono text-base">{a.count} ราย</span>
                       </div>
                     ))}
                   </div>
@@ -757,17 +757,17 @@ export const ReportDashboard: React.FC<ReportDashboardProps> = ({ searchQuery: _
 
               {/* เจ้าหน้าที่ */}
               {(selectedRow.officer || selectedRow.role) && (
-                <div className="mt-4 pt-4 border-t border-slate-800 flex items-center justify-between text-xs text-slate-500">
-                  <div>ผู้รายงาน: <span className="text-slate-400">{selectedRow.officer || '-'}</span></div>
-                  <div>หน้าที่: <span className="text-slate-400">{selectedRow.role || '-'}</span></div>
+                <div className="mt-4 pt-4 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between text-xs text-slate-600 dark:text-slate-400">
+                  <div>ผู้รายงาน: <span className="text-slate-900 dark:text-slate-200 font-semibold">{selectedRow.officer || '-'}</span></div>
+                  <div>หน้าที่: <span className="text-slate-900 dark:text-slate-200 font-semibold">{selectedRow.role || '-'}</span></div>
                 </div>
               )}
             </div>
             
-            <div className="p-4 border-t border-slate-800 bg-slate-900/50">
+            <div className="p-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50">
               <button 
                 onClick={() => setSelectedRow(null)}
-                className="w-full py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-lg text-sm font-bold transition-all"
+                className="w-full py-2.5 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-sm font-bold transition-all shadow-md"
               >
                 ปิด
               </button>
@@ -782,10 +782,10 @@ export const ReportDashboard: React.FC<ReportDashboardProps> = ({ searchQuery: _
 
 // Sub-component for KPI
 const KpiCard = ({ icon, val, label, color }: { icon: string, val: number, label: string, color: string }) => (
-  <div className="glass-panel border border-slate-200 dark:border-slate-700/60 rounded-2xl p-4 transition-all hover:border-blue-500/50 shadow-sm">
+  <div className="glass-panel bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700/60 rounded-2xl p-4 transition-all hover:border-blue-500/50 shadow-sm">
     <div className="flex items-center gap-3 mb-2">
       <div className="w-8 h-8 rounded-xl bg-slate-100 dark:bg-slate-800/80 flex items-center justify-center text-lg shadow-inner">{icon}</div>
-      <div className="text-xs text-slate-600 dark:text-slate-400 flex-1 leading-tight font-medium">{label}</div>
+      <div className="text-xs text-slate-800 dark:text-slate-200 flex-1 leading-tight font-semibold">{label}</div>
     </div>
     <div className={`text-2xl font-bold tracking-tight font-mono ${color}`}>
       {val.toLocaleString()}
