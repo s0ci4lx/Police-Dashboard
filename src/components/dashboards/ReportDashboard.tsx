@@ -408,10 +408,10 @@ export const ReportDashboard: React.FC<ReportDashboardProps> = ({ searchQuery: _
       )}
 
       {/* Filter Presets */}
-      <div className="glass-panel bg-white/70 dark:bg-slate-900/40 p-4 rounded-2xl border border-slate-200 dark:border-slate-800/60 flex flex-col md:flex-row md:items-center gap-4 overflow-x-auto shadow-sm">
+      <div className="glass-panel bg-white/80 p-4 rounded-2xl border border-slate-200 flex flex-col md:flex-row md:items-center gap-4 overflow-x-auto shadow-sm">
         <div className="flex items-center gap-2 shrink-0">
-          <ListFilter className="w-4 h-4 text-slate-500 dark:text-slate-400" />
-          <span className="text-sm font-medium text-slate-700 dark:text-slate-300">ช่วงเวลา:</span>
+          <ListFilter className="w-4 h-4 text-slate-500" />
+          <span className="text-sm font-medium text-slate-700">ช่วงเวลา:</span>
         </div>
         <div className="flex gap-2 shrink-0">
           {[
@@ -427,27 +427,27 @@ export const ReportDashboard: React.FC<ReportDashboardProps> = ({ searchQuery: _
               className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all whitespace-nowrap ${
                 preset === p.id 
                 ? 'bg-blue-600 text-white border-blue-500 shadow-md shadow-blue-900/20' 
-                : 'bg-slate-100 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-white'
+                : 'bg-slate-100 border border-slate-200 text-slate-700 hover:bg-slate-200 hover:text-slate-900 hover:border-slate-300'
               } border`}
             >
               {p.label}
             </button>
           ))}
         </div>
-        <div className="w-px h-6 bg-slate-300 dark:bg-slate-700 hidden md:block shrink-0"></div>
+        <div className="w-px h-6 bg-slate-300 hidden md:block shrink-0"></div>
         <div className="flex items-center gap-2 text-sm shrink-0">
           <input 
             type="date" 
             value={fromDate}
             onChange={e => { setFromDate(e.target.value); setPreset('all' as any); }}
-            className="bg-slate-100 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-lg px-2.5 py-1 text-slate-700 dark:text-slate-200 text-xs focus:outline-none focus:border-blue-500"
+            className="bg-slate-100 border border-slate-200 rounded-lg px-2.5 py-1 text-slate-700 text-xs focus:outline-none focus:border-blue-500"
           />
-          <span className="text-slate-400 dark:text-slate-500">-</span>
+          <span className="text-slate-400">-</span>
           <input 
             type="date" 
             value={toDate}
             onChange={e => { setToDate(e.target.value); setPreset('all' as any); }}
-            className="bg-slate-100 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-lg px-2.5 py-1 text-slate-700 dark:text-slate-200 text-xs focus:outline-none focus:border-blue-500"
+            className="bg-slate-100 border border-slate-200 rounded-lg px-2.5 py-1 text-slate-700 text-xs focus:outline-none focus:border-blue-500"
           />
         </div>
       </div>
