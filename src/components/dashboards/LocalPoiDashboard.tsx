@@ -24,6 +24,7 @@ import {
   CheckCircle2,
   Send,
   X,
+  Tag,
 } from 'lucide-react';
 
 interface LocalPoiDashboardProps {
@@ -53,9 +54,34 @@ const FALLBACK_THEMES: ('blue' | 'indigo' | 'emerald' | 'amber' | 'rose' | 'purp
   'indigo', 'purple', 'emerald', 'blue', 'amber', 'rose', 'slate'
 ];
 
+type PoiSubMode = 'sub' | 'type' | 'zone';
+
+// Leading place-type keywords, used to derive a quick sub-type from an item's
+// name when the sheet has no dedicated "ประเภทย่อย" (subCategory) column — e.g.
+// a "ศาสนสถาน / วัด·มัสยิด" card can still be split into วัด vs มัสยิด by name.
+const SUBTYPE_KEYWORDS = [
+  'วัด', 'มัสยิด', 'โบสถ์', 'ศาลเจ้า', 'สำนักสงฆ์', 'สุเหร่า', 'มูลนิธิ',
+  'โรงเรียน', 'โรงพยาบาล', 'อนามัย', 'ธนาคาร', 'สหกรณ์',
+  'ปั๊ม', 'ตู้', 'ร้าน', 'ตลาด', 'สะพาน', 'ท่อ', 'สถานี', 'โรงแรม', 'รีสอร์ท',
+];
+
+function deriveNameType(name?: string): string | null {
+  const n = (name || '').trim();
+  return SUBTYPE_KEYWORDS.find((kw) => n.startsWith(kw)) || null;
+}
+
+// The grouping key for one POI under a given breakdown mode. Shared by the
+// breakdown strip and the table/map filter so both stay in sync.
+function poiSubKey(item: PoiItem, mode: PoiSubMode): string {
+  if (mode === 'sub') return (item.subCategory || '').trim() || 'ไม่ระบุประเภทย่อย';
+  if (mode === 'type') return deriveNameType(item.name) || 'อื่นๆ';
+  return item.policeSubstation || 'ไม่ระบุพื้นที่';
+}
+
 export const LocalPoiDashboard: React.FC<LocalPoiDashboardProps> = ({ searchQuery }) => {
   const [poiData, setPoiData] = useState<PoiItem[]>(getDataSource('poi') ? [] : SAMPLE_POI_DATA);
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const [selectedSubKey, setSelectedSubKey] = useState<string | null>(null);
   const [selectedZone, setSelectedZone] = useState<string>('ทั้งหมด');
   const [mapCenter, setMapCenter] = useState(HAT_YAI_STATION_COORDS);
   const [selectedMarkerId, setSelectedMarkerId] = useState<string | null>(null);
@@ -144,7 +170,44 @@ export const LocalPoiDashboard: React.FC<LocalPoiDashboardProps> = ({ searchQuer
 
 
 
-  // Filter POI items based on selected category, zone & global search
+  // Sub-type breakdown for the currently selected category card(s).
+  // Grouping priority: real "ประเภทย่อย" (subCategory) → a type keyword derived
+  // from the place name (วัด/มัสยิด/…) → patrol zone. This yields a quick numeric
+  // split even when the sheet has no dedicated sub-type column.
+  const subBreakdown = useMemo(() => {
+    if (selectedCategories.length === 0) return null;
+    const items = poiData.filter((i) => selectedCategories.includes(i.category));
+    if (items.length === 0) return null;
+
+    const hasRealSub = items.some((i) => {
+      const s = (i.subCategory || '').trim();
+      return s && !selectedCategories.includes(s);
+    });
+
+    let mode: PoiSubMode;
+    if (hasRealSub) {
+      mode = 'sub';
+    } else {
+      const derived = items.map((i) => deriveNameType(i.name)).filter(Boolean);
+      const distinct = new Set(derived).size;
+      // Use name-derived types only if they cover most items and actually split.
+      mode = derived.length >= items.length * 0.5 && distinct > 1 ? 'type' : 'zone';
+    }
+
+    const map: Record<string, number> = {};
+    items.forEach((i) => {
+      const key = poiSubKey(i, mode);
+      map[key] = (map[key] || 0) + 1;
+    });
+
+    return {
+      mode,
+      total: items.length,
+      entries: Object.entries(map).sort((a, b) => b[1] - a[1]),
+    };
+  }, [poiData, selectedCategories]);
+
+  // Filter POI items based on selected category, zone, sub-type & global search
   const filteredData = useMemo(() => {
     return poiData.filter((item) => {
       // Category filter
@@ -153,6 +216,11 @@ export const LocalPoiDashboard: React.FC<LocalPoiDashboardProps> = ({ searchQuer
       }
       // Zone filter
       if (selectedZone !== 'ทั้งหมด' && item.policeSubstation !== selectedZone) {
+        return false;
+      }
+      // Sub-type / sub-group filter (from the breakdown strip) — must use the
+      // same grouping key the strip was built with.
+      if (selectedSubKey && subBreakdown && poiSubKey(item, subBreakdown.mode) !== selectedSubKey) {
         return false;
       }
       if (!searchQuery) return true;
@@ -164,7 +232,13 @@ export const LocalPoiDashboard: React.FC<LocalPoiDashboardProps> = ({ searchQuer
         (item.policeSubstation && item.policeSubstation.toLowerCase().includes(q))
       );
     });
-  }, [poiData, selectedCategories, selectedZone, searchQuery]);
+  }, [poiData, selectedCategories, selectedSubKey, subBreakdown, selectedZone, searchQuery]);
+
+  // Reset the sub-filter whenever the selected category set changes, so a stale
+  // sub-key from a previous category can't hide everything.
+  useEffect(() => {
+    setSelectedSubKey(null);
+  }, [selectedCategories]);
 
   // Center the map on the middle of the actual pins whenever the filtered data changes
   useEffect(() => {
@@ -410,6 +484,53 @@ export const LocalPoiDashboard: React.FC<LocalPoiDashboardProps> = ({ searchQuer
           />
         ))}
       </div>
+
+      {/* Sub-type breakdown strip — quick numeric split of the selected category
+          without scanning the table. Only shown when there is more than one group. */}
+      {subBreakdown && subBreakdown.entries.length > 1 && (
+        <div className="glass-panel bg-slate-900/70 border border-slate-800 rounded-2xl px-4 py-3 flex items-center gap-3 overflow-x-auto scrollbar-none animate-fade-in">
+          <div className="flex items-center gap-1.5 shrink-0 text-xs font-bold text-slate-300">
+            <Tag className="w-3.5 h-3.5 text-blue-400" />
+            {subBreakdown.mode === 'sub'
+              ? 'แยกตามประเภทย่อย'
+              : subBreakdown.mode === 'type'
+                ? 'แยกตามชนิดสถานที่'
+                : 'แยกตามพื้นที่สายตรวจ'}
+            <span className="text-slate-500 font-medium">({subBreakdown.total} จุด)</span>
+          </div>
+          <div className="w-px h-5 bg-slate-700 shrink-0" />
+          <div className="flex items-center gap-2">
+            {selectedSubKey && (
+              <button
+                onClick={() => setSelectedSubKey(null)}
+                className="shrink-0 flex items-center gap-1 px-2.5 py-1.5 rounded-full text-xs font-semibold bg-slate-800 text-slate-400 border border-slate-700 hover:text-white transition-all"
+                title="ล้างตัวกรองประเภทย่อย"
+              >
+                <X className="w-3 h-3" /> ล้าง
+              </button>
+            )}
+            {subBreakdown.entries.map(([key, count]) => {
+              const active = selectedSubKey === key;
+              return (
+                <button
+                  key={key}
+                  onClick={() => setSelectedSubKey(active ? null : key)}
+                  className={`shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border transition-all whitespace-nowrap ${
+                    active
+                      ? 'bg-blue-600 text-white border-blue-400 shadow-sm'
+                      : 'bg-slate-800 text-slate-300 border-slate-700 hover:bg-slate-700 hover:text-white'
+                  }`}
+                >
+                  <span>{key}</span>
+                  <span className={`font-mono font-bold ${active ? 'text-white' : 'text-blue-300'}`}>
+                    {count.toLocaleString('th-TH')}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* Interactive Map - Pure Leaflet Popup over pins (No Modal Overlay) */}
       <InteractiveMap
