@@ -121,6 +121,7 @@ const CameraCard: React.FC<{
 export const CctvDashboard: React.FC<CctvDashboardProps> = ({ searchQuery }) => {
   const [cctvData, setCctvData] = useState<CctvItem[]>(USER_PROVIDED_CCTV_SHEET_URL ? [] : SAMPLE_CCTV_DATA);
   const [selectedAgencyFilter, setSelectedAgencyFilter] = useState<string>('ทั้งหมด');
+  const [selectedTypeFilter, setSelectedTypeFilter] = useState<string>('ทั้งหมด');
   const [selectedStatusFilter, setSelectedStatusFilter] = useState<string>('ทั้งหมด');
   const [activeViewMode, setActiveViewMode] = useState<'map-split' | 'map-full' | 'grid'>('map-split');
   const [selectedMarkerId, setSelectedMarkerId] = useState<string | null>(null);
@@ -154,6 +155,9 @@ export const CctvDashboard: React.FC<CctvDashboardProps> = ({ searchQuery }) => 
       if (selectedAgencyFilter !== 'ทั้งหมด' && item.agency !== selectedAgencyFilter) {
         return false;
       }
+      if (selectedTypeFilter !== 'ทั้งหมด' && item.type !== selectedTypeFilter) {
+        return false;
+      }
       if (selectedStatusFilter !== 'ทั้งหมด') {
         if (selectedStatusFilter === 'online' && !item.status.includes('ปกติ')) return false;
         if (selectedStatusFilter === 'offline' && !item.status.includes('ขัดข้อง')) return false;
@@ -165,10 +169,11 @@ export const CctvDashboard: React.FC<CctvDashboardProps> = ({ searchQuery }) => 
         item.locationName.toLowerCase().includes(q) ||
         item.address.toLowerCase().includes(q) ||
         item.agency.toLowerCase().includes(q) ||
+        item.type.toLowerCase().includes(q) ||
         item.notes.toLowerCase().includes(q)
       );
     });
-  }, [cctvData, selectedAgencyFilter, selectedStatusFilter, searchQuery]);
+  }, [cctvData, selectedAgencyFilter, selectedTypeFilter, selectedStatusFilter, searchQuery]);
 
   // Center the map on the middle of the actual camera pins when data changes
   useEffect(() => {
@@ -179,7 +184,7 @@ export const CctvDashboard: React.FC<CctvDashboardProps> = ({ searchQuery }) => 
   useEffect(() => {
     setGridPage(1);
     setWallPage(0);
-  }, [selectedAgencyFilter, selectedStatusFilter, searchQuery, density]);
+  }, [selectedAgencyFilter, selectedTypeFilter, selectedStatusFilter, searchQuery, density]);
 
   // Grid view pagination calculation
   const totalGridPages = Math.ceil(filteredData.length / gridPageSize) || 1;
@@ -490,32 +495,94 @@ export const CctvDashboard: React.FC<CctvDashboardProps> = ({ searchQuery }) => 
 
 
 
-      {/* KPI Cards Row — dynamic by the actual agencies present in the data */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3.5">
-        <KpiCard
-          title="กล้องทั้งหมด"
-          value={agencyCounts.total}
-          subtext="ครอบคลุมทุกสังกัด"
-          icon={Camera}
-          colorTheme="rose"
-          isActive={selectedAgencyFilter === 'ทั้งหมด'}
-          onClick={() => setSelectedAgencyFilter('ทั้งหมด')}
-        />
-        {agencyBreakdown.slice(0, 5).map(([name, count], i) => {
-          const pct = agencyCounts.total > 0 ? ((count / agencyCounts.total) * 100).toFixed(1) : '0';
-          return (
+      {/* Stat Cards Section: Camera Types & Agencies/Subdistricts */}
+      <div className="space-y-4">
+        {/* Row 1: Camera Types Breakdown */}
+        <div>
+          <div className="flex items-center justify-between mb-2 px-1">
+            <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+              <Camera className="w-3.5 h-3.5 text-blue-400" /> สถิติจำนวนกล้องแยกตามประเภทอุปกรณ์ (Camera Types)
+            </h3>
+            {selectedTypeFilter !== 'ทั้งหมด' && (
+              <button
+                onClick={() => setSelectedTypeFilter('ทั้งหมด')}
+                className="text-[11px] font-bold text-blue-400 hover:underline flex items-center gap-1"
+              >
+                <X className="w-3 h-3" /> ล้างตัวกรองประเภท ({selectedTypeFilter})
+              </button>
+            )}
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
             <KpiCard
-              key={name}
-              title={name}
-              value={count}
-              subtext={`สัดส่วน ${pct}%`}
-              icon={Building}
-              colorTheme={KPI_THEMES[i % KPI_THEMES.length]}
-              isActive={selectedAgencyFilter === name}
-              onClick={() => setSelectedAgencyFilter(selectedAgencyFilter === name ? 'ทั้งหมด' : name)}
+              title="ประเภททั้งหมด"
+              value={agencyCounts.total}
+              subtext="ทุกประเภทอุปกรณ์"
+              icon={Camera}
+              colorTheme="indigo"
+              isActive={selectedTypeFilter === 'ทั้งหมด'}
+              onClick={() => setSelectedTypeFilter('ทั้งหมด')}
             />
-          );
-        })}
+            {typeBreakdown.slice(0, 5).map(([name, count], i) => {
+              const pct = agencyCounts.total > 0 ? ((count / agencyCounts.total) * 100).toFixed(1) : '0';
+              const themes: Array<'blue' | 'emerald' | 'amber' | 'purple' | 'rose' | 'slate'> = ['blue', 'emerald', 'amber', 'purple', 'rose', 'slate'];
+              return (
+                <KpiCard
+                  key={name}
+                  title={name}
+                  value={count}
+                  subtext={`สัดส่วน ${pct}%`}
+                  icon={Cctv}
+                  colorTheme={themes[i % themes.length]}
+                  isActive={selectedTypeFilter === name}
+                  onClick={() => setSelectedTypeFilter(selectedTypeFilter === name ? 'ทั้งหมด' : name)}
+                />
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Row 2: Agencies & Subdistricts Breakdown */}
+        <div>
+          <div className="flex items-center justify-between mb-2 px-1">
+            <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+              <Building2 className="w-3.5 h-3.5 text-indigo-400" /> สถิติจำนวนกล้องแยกตามสังกัด / พื้นที่รับผิดชอบ
+            </h3>
+            {selectedAgencyFilter !== 'ทั้งหมด' && (
+              <button
+                onClick={() => setSelectedAgencyFilter('ทั้งหมด')}
+                className="text-[11px] font-bold text-blue-400 hover:underline flex items-center gap-1"
+              >
+                <X className="w-3 h-3" /> ล้างตัวกรองสังกัด ({selectedAgencyFilter})
+              </button>
+            )}
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+            <KpiCard
+              title="สังกัดทั้งหมด"
+              value={agencyCounts.total}
+              subtext="ครอบคลุมทุกพื้นที่"
+              icon={Building}
+              colorTheme="rose"
+              isActive={selectedAgencyFilter === 'ทั้งหมด'}
+              onClick={() => setSelectedAgencyFilter('ทั้งหมด')}
+            />
+            {agencyBreakdown.slice(0, 5).map(([name, count], i) => {
+              const pct = agencyCounts.total > 0 ? ((count / agencyCounts.total) * 100).toFixed(1) : '0';
+              return (
+                <KpiCard
+                  key={name}
+                  title={name}
+                  value={count}
+                  subtext={`สัดส่วน ${pct}%`}
+                  icon={Building}
+                  colorTheme={KPI_THEMES[i % KPI_THEMES.length]}
+                  isActive={selectedAgencyFilter === name}
+                  onClick={() => setSelectedAgencyFilter(selectedAgencyFilter === name ? 'ทั้งหมด' : name)}
+                />
+              );
+            })}
+          </div>
+        </div>
       </div>
 
       {/* Main Content Area based on View Mode - Standard Leaflet Popup Over Pins */}

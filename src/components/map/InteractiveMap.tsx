@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useMemo, useCallback } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMap, useMapEvents } from 'react-leaflet';
 import L from 'leaflet';
 import MarkerClusterGroup from 'react-leaflet-cluster';
+import { Maximize2, Minimize2 } from 'lucide-react';
 import 'leaflet/dist/leaflet.css';
 
 export interface MapMarkerItem {
@@ -101,6 +102,18 @@ function MapController({
     }
   }, [center, map, selectedMarkerId, markersRefs]);
 
+  return null;
+}
+
+// Controller component to invalidate Leaflet map size when entering/exiting full screen
+function MapResizer({ isFullScreen }: { isFullScreen: boolean }) {
+  const map = useMap();
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      map.invalidateSize();
+    }, 150);
+    return () => clearTimeout(timer);
+  }, [map, isFullScreen]);
   return null;
 }
 
@@ -246,9 +259,36 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
   selectedMarkerId,
 }) => {
   const [mapStyle, setMapStyle] = React.useState<'streets' | 'satellite' | 'dark'>('streets');
+  const [isFullScreen, setIsFullScreen] = React.useState<boolean>(false);
+  const containerRef = useRef<HTMLDivElement>(null);
   const lastCenterChangeTime = useRef<number>(0);
   const lastSelectChangeTime = useRef<number>(0);
   const markersRefs = useRef<Record<string, L.Marker>>({});
+
+  const toggleFullScreen = useCallback(() => {
+    if (!isFullScreen) {
+      if (containerRef.current?.requestFullscreen) {
+        containerRef.current.requestFullscreen().catch(() => {});
+      }
+      setIsFullScreen(true);
+    } else {
+      if (document.fullscreenElement && document.exitFullscreen) {
+        document.exitFullscreen().catch(() => {});
+      }
+      setIsFullScreen(false);
+    }
+  }, [isFullScreen]);
+
+  // Sync ESC key exit from browser native fullscreen
+  useEffect(() => {
+    const handleFSChange = () => {
+      if (!document.fullscreenElement) {
+        setIsFullScreen(false);
+      }
+    };
+    document.addEventListener('fullscreenchange', handleFSChange);
+    return () => document.removeEventListener('fullscreenchange', handleFSChange);
+  }, []);
 
   // Use refs to stabilize callbacks and prevent useMemo from re-running on every render
   // when parent components pass inline functions (which causes popup blinking).
@@ -374,9 +414,14 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
   };
 
   return (
-    <div className="glass-panel bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-2xl relative">
+    <div
+      ref={containerRef}
+      className={`glass-panel bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-2xl relative transition-all duration-300 ${
+        isFullScreen ? 'fixed inset-0 z-[9999] rounded-none h-screen w-screen bg-slate-950 border-0 m-0 p-0' : ''
+      }`}
+    >
       {/* Map Header Control Strip */}
-      <div className="px-4 py-3 bg-slate-950/80 border-b border-slate-800/80 flex flex-wrap items-center justify-between gap-3 z-10 relative">
+      <div className="px-4 py-3 bg-slate-950/90 border-b border-slate-800/80 flex flex-wrap items-center justify-between gap-3 z-10 relative">
         <div className="flex items-center gap-2">
           <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
           <h3 className="text-sm font-bold text-slate-100 flex items-center gap-2">
@@ -387,43 +432,65 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
           </span>
         </div>
 
-        {/* Map Layer Switcher Buttons */}
-        <div className="flex items-center bg-slate-900 p-1 rounded-xl border border-slate-800 text-xs">
+        <div className="flex items-center gap-2">
+          {/* Map Layer Switcher Buttons */}
+          <div className="flex items-center bg-slate-900 p-1 rounded-xl border border-slate-800 text-xs">
+            <button
+              onClick={() => changeMapStyle('dark')}
+              className={`px-3 py-1 rounded-lg transition-all ${
+                mapStyle === 'dark' ? 'bg-blue-600 text-white font-bold shadow' : 'text-slate-400 hover:text-slate-200'
+              }`}
+            >
+              แผนที่มืด (Dark Police)
+            </button>
+            <button
+              onClick={() => changeMapStyle('streets')}
+              className={`px-3 py-1 rounded-lg transition-all ${
+                mapStyle === 'streets' ? 'bg-blue-600 text-white font-bold shadow' : 'text-slate-400 hover:text-slate-200'
+              }`}
+            >
+              ถนน (Streets)
+            </button>
+            <button
+              onClick={() => changeMapStyle('satellite')}
+              className={`px-3 py-1 rounded-lg transition-all ${
+                mapStyle === 'satellite' ? 'bg-blue-600 text-white font-bold shadow' : 'text-slate-400 hover:text-slate-200'
+              }`}
+            >
+              ดาวเทียม (Satellite)
+            </button>
+          </div>
+
+          {/* Full Screen Toggle Button */}
           <button
-            onClick={() => changeMapStyle('dark')}
-            className={`px-3 py-1 rounded-lg transition-all ${
-              mapStyle === 'dark' ? 'bg-blue-600 text-white font-bold shadow' : 'text-slate-400 hover:text-slate-200'
-            }`}
+            onClick={toggleFullScreen}
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl text-xs shadow-lg transition-all border border-blue-400/40"
+            title={isFullScreen ? 'ออกจากโหมดเต็มหน้าจอ (Esc)' : 'แสดงแผนที่เต็มหน้าจอ (Full Screen)'}
           >
-            แผนที่มืด (Dark Police)
-          </button>
-          <button
-            onClick={() => changeMapStyle('streets')}
-            className={`px-3 py-1 rounded-lg transition-all ${
-              mapStyle === 'streets' ? 'bg-blue-600 text-white font-bold shadow' : 'text-slate-400 hover:text-slate-200'
-            }`}
-          >
-            ถนน (Streets)
-          </button>
-          <button
-            onClick={() => changeMapStyle('satellite')}
-            className={`px-3 py-1 rounded-lg transition-all ${
-              mapStyle === 'satellite' ? 'bg-blue-600 text-white font-bold shadow' : 'text-slate-400 hover:text-slate-200'
-            }`}
-          >
-            ดาวเทียม (Satellite)
+            {isFullScreen ? (
+              <>
+                <Minimize2 className="w-3.5 h-3.5" />
+                <span>ย่อขนาด</span>
+              </>
+            ) : (
+              <>
+                <Maximize2 className="w-3.5 h-3.5" />
+                <span>เต็มหน้าจอ</span>
+              </>
+            )}
           </button>
         </div>
       </div>
 
       {/* Main Leaflet Map Canvas Container */}
-      <div style={{ height }} className="w-full relative z-0">
+      <div style={{ height: isFullScreen ? 'calc(100vh - 54px)' : height }} className="w-full relative z-0">
         <MapContainer
           center={[center.lat, center.lng]}
           zoom={center.zoom || zoom}
           scrollWheelZoom={true}
           style={{ height: '100%', width: '100%' }}
         >
+          <MapResizer isFullScreen={isFullScreen} />
           <MapController
             center={center}
             selectedMarkerId={selectedMarkerId}
