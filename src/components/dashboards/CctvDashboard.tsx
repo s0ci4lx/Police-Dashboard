@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import type { CctvItem } from '../../types/dashboard';
 import { SAMPLE_CCTV_DATA, HAT_YAI_STATION_COORDS, USER_PROVIDED_CCTV_SHEET_URL } from '../../data/mockInitialData';
 import { fetchCctvFromSheet } from '../../data/cctvShared';
@@ -7,7 +7,7 @@ import { DataTable } from '../common/DataTable';
 import type { ColumnDef } from '../common/DataTable';
 import { StatChart } from '../common/StatChart';
 import { InteractiveMap, CATEGORY_COLORS, TYPE_COLORS, centerOfMarkers, getCategoryColor } from '../map/InteractiveMap';
-import type { MapMarkerItem } from '../map/InteractiveMap';
+import type { MapMarkerItem, MapFilterCategory } from '../map/InteractiveMap';
 import {
   Camera,
   Building,
@@ -391,6 +391,64 @@ export const CctvDashboard: React.FC<CctvDashboardProps> = ({ searchQuery }) => 
     },
   ];
 
+  const cctvCategoriesOverlay = useMemo(() => {
+    const list: MapFilterCategory[] = [
+      {
+        id: 'ALL',
+        label: 'กล้องทั้งหมด',
+        count: cctvData.length,
+        color: '#3b82f6',
+        subLabel: 'รวมทุกประเภททุกสังกัด',
+      },
+    ];
+
+    // 1. Device Types (WIFI, 4G, ยุทธวิธี, Fixed, PTZ, LPR/AI, Speed Cam)
+    Object.entries(wallStats.typeCount).forEach(([typeName, count]) => {
+      const typeInfo = TYPE_STYLE[typeName] || { color: '#8b5cf6', short: typeName };
+      list.push({
+        id: `TYPE_${typeName}`,
+        label: typeName,
+        count,
+        color: typeInfo.color,
+        subLabel: 'ประเภทอุปกรณ์กล้อง',
+      });
+    });
+
+    // 2. Agencies (สังกัด)
+    agencyBreakdown.forEach(([agencyName, count]) => {
+      list.push({
+        id: `AGENCY_${agencyName}`,
+        label: agencyName,
+        count,
+        color: getCategoryColor(agencyName),
+        subLabel: 'สังกัดผู้รับผิดชอบ',
+      });
+    });
+
+    return list;
+  }, [cctvData.length, wallStats.typeCount, agencyBreakdown]);
+
+  const activeCctvCatId = useMemo(() => {
+    if (selectedTypeFilter !== 'ทั้งหมด') return `TYPE_${selectedTypeFilter}`;
+    if (selectedAgencyFilter !== 'ทั้งหมด') return `AGENCY_${selectedAgencyFilter}`;
+    return 'ALL';
+  }, [selectedTypeFilter, selectedAgencyFilter]);
+
+  const handleCctvCategorySelect = useCallback((catId: string) => {
+    if (catId === 'ALL') {
+      setSelectedAgencyFilter('ทั้งหมด');
+      setSelectedTypeFilter('ทั้งหมด');
+    } else if (catId.startsWith('TYPE_')) {
+      const typeName = catId.replace('TYPE_', '');
+      setSelectedTypeFilter(typeName);
+      setSelectedAgencyFilter('ทั้งหมด');
+    } else if (catId.startsWith('AGENCY_')) {
+      const agencyName = catId.replace('AGENCY_', '');
+      setSelectedAgencyFilter(agencyName);
+      setSelectedTypeFilter('ทั้งหมด');
+    }
+  }, []);
+
   return (
     <div className="space-y-6 animate-fade-in">
       {/* Banner Title Bar with Operational Controls */}
@@ -634,6 +692,11 @@ export const CctvDashboard: React.FC<CctvDashboardProps> = ({ searchQuery }) => 
             }
           }}
           onClearSelection={() => setSelectedMarkerId(null)}
+          categoriesOverlay={cctvCategoriesOverlay}
+          selectedCategoryId={activeCctvCatId}
+          onSelectCategory={handleCctvCategorySelect}
+          categoryFilterTitle="เลือกประเภท / สังกัดกล้องวงจรปิดเพื่อกรองบนแผนที่"
+          searchQuery={searchQuery}
         />
       )}
 
@@ -654,6 +717,11 @@ export const CctvDashboard: React.FC<CctvDashboardProps> = ({ searchQuery }) => 
               }
             }}
             onClearSelection={() => setSelectedMarkerId(null)}
+            categoriesOverlay={cctvCategoriesOverlay}
+            selectedCategoryId={activeCctvCatId}
+            onSelectCategory={handleCctvCategorySelect}
+            categoryFilterTitle="เลือกประเภท / สังกัดกล้องวงจรปิดเพื่อกรองบนแผนที่"
+            searchQuery={searchQuery}
           />
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">

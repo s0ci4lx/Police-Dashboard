@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import type { PoiItem } from '../../types/dashboard';
 import { SAMPLE_POI_DATA, HAT_YAI_STATION_COORDS } from '../../data/mockInitialData';
 import { fetchSheetData, detectLatLongColumns, parseRowLatLng } from '../../services/googleSheetService';
@@ -8,7 +8,7 @@ import { DataTable } from '../common/DataTable';
 import type { ColumnDef } from '../common/DataTable';
 import { StatChart } from '../common/StatChart';
 import { InteractiveMap, CATEGORY_COLORS, centerOfMarkers, getCategoryColor } from '../map/InteractiveMap';
-import type { MapMarkerItem } from '../map/InteractiveMap';
+import type { MapMarkerItem, MapFilterCategory } from '../map/InteractiveMap';
 import {
   MapPin,
   School,
@@ -372,6 +372,69 @@ export const LocalPoiDashboard: React.FC<LocalPoiDashboardProps> = ({ searchQuer
     },
   ];
 
+  const poiCategoriesOverlay = useMemo(() => {
+    const list: MapFilterCategory[] = [
+      {
+        id: 'ALL',
+        label: 'สถานที่ทั้งหมด',
+        count: poiData.length,
+        color: '#3b82f6',
+        subLabel: 'รวมทุกหมวดในพื้นที่',
+      },
+    ];
+
+    activeCategoryCards.forEach((cat) => {
+      const isSelectedCat = selectedCategories.includes(cat.name);
+
+      list.push({
+        id: `CAT_${cat.name}`,
+        label: cat.name,
+        count: cat.count,
+        color: getCategoryColor(cat.name),
+        subLabel: cat.label,
+      });
+
+      // Insert sub-category chips right under the selected category card
+      if (isSelectedCat && subBreakdown && subBreakdown.entries.length > 0) {
+        subBreakdown.entries.forEach(([subKey, count]) => {
+          list.push({
+            id: `SUB_${subKey}`,
+            label: `↳ ${subKey}`,
+            count,
+            color: getCategoryColor(cat.name),
+            subLabel: `ประเภทย่อยของ ${cat.name}`,
+          });
+        });
+      }
+    });
+
+    return list;
+  }, [poiData.length, activeCategoryCards, selectedCategories, subBreakdown]);
+
+  const activePoiCatId = useMemo(() => {
+    if (selectedSubKey) {
+      return `SUB_${selectedSubKey}`;
+    }
+    if (selectedCategories.length > 0) {
+      return `CAT_${selectedCategories[0]}`;
+    }
+    return 'ALL';
+  }, [selectedSubKey, selectedCategories]);
+
+  const handlePoiCategorySelect = useCallback((catId: string) => {
+    if (catId === 'ALL') {
+      setSelectedCategories([]);
+      setSelectedSubKey(null);
+    } else if (catId.startsWith('SUB_')) {
+      const subKey = catId.replace('SUB_', '');
+      setSelectedSubKey(subKey);
+    } else if (catId.startsWith('CAT_')) {
+      const catName = catId.replace('CAT_', '');
+      setSelectedCategories([catName]);
+      setSelectedSubKey(null);
+    }
+  }, []);
+
   return (
     <div className="space-y-6 animate-fade-in">
       {/* Title Banner */}
@@ -543,6 +606,11 @@ export const LocalPoiDashboard: React.FC<LocalPoiDashboardProps> = ({ searchQuer
         selectedMarkerId={selectedMarkerId || undefined}
         onSelectMarker={(m) => setSelectedMarkerId(m.id)}
         onClearSelection={() => setSelectedMarkerId(null)}
+        categoriesOverlay={poiCategoriesOverlay}
+        selectedCategoryId={activePoiCatId}
+        onSelectCategory={handlePoiCategorySelect}
+        categoryFilterTitle="เลือกหมวดหมู่ / ประเภทย่อยเพื่อกรองบนแผนที่"
+        searchQuery={searchQuery}
       />
 
       {/* Table & Chart Split View */}

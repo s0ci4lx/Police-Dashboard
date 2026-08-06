@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useMemo, useCallback } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMap, useMapEvents } from 'react-leaflet';
 import L from 'leaflet';
 import MarkerClusterGroup from 'react-leaflet-cluster';
-import { Maximize2, Minimize2 } from 'lucide-react';
+import { Maximize2, Minimize2, Filter, X, ChevronDown, ChevronUp, Layers, Search } from 'lucide-react';
 import 'leaflet/dist/leaflet.css';
 
 export interface MapMarkerItem {
@@ -19,6 +19,15 @@ export interface MapMarkerItem {
   rawData?: any;
 }
 
+export interface MapFilterCategory {
+  id: string;
+  label: string;
+  count: number;
+  color?: string;
+  subLabel?: string;
+  icon?: any;
+}
+
 interface InteractiveMapProps {
   markers: MapMarkerItem[];
   center: { lat: number; lng: number; zoom?: number };
@@ -29,6 +38,18 @@ interface InteractiveMapProps {
   onSelectMarker?: (marker: MapMarkerItem) => void;
   onClearSelection?: () => void;
   selectedMarkerId?: string;
+
+  // Category Overlay Props for Full Screen & Floating Filter Bar
+  categoriesOverlay?: MapFilterCategory[];
+  selectedCategoryId?: string;
+  onSelectCategory?: (categoryId: string) => void;
+  categoryFilterTitle?: string;
+  defaultShowFilterBar?: boolean;
+
+  // Search Box Props for Map
+  searchQuery?: string;
+  onSearchChange?: (query: string) => void;
+  searchPlaceholder?: string;
 }
 
 // Custom Leaflet Pin Marker Icon generator using SVG SVG HTML
@@ -286,9 +307,39 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
   onSelectMarker,
   onClearSelection,
   selectedMarkerId,
+  categoriesOverlay,
+  selectedCategoryId,
+  onSelectCategory,
+  categoryFilterTitle = 'กรองข้อมูลตามหมวดหมู่',
+  defaultShowFilterBar = false,
+  searchQuery,
+  onSearchChange,
+  searchPlaceholder = 'ค้นหาชื่อสถานที่, พิกัด, ที่อยู่...',
 }) => {
   const [mapStyle, setMapStyle] = React.useState<MapStyle>('google-streets');
   const [isFullScreen, setIsFullScreen] = React.useState<boolean>(false);
+  const [showFilterBar, setShowFilterBar] = React.useState<boolean>(defaultShowFilterBar);
+  const [internalSelectedCat, setInternalSelectedCat] = React.useState<string>('ALL');
+  const [internalSearch, setInternalSearch] = React.useState<string>('');
+
+  // Automatically show filter bar when entering full screen, and hide when exiting full screen
+  useEffect(() => {
+    setShowFilterBar(isFullScreen);
+  }, [isFullScreen]);
+
+  // Use internal search state when typed directly in map, falling back to parent's searchQuery
+  const currentSearch = internalSearch !== '' ? internalSearch : (searchQuery || '');
+
+  const handleSearchChange = useCallback(
+    (q: string) => {
+      setInternalSearch(q);
+      if (onSearchChange) {
+        onSearchChange(q);
+      }
+    },
+    [onSearchChange]
+  );
+
   // Bumped when a selection-driven map move settles, to remount the popup onto
   // the already-settled map (see MapController) so it opens on the first click.
   const [popupNonce, setPopupNonce] = React.useState(0);
@@ -359,22 +410,86 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
     lastSelectChangeTime.current = Date.now();
   }, [selectedMarkerId]);
 
-  // react-leaflet applies a Popup's `className` only once at creation, so an open
-  // popup keeps its old is-light/is-dark class when the base map style changes —
-  // leaving e.g. white title text on the white "streets" card. Re-key the popup on
-  // style change to recreate it with the right theme, and bump the select-time
-  // guard first so the recreate's own popupclose doesn't drop the selection.
   const changeMapStyle = useCallback((style: MapStyle) => {
     lastSelectChangeTime.current = Date.now();
     setMapStyle(style);
   }, []);
 
+  // Calculate categories list for overlay bar (auto-fallback if not provided)
+  const effectiveCategories = useMemo(() => {
+    if (categoriesOverlay && categoriesOverlay.length > 0) {
+      return categoriesOverlay;
+    }
+
+    const counts: Record<string, number> = {};
+    markers.forEach((m) => {
+      const cat = m.category || 'อื่นๆ';
+      counts[cat] = (counts[cat] || 0) + 1;
+    });
+
+    const list: MapFilterCategory[] = [
+      {
+        id: 'ALL',
+        label: 'หมวดหมู่ทั้งหมด',
+        count: markers.length,
+        color: '#3b82f6',
+        subLabel: 'รวมหมุดทั้งหมดบนแผนที่',
+      },
+    ];
+
+    Object.entries(counts).forEach(([cat, count]) => {
+      list.push({
+        id: cat,
+        label: cat,
+        count,
+        color: getCategoryColor(cat),
+      });
+    });
+
+    return list;
+  }, [categoriesOverlay, markers]);
+
+  const activeCatId = selectedCategoryId !== undefined ? selectedCategoryId : internalSelectedCat;
+
+  const handleSelectCat = useCallback(
+    (catId: string) => {
+      setInternalSelectedCat(catId);
+      if (onSelectCategory) {
+        onSelectCategory(catId);
+      }
+    },
+    [onSelectCategory]
+  );
+
   const selectedMarkerData = useMemo(() => {
     return markers.find((m) => m.id === selectedMarkerId) || null;
   }, [markers, selectedMarkerId]);
 
+  // Filter markers internally by category and search query
+  const filteredMarkers = useMemo(() => {
+    let list = markers;
+
+    if (!onSelectCategory && activeCatId && activeCatId !== 'ALL' && activeCatId !== 'ทั้งหมด') {
+      list = list.filter((m) => m.category === activeCatId);
+    }
+
+    if (currentSearch && currentSearch.trim() !== '') {
+      const q = currentSearch.toLowerCase().trim();
+      list = list.filter(
+        (m) =>
+          m.title.toLowerCase().includes(q) ||
+          (m.address && m.address.toLowerCase().includes(q)) ||
+          (m.notes && m.notes.toLowerCase().includes(q)) ||
+          (m.category && m.category.toLowerCase().includes(q)) ||
+          (m.type && m.type.toLowerCase().includes(q))
+      );
+    }
+
+    return list;
+  }, [markers, activeCatId, onSelectCategory, currentSearch]);
+
   const renderedMarkers = useMemo(() => {
-    const list = markers.map((marker) => {
+    const list = filteredMarkers.map((marker) => {
       const isSelected = marker.id === selectedMarkerId;
       const pinColor = marker.color || getCategoryColor(marker.category);
       return (
@@ -414,10 +529,10 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
               c += 'large';
             }
             
-            const markers = cluster.getAllChildMarkers();
+            const childMarkers = cluster.getAllChildMarkers();
             let dominantColor = '#3b82f6'; // default blue
-            if (markers.length > 0) {
-               const icon = markers[0].options.icon as any;
+            if (childMarkers.length > 0) {
+               const icon = childMarkers[0].options.icon as any;
                if (icon && icon.options && icon.options.html) {
                   const match = icon.options.html.match(/fill="([^"]+)"/);
                   if (match && match[1]) {
@@ -438,7 +553,7 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
       );
     }
     return <>{list}</>;
-  }, [markers, selectedMarkerId, enableClustering, onSelectMarker]);
+  }, [filteredMarkers, selectedMarkerId, enableClustering, stableOnSelectMarker]);
 
   const tileProviders: Record<MapStyle, { url: string; attribution: string; subdomains?: string[] }> = {
     'google-streets': {
@@ -478,11 +593,49 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
             {title}
           </h3>
           <span className="text-[11px] font-semibold text-slate-400 bg-slate-800 px-2 py-0.5 rounded-full">
-            {markers.length.toLocaleString('th-TH')} หมุด
+            {filteredMarkers.length.toLocaleString('th-TH')} หมุด
           </span>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
+          {/* Quick Search Input Field in Map Header */}
+          <div className="relative flex items-center min-w-[170px] sm:min-w-[210px]">
+            <Search className="w-3.5 h-3.5 absolute left-2.5 text-slate-400 pointer-events-none" />
+            <input
+              type="text"
+              value={currentSearch}
+              onChange={(e) => handleSearchChange(e.target.value)}
+              placeholder={searchPlaceholder}
+              className="w-full bg-slate-900 text-slate-100 placeholder-slate-500 text-xs pl-8 pr-7 py-1 rounded-xl border border-slate-800 focus:outline-none focus:border-blue-500 transition-all shadow-inner"
+            />
+            {currentSearch && (
+              <button
+                onClick={() => handleSearchChange('')}
+                className="absolute right-2 text-slate-400 hover:text-white"
+                title="ล้างคำค้นหา"
+              >
+                <X className="w-3 h-3" />
+              </button>
+            )}
+          </div>
+
+          {/* Category Filter Toggle Button */}
+          {effectiveCategories.length > 0 && (
+            <button
+              onClick={() => setShowFilterBar((prev) => !prev)}
+              className={`flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-bold transition-all border ${
+                showFilterBar
+                  ? 'bg-blue-600/30 border-blue-500/60 text-blue-200 shadow-sm'
+                  : 'bg-slate-900 border-slate-800 text-slate-400 hover:text-slate-200'
+              }`}
+              title="แสดง/ซ่อน ตัวกรองหมวดหมู่"
+            >
+              <Filter className="w-3.5 h-3.5" />
+              <span>ตัวกรอง</span>
+              {showFilterBar ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+            </button>
+          )}
+
           {/* Map Layer Switcher Buttons */}
           <div className="flex items-center bg-slate-900 p-1 rounded-xl border border-slate-800 text-xs gap-1">
             <button
@@ -534,6 +687,95 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
 
       {/* Main Leaflet Map Canvas Container */}
       <div style={{ height: isFullScreen ? 'calc(100vh - 54px)' : height }} className="w-full relative z-0">
+        {/* Floating Category Filter Cards Overlay Strip */}
+        {showFilterBar && effectiveCategories.length > 0 && (
+          <div className="absolute top-3 left-3 right-3 z-[1000] bg-slate-950/90 backdrop-blur-md border border-slate-800/90 rounded-2xl p-2.5 shadow-2xl transition-all duration-300 animate-in fade-in slide-in-from-top-2">
+            <div className="flex items-center justify-between px-1 pb-1.5 mb-1.5 border-b border-slate-800/80 gap-2 flex-wrap">
+              <div className="flex items-center gap-2">
+                <Layers className="w-3.5 h-3.5 text-blue-400 shrink-0" />
+                <span className="text-xs font-bold text-slate-200 truncate">
+                  {categoryFilterTitle}
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                {/* Search Box in Floating Overlay Bar */}
+                <div className="relative flex items-center min-w-[150px] sm:min-w-[200px]">
+                  <Search className="w-3 h-3 absolute left-2 text-slate-400 pointer-events-none" />
+                  <input
+                    type="text"
+                    value={currentSearch}
+                    onChange={(e) => handleSearchChange(e.target.value)}
+                    placeholder="พิมพ์ค้นหาชื่อสถานที่, พิกัด..."
+                    className="w-full bg-slate-900/90 text-slate-100 placeholder-slate-500 text-[11px] pl-7 pr-6 py-0.5 rounded-lg border border-slate-800 focus:outline-none focus:border-blue-500 transition-all"
+                  />
+                  {currentSearch && (
+                    <button
+                      onClick={() => handleSearchChange('')}
+                      className="absolute right-1.5 text-slate-400 hover:text-white"
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
+                  )}
+                </div>
+                <button
+                  onClick={() => setShowFilterBar(false)}
+                  className="text-[10px] font-bold text-slate-400 hover:text-white px-2 py-0.5 rounded bg-slate-900 border border-slate-800 hover:border-slate-700 transition-all flex items-center gap-1 shrink-0"
+                >
+                  <X className="w-3 h-3" /> ซ่อน
+                </button>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2.5 overflow-x-auto pb-1 pt-0.5 px-0.5 scrollbar-thin scrollbar-thumb-slate-700">
+              {effectiveCategories.map((cat) => {
+                const isActive =
+                  activeCatId === cat.id ||
+                  (activeCatId === 'ALL' && cat.id === 'ALL') ||
+                  (activeCatId === 'ทั้งหมด' && cat.id === 'ทั้งหมด');
+                const catColor = cat.color || getCategoryColor(cat.label);
+
+                return (
+                  <button
+                    key={cat.id}
+                    onClick={() => handleSelectCat(cat.id)}
+                    className={`flex-shrink-0 min-w-[130px] max-w-[190px] p-2 rounded-xl border text-left transition-all duration-200 relative overflow-hidden group cursor-pointer ${
+                      isActive
+                        ? 'border-blue-500 bg-blue-600/25 text-white shadow-lg ring-1 ring-blue-400/50'
+                        : 'border-slate-800 bg-slate-900/80 text-slate-300 hover:border-slate-700 hover:bg-slate-800'
+                    }`}
+                  >
+                    <span
+                      className="absolute top-0 left-0 right-0 h-1 transition-all"
+                      style={{ backgroundColor: catColor, opacity: isActive ? 1 : 0.6 }}
+                    />
+
+                    <div className="flex items-center justify-between gap-1.5 mt-0.5">
+                      <span className="text-[11px] font-bold text-slate-200 group-hover:text-white truncate">
+                        {cat.label}
+                      </span>
+                      <span
+                        className="text-[10px] font-extrabold px-1.5 py-0.5 rounded-full shrink-0 shadow font-mono"
+                        style={{
+                          backgroundColor: `${catColor}33`,
+                          color: catColor,
+                          border: `1px solid ${catColor}55`,
+                        }}
+                      >
+                        {cat.count.toLocaleString('th-TH')}
+                      </span>
+                    </div>
+
+                    {cat.subLabel && (
+                      <p className="text-[9px] text-slate-400 truncate mt-0.5">
+                        {cat.subLabel}
+                      </p>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
         <MapContainer
           center={[center.lat, center.lng]}
           zoom={center.zoom || zoom}
