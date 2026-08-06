@@ -389,12 +389,12 @@ export const ReportDashboard: React.FC<ReportDashboardProps> = ({ searchQuery: _
       </div>
 
       {/* KPIs */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-9 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         <KpiCard icon="🚧" val={cp} label="ครั้ง · ตั้งจุดตรวจ/สกัด" color="text-blue-400" />
         <KpiCard icon="🚗" val={veh} label="คัน · ตรวจยานพาหนะ" color="text-emerald-400" />
         <KpiCard icon="👤" val={ppl} label="คน · ตรวจค้นบุคคล" color="text-indigo-400" />
-        <KpiCard icon="🚔" val={arrAll} label="ราย · จับกุม" color="text-amber-400" />
         <KpiCard icon="🏠" val={sum("rent")} label="แห่ง · ตรวจบ้านเช่า" color="text-emerald-400" />
+        <KpiCard icon="🚔" val={arrAll} label="ราย · จับกุม" color="text-amber-400" />
         <KpiCard icon="🧬" val={sum("dna")} label="ราย · เก็บ DNA" color="text-pink-400" />
         <KpiCard icon="📋" val={sum("profile")} label="ราย · ทำประวัติกลุ่มเสี่ยง" color="text-blue-400" />
         <KpiCard icon="🔒" val={seiz} label="คัน · ตรวจยึด" color="text-orange-400" />
