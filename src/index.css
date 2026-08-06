@@ -275,9 +275,9 @@ body {
   --color-slate-400: #5a6b7f;
   --color-slate-300: #33415a;
   --color-slate-200: #1e293b;
-  --color-slate-100: #0f172a;
-  --color-slate-50: #0b1220;
-  --color-white: #0f172a;
+  --color-slate-100: #f1f5f9;
+  --color-slate-50: #f8fafc;
+  --color-white: #ffffff;
 
   /* Accent text/icons (200–400) darkened for light backgrounds */
   --color-blue-200: #1e40af;

@@ -424,11 +424,14 @@ export const ReportDashboard: React.FC<ReportDashboardProps> = ({ searchQuery: _
             <button
               key={p.id}
               onClick={() => applyPreset(p.id as any)}
-              className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all whitespace-nowrap ${
-                preset === p.id 
-                ? 'bg-blue-600 text-white border-blue-500 shadow-md shadow-blue-500/20' 
-                : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-100 hover:text-slate-900'
-              } border`}
+              style={{
+                backgroundColor: preset === p.id ? '#2563eb' : '#ffffff',
+                color: preset === p.id ? '#ffffff' : '#1e293b',
+                borderColor: preset === p.id ? '#2563eb' : '#cbd5e1',
+              }}
+              className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all whitespace-nowrap border shadow-sm ${
+                preset === p.id ? 'shadow-blue-500/20' : 'hover:bg-slate-100'
+              }`}
             >
               {p.label}
             </button>
@@ -440,14 +443,16 @@ export const ReportDashboard: React.FC<ReportDashboardProps> = ({ searchQuery: _
             type="date" 
             value={fromDate}
             onChange={e => { setFromDate(e.target.value); setPreset('all' as any); }}
-            className="bg-white border border-slate-300 rounded-lg px-2.5 py-1 text-slate-800 text-xs focus:outline-none focus:border-blue-500 shadow-sm"
+            style={{ backgroundColor: '#ffffff', color: '#1e293b', borderColor: '#cbd5e1' }}
+            className="border rounded-lg px-2.5 py-1 text-xs focus:outline-none focus:border-blue-500 shadow-sm font-medium"
           />
           <span className="text-slate-400 font-bold">-</span>
           <input 
             type="date" 
             value={toDate}
             onChange={e => { setToDate(e.target.value); setPreset('all' as any); }}
-            className="bg-white border border-slate-300 rounded-lg px-2.5 py-1 text-slate-800 text-xs focus:outline-none focus:border-blue-500 shadow-sm"
+            style={{ backgroundColor: '#ffffff', color: '#1e293b', borderColor: '#cbd5e1' }}
+            className="border rounded-lg px-2.5 py-1 text-xs focus:outline-none focus:border-blue-500 shadow-sm font-medium"
           />
         </div>
       </div>
