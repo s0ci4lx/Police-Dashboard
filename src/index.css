@@ -415,8 +415,7 @@ body {
   [class^="bg-rose-500"],[class*=" bg-rose-500"],[class^="bg-rose-600"],[class*=" bg-rose-600"],[class^="bg-rose-700"],[class*=" bg-rose-700"],
   [class^="bg-pink-600"],[class*=" bg-pink-600"],[class^="bg-fuchsia-600"],[class*=" bg-fuchsia-600"],
   [class^="bg-purple-500"],[class*=" bg-purple-500"],[class^="bg-purple-600"],[class*=" bg-purple-600"],[class^="bg-purple-700"],[class*=" bg-purple-700"],
-  [class^="bg-violet-500"],[class*=" bg-violet-500"],[class^="bg-violet-600"],[class*=" bg-violet-600"],
-  [class^="bg-gradient"],[class*=" bg-gradient"]
+  [class^="bg-violet-500"],[class*=" bg-violet-500"],[class^="bg-violet-600"],[class*=" bg-violet-600"]
 ) :is(.text-white, .hover\:text-white:hover),
 :root[data-theme='light'] :is(
   [class^="bg-blue-500"],[class*=" bg-blue-500"],[class^="bg-blue-600"],[class*=" bg-blue-600"],[class^="bg-blue-700"],[class*=" bg-blue-700"],
@@ -431,8 +430,7 @@ body {
   [class^="bg-rose-500"],[class*=" bg-rose-500"],[class^="bg-rose-600"],[class*=" bg-rose-600"],[class^="bg-rose-700"],[class*=" bg-rose-700"],
   [class^="bg-pink-600"],[class*=" bg-pink-600"],[class^="bg-fuchsia-600"],[class*=" bg-fuchsia-600"],
   [class^="bg-purple-500"],[class*=" bg-purple-500"],[class^="bg-purple-600"],[class*=" bg-purple-600"],[class^="bg-purple-700"],[class*=" bg-purple-700"],
-  [class^="bg-violet-500"],[class*=" bg-violet-500"],[class^="bg-violet-600"],[class*=" bg-violet-600"],
-  [class^="bg-gradient"],[class*=" bg-gradient"]
+  [class^="bg-violet-500"],[class*=" bg-violet-500"],[class^="bg-violet-600"],[class*=" bg-violet-600"]
 ).text-white {
   color: #ffffff;
 }
