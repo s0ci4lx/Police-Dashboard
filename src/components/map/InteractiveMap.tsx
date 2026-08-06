@@ -95,7 +95,24 @@ function MapController({
 
     if (centerChanged) {
       const targetZoom = center.zoom || map.getZoom();
-      map.setView([center.lat, center.lng], targetZoom, {
+
+      let targetLat = center.lat;
+      let targetLng = center.lng;
+
+      // When a marker is selected, its popup opens UPWARD from the pin. Centring
+      // the pin would clip the top of a tall popup, so shift the view centre
+      // north of the pin — the pin lands in the lower half of the map, leaving
+      // headroom above it for the popup. Clearance is capped to a share of the
+      // map height so short maps don't push the pin off the bottom edge.
+      if (selectedMarkerId) {
+        const clearance = Math.min(150, Math.max(60, map.getSize().y * 0.28));
+        const pinPoint = map.project([center.lat, center.lng], targetZoom);
+        const shifted = map.unproject(pinPoint.subtract([0, clearance]), targetZoom);
+        targetLat = shifted.lat;
+        targetLng = shifted.lng;
+      }
+
+      map.setView([targetLat, targetLng], targetZoom, {
         animate: true,
         duration: 0.8,
       });
