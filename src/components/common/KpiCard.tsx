@@ -75,12 +75,14 @@ export const KpiCard: React.FC<KpiCardProps> = ({
       } ${onClick ? 'cursor-pointer hover:-translate-y-1 hover:shadow-xl' : ''}`}
     >
       <div className="flex items-start justify-between gap-3">
-        <div className="space-y-1">
-          <p className="text-xs font-semibold uppercase tracking-wider text-slate-300">{title}</p>
-          <h3 className={`text-2xl lg:text-3xl font-extrabold tracking-tight ${theme.valueColor}`}>
+        <div className="space-y-1 min-w-0 flex-1">
+          <p className="text-xs font-semibold uppercase tracking-wider text-slate-300 truncate">{title}</p>
+          <h3 className={`font-extrabold tracking-tight ${
+            typeof value === 'string' && value.length > 5 ? 'text-lg lg:text-xl leading-tight' : 'text-2xl lg:text-3xl'
+          } ${theme.valueColor}`}>
             {typeof value === 'number' ? value.toLocaleString('th-TH') : value}
           </h3>
-          {subtext && <p className="text-[11px] font-medium text-slate-400">{subtext}</p>}
+          {subtext && <p className="text-[11px] font-medium text-slate-400 truncate">{subtext}</p>}
         </div>
 
         {Icon && (
