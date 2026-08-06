@@ -274,6 +274,8 @@ const MapMarker = ({
 };
 
 
+type MapStyle = 'google-streets' | 'google-satellite' | 'dark' | 'streets';
+
 export const InteractiveMap: React.FC<InteractiveMapProps> = ({
   markers,
   center,
@@ -285,7 +287,7 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
   onClearSelection,
   selectedMarkerId,
 }) => {
-  const [mapStyle, setMapStyle] = React.useState<'streets' | 'satellite' | 'dark'>('streets');
+  const [mapStyle, setMapStyle] = React.useState<MapStyle>('google-streets');
   const [isFullScreen, setIsFullScreen] = React.useState<boolean>(false);
   // Bumped when a selection-driven map move settles, to remount the popup onto
   // the already-settled map (see MapController) so it opens on the first click.
@@ -362,7 +364,7 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
   // leaving e.g. white title text on the white "streets" card. Re-key the popup on
   // style change to recreate it with the right theme, and bump the select-time
   // guard first so the recreate's own popupclose doesn't drop the selection.
-  const changeMapStyle = useCallback((style: 'streets' | 'satellite' | 'dark') => {
+  const changeMapStyle = useCallback((style: MapStyle) => {
     lastSelectChangeTime.current = Date.now();
     setMapStyle(style);
   }, []);
@@ -438,16 +440,27 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
     return <>{list}</>;
   }, [markers, selectedMarkerId, enableClustering, onSelectMarker]);
 
-  const tileUrls = {
-    dark: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
-    streets: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-    satellite: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
-  };
-
-  const tileAttributions = {
-    dark: '&copy; CARTO &copy; OpenStreetMap',
-    streets: '&copy; OpenStreetMap contributors',
-    satellite: '&copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP',
+  const tileProviders: Record<MapStyle, { url: string; attribution: string; subdomains?: string[] }> = {
+    'google-streets': {
+      url: 'https://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}',
+      attribution: '&copy; Google Maps',
+      subdomains: ['mt0', 'mt1', 'mt2', 'mt3'],
+    },
+    'google-satellite': {
+      url: 'https://{s}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}',
+      attribution: '&copy; Google Maps',
+      subdomains: ['mt0', 'mt1', 'mt2', 'mt3'],
+    },
+    dark: {
+      url: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
+      attribution: '&copy; CARTO &copy; OpenStreetMap',
+      subdomains: ['a', 'b', 'c', 'd'],
+    },
+    streets: {
+      url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+      attribution: '&copy; OpenStreetMap contributors',
+      subdomains: ['a', 'b', 'c'],
+    },
   };
 
   return (
@@ -471,30 +484,30 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
 
         <div className="flex items-center gap-2">
           {/* Map Layer Switcher Buttons */}
-          <div className="flex items-center bg-slate-900 p-1 rounded-xl border border-slate-800 text-xs">
+          <div className="flex items-center bg-slate-900 p-1 rounded-xl border border-slate-800 text-xs gap-1">
+            <button
+              onClick={() => changeMapStyle('google-streets')}
+              className={`px-2.5 py-1 rounded-lg transition-all ${
+                mapStyle === 'google-streets' ? 'bg-blue-600 text-white font-bold shadow' : 'text-slate-400 hover:text-slate-200'
+              }`}
+            >
+              Google ถนน
+            </button>
+            <button
+              onClick={() => changeMapStyle('google-satellite')}
+              className={`px-2.5 py-1 rounded-lg transition-all ${
+                mapStyle === 'google-satellite' ? 'bg-blue-600 text-white font-bold shadow' : 'text-slate-400 hover:text-slate-200'
+              }`}
+            >
+              Google ดาวเทียม
+            </button>
             <button
               onClick={() => changeMapStyle('dark')}
-              className={`px-3 py-1 rounded-lg transition-all ${
+              className={`px-2.5 py-1 rounded-lg transition-all ${
                 mapStyle === 'dark' ? 'bg-blue-600 text-white font-bold shadow' : 'text-slate-400 hover:text-slate-200'
               }`}
             >
-              แผนที่มืด (Dark Police)
-            </button>
-            <button
-              onClick={() => changeMapStyle('streets')}
-              className={`px-3 py-1 rounded-lg transition-all ${
-                mapStyle === 'streets' ? 'bg-blue-600 text-white font-bold shadow' : 'text-slate-400 hover:text-slate-200'
-              }`}
-            >
-              ถนน (Streets)
-            </button>
-            <button
-              onClick={() => changeMapStyle('satellite')}
-              className={`px-3 py-1 rounded-lg transition-all ${
-                mapStyle === 'satellite' ? 'bg-blue-600 text-white font-bold shadow' : 'text-slate-400 hover:text-slate-200'
-              }`}
-            >
-              ดาวเทียม (Satellite)
+              แผนที่มืด (Dark)
             </button>
           </div>
 
@@ -543,9 +556,11 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
           />
 
           <TileLayer
-            attribution={tileAttributions[mapStyle]}
-            url={tileUrls[mapStyle]}
-            maxZoom={19}
+            key={mapStyle}
+            attribution={tileProviders[mapStyle].attribution}
+            url={tileProviders[mapStyle].url}
+            subdomains={tileProviders[mapStyle].subdomains || ['a', 'b', 'c']}
+            maxZoom={20}
           />
 
           {renderedMarkers}
