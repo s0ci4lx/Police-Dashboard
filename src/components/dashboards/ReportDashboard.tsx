@@ -408,10 +408,10 @@ export const ReportDashboard: React.FC<ReportDashboardProps> = ({ searchQuery: _
       )}
 
       {/* Filter Presets */}
-      <div className="glass-panel bg-white/80 p-4 rounded-2xl border border-slate-200 flex flex-col md:flex-row md:items-center gap-4 overflow-x-auto shadow-sm">
+      <div className="glass-panel bg-white/90 p-4 rounded-2xl border border-slate-200 flex flex-col md:flex-row md:items-center gap-4 overflow-x-auto shadow-sm">
         <div className="flex items-center gap-2 shrink-0">
           <ListFilter className="w-4 h-4 text-slate-500" />
-          <span className="text-sm font-medium text-slate-700">ช่วงเวลา:</span>
+          <span className="text-sm font-semibold text-slate-700">ช่วงเวลา:</span>
         </div>
         <div className="flex gap-2 shrink-0">
           {[
@@ -426,8 +426,8 @@ export const ReportDashboard: React.FC<ReportDashboardProps> = ({ searchQuery: _
               onClick={() => applyPreset(p.id as any)}
               className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all whitespace-nowrap ${
                 preset === p.id 
-                ? 'bg-blue-600 text-white border-blue-500 shadow-md shadow-blue-900/20' 
-                : 'bg-slate-100 border border-slate-200 text-slate-700 hover:bg-slate-200 hover:text-slate-900 hover:border-slate-300'
+                ? 'bg-blue-600 text-white border-blue-500 shadow-md shadow-blue-500/20' 
+                : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-100 hover:text-slate-900'
               } border`}
             >
               {p.label}
@@ -440,14 +440,14 @@ export const ReportDashboard: React.FC<ReportDashboardProps> = ({ searchQuery: _
             type="date" 
             value={fromDate}
             onChange={e => { setFromDate(e.target.value); setPreset('all' as any); }}
-            className="bg-slate-100 border border-slate-200 rounded-lg px-2.5 py-1 text-slate-700 text-xs focus:outline-none focus:border-blue-500"
+            className="bg-white border border-slate-300 rounded-lg px-2.5 py-1 text-slate-800 text-xs focus:outline-none focus:border-blue-500 shadow-sm"
           />
-          <span className="text-slate-400">-</span>
+          <span className="text-slate-400 font-bold">-</span>
           <input 
             type="date" 
             value={toDate}
             onChange={e => { setToDate(e.target.value); setPreset('all' as any); }}
-            className="bg-slate-100 border border-slate-200 rounded-lg px-2.5 py-1 text-slate-700 text-xs focus:outline-none focus:border-blue-500"
+            className="bg-white border border-slate-300 rounded-lg px-2.5 py-1 text-slate-800 text-xs focus:outline-none focus:border-blue-500 shadow-sm"
           />
         </div>
       </div>
