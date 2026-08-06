@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import type { PersonnelItem } from '../../types/dashboard';
 import { USER_PROVIDED_PERSONNEL_SHEET_URL } from '../../data/mockInitialData';
+import { getDataSource } from '../../config/dataSources';
 import { fetchSheetData } from '../../services/googleSheetService';
 import { KpiCard } from '../common/KpiCard';
 import { StatChart } from '../common/StatChart';
@@ -181,7 +182,8 @@ export const PersonnelDashboard: React.FC<PersonnelDashboardProps> = ({ searchQu
     setLoading(true);
     setSyncStatusMsg('');
     try {
-      const { data, columns } = await fetchSheetData<Record<string, any>>(USER_PROVIDED_PERSONNEL_SHEET_URL);
+      const sheetUrl = getDataSource('personnel') || USER_PROVIDED_PERSONNEL_SHEET_URL;
+      const { data, columns } = await fetchSheetData<Record<string, any>>(sheetUrl);
 
       if (data && data.length > 0) {
         const posCol = columns.find((c) => c.includes('ระดับ') || c.includes('ตำแหน่ง')) || columns[1] || columns[0];

@@ -15,7 +15,7 @@ export const DEFAULT_PAGES: DynamicPageConfig[] = [
     id: 'cctv',
     title: 'กล้องวงจรปิด',
     department: 'งานสืบสวน',
-    sheetUrl: '',
+    sheetUrl: USER_PROVIDED_CCTV_SHEET_URL,
     displayType: 'map-and-table',
     iconName: 'Camera',
     isCustom: false,

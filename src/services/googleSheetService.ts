@@ -19,17 +19,25 @@ export function extractGoogleSheetId(url: string): { sheetId: string | null; gid
 }
 
 /**
- * Converts a Google Sheet shareable link to a public CSV export URL
+ * Converts a Google Sheet shareable link to a public CSV export URL using Google Visualization API (GViz)
+ * GViz endpoint returns 200 OK directly with Access-Control-Allow-Origin: * (no 307 CORS redirect blocks)
  */
 export function getGoogleSheetCsvUrl(url: string): string {
-  // If it's already a direct CSV link or export link
-  if (url.includes('/export?format=csv') || url.includes('/gviz/tq?tqx=out:csv')) {
+  if (!url || !url.trim()) return '';
+
+  // If it's already a GViz out:csv link, return it directly
+  if (url.includes('/gviz/tq?') && url.includes('out:csv')) {
     return url;
   }
 
   const { sheetId, gid } = extractGoogleSheetId(url);
   if (sheetId) {
-    return `https://docs.google.com/spreadsheets/d/${sheetId}/export?format=csv&gid=${gid || '0'}`;
+    // Preserves sheet=... parameter if provided (e.g. sheet=กำลังพล or sheet=cctv)
+    const sheetMatch = url.match(/sheet=([^&]+)/);
+    if (sheetMatch) {
+      return `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:csv&sheet=${sheetMatch[1]}`;
+    }
+    return `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:csv&gid=${gid || '0'}`;
   }
 
   return url;
@@ -39,10 +47,37 @@ export function getGoogleSheetCsvUrl(url: string): string {
  * Fetches and parses Google Sheet CSV data into an array of objects
  */
 export async function fetchSheetData<T extends Record<string, any>>(sheetUrl: string): Promise<{ data: T[]; columns: string[] }> {
+  if (!sheetUrl || !sheetUrl.trim()) {
+    throw new Error('No sheet URL provided');
+  }
+
   const csvUrl = getGoogleSheetCsvUrl(sheetUrl);
 
+  const fetchWithFallback = async (primaryUrl: string): Promise<Response> => {
+    // 1. Direct fetch (GViz endpoint supports CORS directly)
+    try {
+      const res = await fetch(primaryUrl);
+      if (res.ok) return res;
+    } catch (e) {
+      console.warn('Direct Google Sheet fetch failed, trying CORS proxy fallback:', e);
+    }
+
+    // 2. Proxy Fallback 1: corsproxy.io
+    try {
+      const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(primaryUrl)}`;
+      const res = await fetch(proxyUrl);
+      if (res.ok) return res;
+    } catch (e) {
+      console.warn('Corsproxy fallback failed:', e);
+    }
+
+    // 3. Proxy Fallback 2: allorigins
+    const proxyUrl2 = `https://api.allorigins.win/raw?url=${encodeURIComponent(primaryUrl)}`;
+    return await fetch(proxyUrl2);
+  };
+
   try {
-    const response = await fetch(csvUrl);
+    const response = await fetchWithFallback(csvUrl);
     if (!response.ok) {
       throw new Error(`Failed to fetch spreadsheet. Status: ${response.status}`);
     }

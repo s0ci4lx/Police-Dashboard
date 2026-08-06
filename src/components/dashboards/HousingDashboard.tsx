@@ -3,7 +3,7 @@ import { fetchSheetData, detectLatLongColumns, parseRowLatLng } from '../../serv
 import { InteractiveMap, getCategoryColor } from '../map/InteractiveMap';
 import type { MapMarkerItem } from '../map/InteractiveMap';
 import { Home, Users, Car, Phone, MapPin } from 'lucide-react';
-import { getStation } from '../../config/dataSources';
+import { getStation, getDataSource } from '../../config/dataSources';
 import { USER_PROVIDED_HOUSING_SHEET_URL } from '../../data/mockInitialData';
 import { KpiCard } from '../common/KpiCard';
 import { DataTable } from '../common/DataTable';
@@ -28,8 +28,9 @@ export const HousingDashboard: React.FC<HousingDashboardProps> = ({ searchQuery 
   const loadData = async () => {
     setLoading(true);
     try {
-      if (!USER_PROVIDED_HOUSING_SHEET_URL) throw new Error('ไม่พบลิงก์ Google Sheet สำหรับบ้านพักตำรวจ');
-      const { data: rawData, columns } = await fetchSheetData<Record<string, any>>(USER_PROVIDED_HOUSING_SHEET_URL);
+      const sheetUrl = getDataSource('housing') || USER_PROVIDED_HOUSING_SHEET_URL;
+      if (!sheetUrl) throw new Error('ไม่พบลิงก์ Google Sheet สำหรับบ้านพักตำรวจ');
+      const { data: rawData, columns } = await fetchSheetData<Record<string, any>>(sheetUrl);
       const { latCol, lngCol, combinedCol } = detectLatLongColumns(columns);
 
       if (rawData && rawData.length > 0) {

@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import type { CctvItem } from '../../types/dashboard';
 import { SAMPLE_CCTV_DATA, HAT_YAI_STATION_COORDS, USER_PROVIDED_CCTV_SHEET_URL } from '../../data/mockInitialData';
+import { getDataSource } from '../../config/dataSources';
 import { fetchCctvFromSheet } from '../../data/cctvShared';
 import { KpiCard } from '../common/KpiCard';
 import { DataTable } from '../common/DataTable';
@@ -139,8 +140,9 @@ export const CctvDashboard: React.FC<CctvDashboardProps> = ({ searchQuery }) => 
 
   // Auto-load real CCTV points from a configured sheet on mount (falls back to sample)
   useEffect(() => {
-    if (!USER_PROVIDED_CCTV_SHEET_URL) return;
-    fetchCctvFromSheet(USER_PROVIDED_CCTV_SHEET_URL)
+    const sheetUrl = getDataSource('cctv') || USER_PROVIDED_CCTV_SHEET_URL;
+    if (!sheetUrl) return;
+    fetchCctvFromSheet(sheetUrl)
       .then((rows) => {
         if (rows.length) setCctvData(rows);
       })

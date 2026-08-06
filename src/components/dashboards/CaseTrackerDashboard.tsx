@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import type { CaseItem } from '../../types/dashboard';
 import { SAMPLE_CASES_DATA, USER_PROVIDED_SHEET_URL } from '../../data/mockInitialData';
+import { getDataSource } from '../../config/dataSources';
 import { fetchSheetData } from '../../services/googleSheetService';
 import { KpiCard } from '../common/KpiCard';
 import { DataTable } from '../common/DataTable';
@@ -21,7 +22,8 @@ export const CaseTrackerDashboard: React.FC<CaseTrackerDashboardProps> = ({ sear
   const loadLiveData = async () => {
     setLoading(true);
     try {
-      const { data } = await fetchSheetData<any>(USER_PROVIDED_SHEET_URL);
+      const sheetUrl = getDataSource('cases') || USER_PROVIDED_SHEET_URL;
+      const { data } = await fetchSheetData<any>(sheetUrl);
       if (data && data.length > 0) {
         const mappedCases: CaseItem[] = data.map((row: any) => ({
           caseNo: row['เลขคดี'] || row['เลขที่'] || row['CaseNo'] || '-',

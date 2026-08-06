@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import type { WeaponItem } from '../types/dashboard';
 import { USER_PROVIDED_WEAPONS_SHEET_URL } from './mockInitialData';
+import { getDataSource } from '../config/dataSources';
 import { fetchSheetData } from '../services/googleSheetService';
 
 // ---- Categorisation ---------------------------------------------------------
@@ -156,7 +157,8 @@ export function useWeaponsData() {
     setLoading(true);
     setSyncMsg('');
     try {
-      const { data: rows, columns } = await fetchSheetData<Record<string, any>>(USER_PROVIDED_WEAPONS_SHEET_URL);
+      const sheetUrl = getDataSource('weapons') || USER_PROVIDED_WEAPONS_SHEET_URL;
+      const { data: rows, columns } = await fetchSheetData<Record<string, any>>(sheetUrl);
       if (rows && rows.length > 0) {
         const nameCol = columns.find((c) => c.includes('ประเภท') || c.includes('ชนิด')) || columns[1] || columns[0];
         const totalCol = columns.find((c) => c.includes('ทั้งหมด') || c.includes('จำนวน')) || columns[2];

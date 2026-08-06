@@ -24,14 +24,12 @@ export type DataSourceKey = 'cctv' | 'poi' | 'cases' | 'personnel' | 'weapons' |
 
 /** ค่าเริ่มต้นถาวร (ใช้กับทุกเครื่องที่ยังไม่ได้ตั้งค่าเอง) */
 export const DEFAULT_DATA_SOURCES: Record<DataSourceKey, string> = {
-  // กล้องวงจรปิด — เว้นว่าง = ใช้ข้อมูลตัวอย่างจำลอง (825 จุด). ใส่ลิงก์ชีตเพื่อใช้ข้อมูลจริง
-  cctv: '',
-  poi: 'https://docs.google.com/spreadsheets/d/1C0TSUo2oqRcOlbixjymsLFZerkQ1xVTBrlaLHkCdoAU/export?format=csv&gid=1578849502',
-  cases: 'https://docs.google.com/spreadsheets/d/1C0TSUo2oqRcOlbixjymsLFZerkQ1xVTBrlaLHkCdoAU/edit?usp=sharing',
-  personnel:
-    'https://docs.google.com/spreadsheets/d/1C0TSUo2oqRcOlbixjymsLFZerkQ1xVTBrlaLHkCdoAU/gviz/tq?tqx=out:csv&sheet=%E0%B8%81%E0%B8%B3%E0%B8%A5%E0%B8%B1%E0%B8%87%E0%B8%9E%E0%B8%A5',
-  weapons: 'https://docs.google.com/spreadsheets/d/1C0TSUo2oqRcOlbixjymsLFZerkQ1xVTBrlaLHkCdoAU/export?format=csv&gid=1819093863',
-  housing: 'https://docs.google.com/spreadsheets/d/1T9pdnK9RvjfIlBlwefOfrbYP5R4gFAJKzibR6vOLpe4/export?format=csv&gid=1461295631',
+  cctv: 'https://docs.google.com/spreadsheets/d/1T9pdnK9RvjfIlBlwefOfrbYP5R4gFAJKzibR6vOLpe4/gviz/tq?tqx=out:csv&gid=1321923979',
+  poi: 'https://docs.google.com/spreadsheets/d/1T9pdnK9RvjfIlBlwefOfrbYP5R4gFAJKzibR6vOLpe4/gviz/tq?tqx=out:csv&gid=1578849502',
+  cases: 'https://docs.google.com/spreadsheets/d/1C0TSUo2oqRcOlbixjymsLFZerkQ1xVTBrlaLHkCdoAU/gviz/tq?tqx=out:csv&gid=0',
+  personnel: 'https://docs.google.com/spreadsheets/d/1T9pdnK9RvjfIlBlwefOfrbYP5R4gFAJKzibR6vOLpe4/gviz/tq?tqx=out:csv&gid=1365763701',
+  weapons: 'https://docs.google.com/spreadsheets/d/1T9pdnK9RvjfIlBlwefOfrbYP5R4gFAJKzibR6vOLpe4/gviz/tq?tqx=out:csv&gid=1819093863',
+  housing: 'https://docs.google.com/spreadsheets/d/1T9pdnK9RvjfIlBlwefOfrbYP5R4gFAJKzibR6vOLpe4/gviz/tq?tqx=out:csv&gid=1461295631',
 };
 
 export interface StationConfig {

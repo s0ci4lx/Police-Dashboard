@@ -65,7 +65,7 @@ export const ReportDashboard: React.FC<ReportDashboardProps> = ({ searchQuery: _
 
   useEffect(() => {
     // Load config (use the provided Google Sheet link as default)
-    const defaultUrl = 'https://docs.google.com/spreadsheets/d/1Cri1olPyS5x_zzMOyRSCAyDmGVhbfkweYhg6molwWQs/edit?gid=1998218474#gid=1998218474';
+    const defaultUrl = 'https://docs.google.com/spreadsheets/d/1Cri1olPyS5x_zzMOyRSCAyDmGVhbfkweYhg6molwWQs/gviz/tq?tqx=out:csv&gid=1998218474';
     const savedUrl = localStorage.getItem(URL_KEY) || (window as any).WEBAPP_URL || defaultUrl;
     setApiUrl(savedUrl);
 
@@ -74,23 +74,13 @@ export const ReportDashboard: React.FC<ReportDashboardProps> = ({ searchQuery: _
       const stored = JSON.parse(localStorage.getItem(STORE_KEY) || '{}');
       if (Object.keys(stored).length > 0) {
         setDataMap(stored);
-      } else {
-        // Mock data if completely empty so we can see the dashboard
-        const todayStr = getLocalYMD();
-        const mock: Record<string, ReportRow> = {
-          [todayStr]: {
-            date: todayStr,
-            relcp: 2, popup: 1, car: 12, mc: 24, person: 36, ccar: 0, cmc: 0, cperson: 0,
-            dna: 2, profile: 1, s1mc: 1, s1car: 0, s2mc: 0, s2car: 0, rent: 2,
-            arrests: [{ name: 'ยาเสพติด', count: 1 }, { name: 'ตามหมายจับ', count: 1 }]
-          }
-        };
-        setDataMap(mock);
       }
     } catch (e) {
       console.error("Failed to parse report data", e);
     }
 
+    // Auto sync live data from Google Sheet on mount
+    syncFromSheet(savedUrl);
     applyPreset('30');
   }, []);
 
@@ -104,8 +94,9 @@ export const ReportDashboard: React.FC<ReportDashboardProps> = ({ searchQuery: _
     localStorage.setItem(URL_KEY, val);
   };
 
-  const syncFromSheet = async () => {
-    if (!apiUrl) {
+  const syncFromSheet = async (overrideUrl?: string | React.MouseEvent) => {
+    const targetUrl = (typeof overrideUrl === 'string' && overrideUrl) ? overrideUrl : apiUrl;
+    if (!targetUrl) {
       showToast("⚠️ กรุณาตั้งค่า Web App URL ก่อน");
       setShowSettings(true);
       return;
@@ -116,12 +107,12 @@ export const ReportDashboard: React.FC<ReportDashboardProps> = ({ searchQuery: _
       let rowsData: any[] = [];
       
       // Check if it's a direct Google Sheet URL
-      if (apiUrl.includes('/d/') || apiUrl.includes('spreadsheets')) {
-        const result = await fetchSheetData<any>(apiUrl);
+      if (targetUrl.includes('/d/') || targetUrl.includes('spreadsheets')) {
+        const result = await fetchSheetData<any>(targetUrl);
         rowsData = result.data;
       } else {
         // Fallback to Web App JSON
-        const res = await fetch(apiUrl + "?t=" + Date.now());
+        const res = await fetch(targetUrl + "?t=" + Date.now());
         const j = await res.json();
         if (j && j.rows) {
           rowsData = j.rows;
@@ -140,7 +131,7 @@ export const ReportDashboard: React.FC<ReportDashboardProps> = ({ searchQuery: _
           } catch (e) {
             // Handle unescaped quotes in CSV string if any
             try {
-              let cleaned = r.arrests.replace(/""/g, '"');
+              let cleaned = String(r.arrests || '').replace(/""/g, '"');
               if (cleaned.startsWith('"') && cleaned.endsWith('"')) {
                 cleaned = cleaned.substring(1, cleaned.length - 1);
               }
