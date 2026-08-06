@@ -255,7 +255,7 @@ export const CctvDashboard: React.FC<CctvDashboardProps> = ({ searchQuery }) => 
   const agencyBreakdown = useMemo(() => {
     const counts: Record<string, number> = {};
     cctvData.forEach((c) => {
-      const name = (c.agency || 'ไม่ระบุหน่วยงาน').trim();
+      const name = (c.agency || 'ส่วนกลาง').trim();
       counts[name] = (counts[name] || 0) + 1;
     });
     return Object.entries(counts).sort((a, b) => b[1] - a[1]);
@@ -549,7 +549,7 @@ export const CctvDashboard: React.FC<CctvDashboardProps> = ({ searchQuery }) => 
 
             <div className="lg:col-span-4">
               <StatChart
-                title="สัดส่วนกล้องวงจรปิดแยกตามหน่วยงานสังกัด"
+                title="สัดส่วนกล้องวงจรปิดแยกตามหน่วยงาน/พื้นที่"
                 type="pie"
                 labels={agencyBreakdown.map(([name]) => name)}
                 dataValues={agencyBreakdown.map(([, count]) => count)}
@@ -787,7 +787,7 @@ export const CctvDashboard: React.FC<CctvDashboardProps> = ({ searchQuery }) => 
         {/* Analytics */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
           <StatChart
-            title="สัดส่วนจุดติดตั้งแยกตามหน่วยงานสังกัด"
+            title="สัดส่วนจุดติดตั้งแยกตามหน่วยงาน/พื้นที่"
             type="doughnut"
             labels={Object.keys(wallStats.agencyCount)}
             dataValues={Object.values(wallStats.agencyCount)}

@@ -20,7 +20,7 @@
  * (ระบบจะแปลงลิงก์ปกติเป็น CSV ให้อัตโนมัติ)
  * ========================================================================== */
 
-export type DataSourceKey = 'cctv' | 'poi' | 'cases' | 'personnel' | 'weapons';
+export type DataSourceKey = 'cctv' | 'poi' | 'cases' | 'personnel' | 'weapons' | 'housing';
 
 /** ค่าเริ่มต้นถาวร (ใช้กับทุกเครื่องที่ยังไม่ได้ตั้งค่าเอง) */
 export const DEFAULT_DATA_SOURCES: Record<DataSourceKey, string> = {
@@ -31,6 +31,7 @@ export const DEFAULT_DATA_SOURCES: Record<DataSourceKey, string> = {
   personnel:
     'https://docs.google.com/spreadsheets/d/1C0TSUo2oqRcOlbixjymsLFZerkQ1xVTBrlaLHkCdoAU/gviz/tq?tqx=out:csv&sheet=%E0%B8%81%E0%B8%B3%E0%B8%A5%E0%B8%B1%E0%B8%87%E0%B8%9E%E0%B8%A5',
   weapons: 'https://docs.google.com/spreadsheets/d/1C0TSUo2oqRcOlbixjymsLFZerkQ1xVTBrlaLHkCdoAU/export?format=csv&gid=1819093863',
+  housing: 'https://docs.google.com/spreadsheets/d/1T9pdnK9RvjfIlBlwefOfrbYP5R4gFAJKzibR6vOLpe4/export?format=csv&gid=1461295631',
 };
 
 export interface StationConfig {
@@ -58,6 +59,7 @@ export const DATA_SOURCE_META: Array<{
   { key: 'cases', label: 'คดีระหว่างสอบสวน', page: 'คดีระหว่างสอบสวน' },
   { key: 'personnel', label: 'ข้อมูลกำลังพล', page: 'ข้อมูลกำลังพล' },
   { key: 'weapons', label: 'อาวุธปืน / ยุทธภัณฑ์', page: 'อาวุธปืนสิ่งของหลวง · ภาพรวมความพร้อม' },
+  { key: 'housing', label: 'ข้อมูลบ้านพักตำรวจ', page: 'บ้านพักตำรวจ' },
 ];
 
 /* ----------------------------- ตัว resolver ------------------------------ */
@@ -228,7 +230,7 @@ export function importConfig(json: string): boolean {
   try {
     const parsed = JSON.parse(json) as OverrideBlob;
     const clean: OverrideBlob = {};
-    const validKeys: DataSourceKey[] = ['cctv', 'poi', 'cases', 'personnel', 'weapons'];
+    const validKeys: DataSourceKey[] = ['cctv', 'poi', 'cases', 'personnel', 'weapons', 'housing'];
 
     if (parsed.sources && typeof parsed.sources === 'object') {
       clean.sources = {};

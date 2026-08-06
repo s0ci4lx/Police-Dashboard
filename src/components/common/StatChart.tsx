@@ -29,6 +29,7 @@ interface StatChartProps {
   labels: string[];
   dataValues: number[];
   customColors?: string[];
+  onSegmentClick?: (label: string, index: number) => void;
 }
 
 const DEFAULT_PALETTE = [
@@ -48,6 +49,7 @@ export const StatChart: React.FC<StatChartProps> = ({
   labels,
   dataValues,
   customColors = DEFAULT_PALETTE,
+  onSegmentClick,
 }) => {
   const chartData = {
     labels,
@@ -66,8 +68,15 @@ export const StatChart: React.FC<StatChartProps> = ({
   const chartOptions: any = {
     responsive: true,
     maintainAspectRatio: false,
+    onClick: (_: any, elements: any[]) => {
+      if (elements && elements.length > 0 && onSegmentClick) {
+        const index = elements[0].index;
+        onSegmentClick(labels[index], index);
+      }
+    },
     plugins: {
       legend: {
+        display: type !== 'bar',
         position: 'bottom',
         labels: {
           color: '#cbd5e1',

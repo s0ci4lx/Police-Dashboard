@@ -64,7 +64,9 @@ export const LocalPoiDashboard: React.FC<LocalPoiDashboardProps> = ({ searchQuer
       if (data && data.length > 0) {
         const nameCol = columns.find((c) => c.includes('ชื่อ') || c.includes('สถานที่')) || columns[1] || columns[0];
         const categoryCol = columns.find((c) => c.includes('ประเภท') || c.includes('หมวด')) || columns[3] || columns[0];
-        const notesCol = columns.find((c) => c.includes('ที่อยู่') || c.includes('ที่ตั้ง') || c.includes('หมายเหตุ') || c.includes('รายละเอียด')) || '';
+        const subCategoryCol = columns.find((c) => c.includes('ย่อย')) || '';
+        const addressCol = columns.find((c) => c.includes('ที่อยู่') || c.includes('ที่ตั้ง')) || '';
+        const notesCol = columns.find((c) => c.includes('หมายเหตุ') || c.includes('รายละเอียด')) || '';
         const subdistrictCol = columns.find((c) => c.includes('ตำบล') || c.includes('ต.')) || '';
         const mooCol = columns.find((c) => c.includes('หมู่') || c.includes('ม.')) || '';
 
@@ -100,13 +102,15 @@ export const LocalPoiDashboard: React.FC<LocalPoiDashboardProps> = ({ searchQuer
             no: idx + 1,
             category: cat,
             name: String(row[nameCol] || `สถานที่ #${idx + 1}`),
-            address: String(row[notesCol] || '-'),
+            address: addressCol ? String(row[addressCol]) : '-',
             contactPerson: areaVal !== 'ไม่ระบุพื้นที่' ? `พื้นที่ ${areaVal}` : 'เจ้าหน้าที่ดูแล',
             phone: '074-200000',
             lat: lat || 7.0084,
             lng: lng || 100.4767,
             riskLevel: cat === 'ธนาคาร' || cat === 'ร้านสะดวกซื้อ' ? 'สูง' : 'ปกติ',
             policeSubstation: areaVal,
+            subCategory: subCategoryCol ? String(row[subCategoryCol]) : undefined,
+            notes: notesCol ? String(row[notesCol]) : undefined,
           };
         });
 
@@ -194,8 +198,9 @@ export const LocalPoiDashboard: React.FC<LocalPoiDashboardProps> = ({ searchQuer
       lng: item.lng,
       title: item.name,
       category: item.category,
-      address: item.policeSubstation || 'ไม่ระบุพื้นที่',
-      notes: item.address,
+      address: item.address !== '-' ? item.address : (item.policeSubstation || 'ไม่ระบุพื้นที่'),
+      notes: item.notes,
+      type: item.subCategory,
       status: `หมวดหมู่: ${item.category}`,
       color: getCategoryColor(item.category),
       rawData: item,
@@ -214,12 +219,17 @@ export const LocalPoiDashboard: React.FC<LocalPoiDashboardProps> = ({ searchQuer
       key: 'category',
       header: 'หมวดหมู่สถานที่',
       render: (row) => (
-        <span
-          className="px-2.5 py-0.5 rounded text-[11px] font-bold text-white shadow-sm inline-block"
-          style={{ backgroundColor: getCategoryColor(row.category) }}
-        >
-          {row.category}
-        </span>
+        <div>
+          <span
+            className="px-2.5 py-0.5 rounded text-[11px] font-bold text-white shadow-sm inline-block"
+            style={{ backgroundColor: getCategoryColor(row.category) }}
+          >
+            {row.category}
+          </span>
+          {row.subCategory && (
+            <div className="text-[10px] text-slate-400 mt-1">ย่อย: {row.subCategory}</div>
+          )}
+        </div>
       ),
     },
     {
@@ -235,6 +245,12 @@ export const LocalPoiDashboard: React.FC<LocalPoiDashboardProps> = ({ searchQuer
     {
       key: 'address',
       header: 'ที่อยู่ / หมายเหตุ',
+      render: (row) => (
+        <div>
+          <div className="text-slate-200">{row.address !== '-' ? row.address : ''}</div>
+          {row.notes && <div className="text-[11px] text-slate-400 italic mt-0.5">{row.notes}</div>}
+        </div>
+      ),
     },
     {
       key: 'policeSubstation',
@@ -430,13 +446,18 @@ export const LocalPoiDashboard: React.FC<LocalPoiDashboardProps> = ({ searchQuer
           <div className="w-full max-w-md glass-panel bg-slate-900 border border-slate-700 rounded-2xl p-5 shadow-2xl space-y-3 max-h-[88vh] overflow-y-auto">
             <div className="flex items-center justify-between border-b border-slate-800 pb-3">
               <div className="flex items-center gap-2">
-                <span
-                  className="px-2.5 py-0.5 rounded text-[10px] font-bold text-white shadow-sm"
-                  style={{ backgroundColor: CATEGORY_COLORS[inspectPoi.category] || '#3b82f6' }}
-                >
-                  {inspectPoi.category}
-                </span>
-                <h3 className="text-base font-bold text-white truncate max-w-[200px]">
+                <div>
+                  <span
+                    className="px-2.5 py-0.5 rounded text-[10px] font-bold text-white shadow-sm inline-block"
+                    style={{ backgroundColor: CATEGORY_COLORS[inspectPoi.category] || '#3b82f6' }}
+                  >
+                    {inspectPoi.category}
+                  </span>
+                  {inspectPoi.subCategory && (
+                    <div className="text-[10px] text-blue-300 mt-0.5 font-semibold">ย่อย: {inspectPoi.subCategory}</div>
+                  )}
+                </div>
+                <h3 className="text-base font-bold text-white max-w-[200px] leading-tight ml-1">
                   {inspectPoi.name}
                 </h3>
               </div>

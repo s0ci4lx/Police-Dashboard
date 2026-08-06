@@ -21,6 +21,7 @@ import { PersonnelDashboard } from './components/dashboards/PersonnelDashboard';
 import { TrafficDashboard } from './components/dashboards/TrafficDashboard';
 import { WeaponsDashboard } from './components/dashboards/WeaponsDashboard';
 import { WeaponsReadinessDashboard } from './components/dashboards/WeaponsReadinessDashboard';
+import { HousingDashboard } from './components/dashboards/HousingDashboard';
 import { ReportDashboard } from './components/dashboards/ReportDashboard';
 import { GenericSheetDashboard } from './components/dashboards/GenericSheetDashboard';
 
@@ -219,6 +220,7 @@ export function App() {
         {activeAllowed && activePageId === 'weapons' && <WeaponsDashboard searchQuery={searchQuery} />}
         {activeAllowed && activePageId === 'weapons-readiness' && <WeaponsReadinessDashboard searchQuery={searchQuery} />}
         {activeAllowed && activePageId === 'reports' && <ReportDashboard searchQuery={searchQuery} />}
+        {activeAllowed && activePageId === 'housing' && <HousingDashboard searchQuery={searchQuery} />}
         {activeAllowed &&
           activePageId !== 'cctv' &&
           activePageId !== 'cctv-wall' &&
@@ -228,7 +230,8 @@ export function App() {
           activePageId !== 'traffic' &&
           activePageId !== 'weapons' &&
           activePageId !== 'weapons-readiness' &&
-          activePageId !== 'reports' && (
+          activePageId !== 'reports' &&
+          activePageId !== 'housing' && (
             <GenericSheetDashboard pageConfig={activePageConfig} searchQuery={searchQuery} />
           )}
       </main>

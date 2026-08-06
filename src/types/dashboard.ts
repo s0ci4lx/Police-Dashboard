@@ -2,7 +2,7 @@ export type ViewMode = 'cctv' | 'poi' | 'cases' | 'traffic' | 'weapons' | 'perso
 
 export type DisplayType = 'map-and-table' | 'table-and-chart' | 'map-only' | 'table-only';
 
-export type PoliceDepartment = 'งานสืบสวน' | 'งานสอบสวน' | 'งานจราจร' | 'งานป้องกันปราบปราม' | 'งานส่งกำลังบำรุง' | 'งานบริหาร' | 'ข้อมูลท้องถิ่น' | 'กำลังพล' | 'อื่นๆ';
+export type PoliceDepartment = 'งานสืบสวน' | 'งานสอบสวน' | 'งานจราจร' | 'งานป้องกันปราบปราม' | 'งานส่งกำลังบำรุง' | 'งานบริหาร' | 'ข้อมูลท้องถิ่น' | 'กำลังพล' | 'งานสื่อสาร' | 'งานสวัสดิการ' | 'โครงสร้างพื้นฐาน' | 'อื่นๆ';
 
 export interface DynamicPageConfig {
   id: string;
@@ -45,6 +45,8 @@ export interface PoiItem {
   lng: number;
   riskLevel?: 'ต่ำ' | 'ปานกลาง' | 'สูง' | 'เฝ้าระวังพิเศษ' | 'ปกติ' | string;
   policeSubstation?: string;
+  subCategory?: string;
+  notes?: string;
 }
 
 export interface CaseItem {
@@ -56,6 +58,24 @@ export interface CaseItem {
   investigator: string;
   duration: string;
   formattedDate: string;
+}
+
+export interface HousingItem {
+  id: string;
+  no: number;
+  rank: string;
+  firstName: string;
+  lastName: string;
+  position: string;
+  agency: string;
+  address: string;
+  subdistrict: string;
+  district: string;
+  province: string;
+  lat: number;
+  lng: number;
+  vehicle: string;
+  phone: string;
 }
 
 export interface WeaponItem {

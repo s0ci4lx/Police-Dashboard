@@ -16,7 +16,7 @@ export async function fetchCctvFromSheet(sheetUrl: string): Promise<CctvItem[]> 
   const { latCol, lngCol, combinedCol } = detectLatLongColumns(columns);
   const center = getStation().center;
 
-  const agencyCol = columns.find((c) => c.includes('หน่วยงาน') || c.includes('สังกัด')) || columns[0];
+  const agencyCol = columns.find((c) => c.includes('หน่วยงาน') || c.includes('สังกัด') || c.includes('ตำบล'));
   const locationCol =
     columns.find((c) => c.includes('ชื่อ') || c.includes('สถานที่') || c.includes('จุด')) || columns[1] || columns[0];
   const addressCol = columns.find((c) => c.includes('ที่อยู่') || c.includes('ที่ตั้ง') || c.includes('ทำเล') || c.includes('เขต') || c.includes('พื้นที่')) || '';
@@ -25,7 +25,7 @@ export async function fetchCctvFromSheet(sheetUrl: string): Promise<CctvItem[]> 
   const statusCol = columns.find((c) => c.includes('สถานะ')) || '';
 
   return data
-    .filter((row) => row[locationCol] || row[agencyCol])
+    .filter((row) => row[locationCol])
     .map((row, idx) => {
       const { lat, lng } = parseRowLatLng(row, latCol, lngCol, combinedCol);
       const rawType = typeCol ? String(row[typeCol] || '').trim() : '';
@@ -34,7 +34,7 @@ export async function fetchCctvFromSheet(sheetUrl: string): Promise<CctvItem[]> 
       return {
         id: `sheet-cam-${idx + 1}`,
         no: idx + 1,
-        agency: String(row[agencyCol] || 'หน่วยงาน').trim(),
+        agency: agencyCol ? String(row[agencyCol] || 'ส่วนกลาง').trim() : 'ส่วนกลาง',
         locationName: String(row[locationCol] || `จุดกล้องที่ ${idx + 1}`).trim(),
         address: (addressCol ? String(row[addressCol] || '').trim() : '') || '-',
         notes: String(row[notesCol] || '').trim(),

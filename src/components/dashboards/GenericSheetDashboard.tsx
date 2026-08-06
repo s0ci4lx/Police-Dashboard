@@ -99,9 +99,12 @@ export const GenericSheetDashboard: React.FC<GenericSheetDashboardProps> = ({
 
   // Dynamic Column Definitions
   const tableColumns: ColumnDef<Record<string, any>>[] = useMemo(() => {
-    return columns.slice(0, 7).map((col) => ({
-      key: col,
-      header: col,
+    return columns
+      .filter((col) => col.trim() !== 'ลำดับ' && col.toLowerCase().trim() !== 'no' && col.toLowerCase().trim() !== 'no.')
+      .slice(0, 7)
+      .map((col) => ({
+        key: col,
+        header: col,
       render: (row) => {
         const val = row[col];
         if (col === latCol || col === lngCol) {

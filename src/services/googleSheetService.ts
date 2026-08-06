@@ -79,14 +79,14 @@ export function detectLatLongColumns(columns: string[]): { latCol?: string; lngC
 
   for (const col of columns) {
     const lower = col.toLowerCase().trim();
-    if (!latCol && (lower === 'lat' || lower.includes('ละติจูด') || lower === 'y')) {
+    if (!combinedCol && (lower.includes('พิกัด') || lower.includes('coordinate') || lower.includes('location'))) {
+      combinedCol = col;
+    } else if (!latCol && (lower === 'lat' || lower.includes('ละติจูด') || lower === 'y')) {
       latCol = col;
     }
-    if (!lngCol && (lower === 'lng' || lower === 'lon' || lower.includes('ลองจิจูด') || lower === 'x')) {
+    
+    if (latCol !== col && !lngCol && (lower === 'lng' || lower === 'lon' || lower.includes('ลองจิจูด') || lower === 'x')) {
       lngCol = col;
-    }
-    if (!combinedCol && (lower === 'พิกัด' || lower.includes('coordinate') || lower.includes('location'))) {
-      combinedCol = col;
     }
   }
 
@@ -97,7 +97,7 @@ export function detectLatLongColumns(columns: string[]): { latCol?: string; lngC
  * Helper to parse lat/lng numbers from a row object
  */
 export function parseRowLatLng(row: Record<string, any>, latCol?: string, lngCol?: string, combinedCol?: string): { lat?: number; lng?: number } {
-  if (latCol && lngCol && row[latCol] !== undefined && row[lngCol] !== undefined) {
+  if (latCol && lngCol && latCol !== lngCol && row[latCol] !== undefined && row[lngCol] !== undefined) {
     const lat = parseFloat(String(row[latCol]));
     const lng = parseFloat(String(row[lngCol]));
     if (!isNaN(lat) && !isNaN(lng)) return { lat, lng };

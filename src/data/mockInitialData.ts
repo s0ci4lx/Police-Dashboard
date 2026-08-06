@@ -8,6 +8,7 @@ export const USER_PROVIDED_POI_SHEET_URL = getDataSource('poi');
 export const USER_PROVIDED_WEAPONS_SHEET_URL = getDataSource('weapons');
 export const USER_PROVIDED_PERSONNEL_SHEET_URL = getDataSource('personnel');
 export const USER_PROVIDED_CCTV_SHEET_URL = getDataSource('cctv');
+export const USER_PROVIDED_HOUSING_SHEET_URL = getDataSource('housing');
 
 export const DEFAULT_PAGES: DynamicPageConfig[] = [
   {
@@ -88,6 +89,16 @@ export const DEFAULT_PAGES: DynamicPageConfig[] = [
     sheetUrl: '',
     displayType: 'table-and-chart',
     iconName: 'LayoutGrid',
+    isCustom: false,
+    createdAt: Date.now(),
+  },
+  {
+    id: 'housing',
+    title: 'บ้านพักตำรวจ',
+    department: 'งานสวัสดิการ',
+    sheetUrl: USER_PROVIDED_HOUSING_SHEET_URL,
+    displayType: 'map-and-table',
+    iconName: 'Home',
     isCustom: false,
     createdAt: Date.now(),
   },
