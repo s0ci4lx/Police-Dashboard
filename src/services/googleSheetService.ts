@@ -25,8 +25,11 @@ export function extractGoogleSheetId(url: string): { sheetId: string | null; gid
 export function getGoogleSheetCsvUrl(url: string): string {
   if (!url || !url.trim()) return '';
 
-  // If it's already a GViz out:csv link, return it directly
+  // If it's already a GViz out:csv link, ensure headers=1 parameter is present
   if (url.includes('/gviz/tq?') && url.includes('out:csv')) {
+    if (!url.includes('headers=')) {
+      return url + '&headers=1';
+    }
     return url;
   }
 
@@ -35,9 +38,9 @@ export function getGoogleSheetCsvUrl(url: string): string {
     // Preserves sheet=... parameter if provided (e.g. sheet=กำลังพล or sheet=cctv)
     const sheetMatch = url.match(/sheet=([^&]+)/);
     if (sheetMatch) {
-      return `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:csv&sheet=${sheetMatch[1]}`;
+      return `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:csv&headers=1&sheet=${sheetMatch[1]}`;
     }
-    return `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:csv&gid=${gid || '0'}`;
+    return `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:csv&headers=1&gid=${gid || '0'}`;
   }
 
   return url;
