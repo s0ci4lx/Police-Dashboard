@@ -16,9 +16,7 @@ import { SettingsModal } from './components/layout/SettingsModal';
 import { CctvDashboard } from './components/dashboards/CctvDashboard';
 
 import { LocalPoiDashboard } from './components/dashboards/LocalPoiDashboard';
-import { CaseTrackerDashboard } from './components/dashboards/CaseTrackerDashboard';
 import { PersonnelDashboard } from './components/dashboards/PersonnelDashboard';
-import { TrafficDashboard } from './components/dashboards/TrafficDashboard';
 import { WeaponsDashboard } from './components/dashboards/WeaponsDashboard';
 import { WeaponsReadinessDashboard } from './components/dashboards/WeaponsReadinessDashboard';
 import { HousingDashboard } from './components/dashboards/HousingDashboard';
@@ -212,11 +210,8 @@ export function App() {
 
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 lg:px-8 py-6 space-y-6">
         {activeAllowed && activePageId === 'cctv' && <CctvDashboard searchQuery={searchQuery} />}
-
         {activeAllowed && activePageId === 'poi' && <LocalPoiDashboard searchQuery={searchQuery} />}
-        {activeAllowed && activePageId === 'cases' && <CaseTrackerDashboard searchQuery={searchQuery} />}
         {activeAllowed && activePageId === 'personnel' && <PersonnelDashboard searchQuery={searchQuery} />}
-        {activeAllowed && activePageId === 'traffic' && <TrafficDashboard searchQuery={searchQuery} />}
         {activeAllowed && activePageId === 'weapons' && <WeaponsDashboard searchQuery={searchQuery} />}
         {activeAllowed && activePageId === 'weapons-readiness' && <WeaponsReadinessDashboard searchQuery={searchQuery} />}
         {activeAllowed && activePageId === 'reports' && <ReportDashboard searchQuery={searchQuery} />}
@@ -225,9 +220,7 @@ export function App() {
           activePageId !== 'cctv' &&
           activePageId !== 'cctv-wall' &&
           activePageId !== 'poi' &&
-          activePageId !== 'cases' &&
           activePageId !== 'personnel' &&
-          activePageId !== 'traffic' &&
           activePageId !== 'weapons' &&
           activePageId !== 'weapons-readiness' &&
           activePageId !== 'reports' &&

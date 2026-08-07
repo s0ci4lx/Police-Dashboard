@@ -1,4 +1,4 @@
-export type ViewMode = 'cctv' | 'poi' | 'cases' | 'traffic' | 'weapons' | 'personnel' | string;
+export type ViewMode = 'cctv' | 'poi' | 'weapons' | 'personnel' | string;
 
 export type DisplayType = 'map-and-table' | 'table-and-chart' | 'map-only' | 'table-only';
 
@@ -47,17 +47,6 @@ export interface PoiItem {
   policeSubstation?: string;
   subCategory?: string;
   notes?: string;
-}
-
-export interface CaseItem {
-  caseNo: string;
-  receiptDate: string;
-  suspect: string;
-  charge: string;
-  station: string;
-  investigator: string;
-  duration: string;
-  formattedDate: string;
 }
 
 export interface HousingItem {

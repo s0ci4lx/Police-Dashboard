@@ -20,13 +20,12 @@
  * (ระบบจะแปลงลิงก์ปกติเป็น CSV ให้อัตโนมัติ)
  * ========================================================================== */
 
-export type DataSourceKey = 'cctv' | 'poi' | 'cases' | 'personnel' | 'weapons' | 'housing';
+export type DataSourceKey = 'cctv' | 'poi' | 'personnel' | 'weapons' | 'housing';
 
 /** ค่าเริ่มต้นถาวร (ใช้กับทุกเครื่องที่ยังไม่ได้ตั้งค่าเอง) */
 export const DEFAULT_DATA_SOURCES: Record<DataSourceKey, string> = {
   cctv: 'https://docs.google.com/spreadsheets/d/1T9pdnK9RvjfIlBlwefOfrbYP5R4gFAJKzibR6vOLpe4/gviz/tq?tqx=out:csv&headers=1&gid=1321923979',
   poi: 'https://docs.google.com/spreadsheets/d/1T9pdnK9RvjfIlBlwefOfrbYP5R4gFAJKzibR6vOLpe4/gviz/tq?tqx=out:csv&headers=1&gid=1578849502',
-  cases: 'https://docs.google.com/spreadsheets/d/1C0TSUo2oqRcOlbixjymsLFZerkQ1xVTBrlaLHkCdoAU/gviz/tq?tqx=out:csv&headers=1&gid=0',
   personnel: 'https://docs.google.com/spreadsheets/d/1T9pdnK9RvjfIlBlwefOfrbYP5R4gFAJKzibR6vOLpe4/gviz/tq?tqx=out:csv&headers=1&gid=1365763701',
   weapons: 'https://docs.google.com/spreadsheets/d/1T9pdnK9RvjfIlBlwefOfrbYP5R4gFAJKzibR6vOLpe4/gviz/tq?tqx=out:csv&headers=1&gid=1819093863',
   housing: 'https://docs.google.com/spreadsheets/d/1T9pdnK9RvjfIlBlwefOfrbYP5R4gFAJKzibR6vOLpe4/gviz/tq?tqx=out:csv&headers=1&gid=1461295631',
@@ -54,7 +53,6 @@ export const DATA_SOURCE_META: Array<{
 }> = [
   { key: 'cctv', label: 'กล้องวงจรปิด (CCTV)', page: 'กล้องวงจรปิด · สารบบกล้อง CCTV', optional: true, hint: 'เว้นว่างไว้ = ใช้ข้อมูลตัวอย่างจำลอง' },
   { key: 'poi', label: 'ข้อมูลท้องถิ่น (จุดสำคัญ)', page: 'ข้อมูลท้องถิ่น' },
-  { key: 'cases', label: 'คดีระหว่างสอบสวน', page: 'คดีระหว่างสอบสวน' },
   { key: 'personnel', label: 'ข้อมูลกำลังพล', page: 'ข้อมูลกำลังพล' },
   { key: 'weapons', label: 'อาวุธปืน / ยุทธภัณฑ์', page: 'อาวุธปืนสิ่งของหลวง · ภาพรวมความพร้อม' },
   { key: 'housing', label: 'ข้อมูลบ้านพักตำรวจ', page: 'บ้านพักตำรวจ' },
@@ -72,7 +70,7 @@ interface OverrideBlob {
 }
 
 /** หน้าที่ซ่อนไว้เป็นค่าเริ่มต้น (ยังปรับปรุงอยู่) — ในโหมด dev/localhost ยังเห็นได้ */
-export const DEFAULT_HIDDEN_PAGES: string[] = ['cases', 'traffic'];
+export const DEFAULT_HIDDEN_PAGES: string[] = [];
 
 import { db } from './firebase';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
@@ -228,7 +226,7 @@ export function importConfig(json: string): boolean {
   try {
     const parsed = JSON.parse(json) as OverrideBlob;
     const clean: OverrideBlob = {};
-    const validKeys: DataSourceKey[] = ['cctv', 'poi', 'cases', 'personnel', 'weapons', 'housing'];
+    const validKeys: DataSourceKey[] = ['cctv', 'poi', 'personnel', 'weapons', 'housing'];
 
     if (parsed.sources && typeof parsed.sources === 'object') {
       clean.sources = {};
